@@ -90,10 +90,24 @@ public class FormFieldsCreatorImpl extends
             }
         }
         
+        if(value == null){
+        
+            value = this.getValueFromProperties(form, object, field, null);
+        }
+        
         LOG.trace("Value: {}, field: {}.{}", value, 
                 field.getDeclaringClass().getName(), field.getName());
         
         return value;
+    }
+    
+    public String getValueFromProperties(
+            Form form, Object object, Field field, String resultIfNone) {
+        
+        final String valStr = this.propertySearch.findOrDefault(
+                WebformProperties.FIELD_DEFAULT_VALUE, field, null);
+        
+        return valStr == null || valStr.isEmpty() ? resultIfNone : valStr;
     }
     
     public Converter<Date, String> getDateToStringConverter(Temporal temporal) {
@@ -227,3 +241,23 @@ public class FormFieldsCreatorImpl extends
         return output == null ? Collections.EMPTY_MAP : output;
     }
 }
+/**
+ * 
+            final Class fieldType = field.getType();
+            if(Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
+                output = Boolean.parseBoolean(valStr);
+            }else if(Short.class.equals(fieldType) || short.class.equals(fieldType)) {
+                output = Short.valueOf(valStr);
+            }else if(Integer.class.equals(fieldType) || int.class.equals(fieldType)) {
+            
+            }else if(Long.class.equals(fieldType) || long.class.equals(fieldType)) {
+            
+            }else if(Float.class.equals(fieldType) || float.class.equals(fieldType)) {
+            
+            }else if(Double.class.equals(fieldType) || double.class.equals(fieldType)) {
+                
+            }else if(fieldType.isAssignableFrom(Date.class)) {
+            
+            }
+ * 
+ */

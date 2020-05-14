@@ -10,6 +10,8 @@ public interface WebformProperties {
     String PROPERTY_PREFIX = "webform";
     
     String FIELDS_TO_IGNORE = "webform.field.ignores";
+    
+    String FIELD_DEFAULT_VALUE = "field.default.value";
 
     String DEFAULT_FIELDS = "field.defaults";
     
