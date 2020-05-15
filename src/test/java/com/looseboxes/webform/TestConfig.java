@@ -20,10 +20,6 @@ public class TestConfig extends TestBase{
     
 //    private static final Logger LOG = LoggerFactory.getLogger(TestConfig.class);
     
-    @Bean public TestUrls testUrls() {
-        return new TestUrls(this.typeTests());
-    }
-    
     @Bean public TypeTests typeTests() {
         return new TypeTestsImpl();
     }
@@ -34,10 +30,6 @@ public class TestConfig extends TestBase{
                 this.typeFromNameResolver());
     }
     
-    public String [] getEntityPackageNames() {
-        return new String[]{com.looseboxes.webform.domain.Blog.class.getPackage().getName()};
-    }
-
     @Bean public TypeFromNameResolver typeFromNameResolver() {
         final Set<Class> classes = this.domainClasses().get();
         return new TypeFromNameResolverUsingClassNames(classes);
@@ -50,6 +42,10 @@ public class TestConfig extends TestBase{
                 .addFromPersistenceXmlFile()
                 .addFromPackages(this.getEntityPackageNames())
                 .build();
+    }
+
+    public String [] getEntityPackageNames() {
+        return new String[0];
     }
 
     @Bean DomainClassesBuilder domainClassesBuilder() {

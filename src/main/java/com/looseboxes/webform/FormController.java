@@ -18,7 +18,6 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
@@ -36,7 +35,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 /**
  * @author hp
  */
-@Controller
 //@see https://stackoverflow.com/questions/30616051/how-to-post-generic-objects-to-a-spring-controller
 @SessionAttributes({ModelAttributes.MODELOBJECT}) 
 public class FormController implements CrudActionNames{

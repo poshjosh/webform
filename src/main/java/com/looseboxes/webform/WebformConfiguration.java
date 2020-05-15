@@ -25,6 +25,7 @@ import com.bc.webform.functions.TypeTests;
 import com.bc.webform.functions.TypeTestsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
@@ -34,6 +35,7 @@ import org.springframework.core.env.Environment;
  * @author hp
  */
 @Configuration
+@ComponentScan(basePackages = {"com.looseboxes.webform"})
 @PropertySource("classpath:webform.properties")
 public class WebformConfiguration {
     

@@ -1,7 +1,7 @@
 package com.looseboxes.webform.store;
 
 /**
- * This exception is thrown when an {@link com.bc.webform.app.properties.AttributesStore AttributesStore}
+ * This exception is thrown when an {@link com.looseboxes.webform.store.AttributeStore AttributesStore}
  * is unbacked by any actual delegate container.
  * @author hp
  */
