@@ -30,7 +30,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import java.util.Map;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * @author hp
@@ -46,6 +51,7 @@ public class FormController implements CrudActionNames{
         void onFormSubmitted(FormRequestParams formReqParams);
     }
     
+    @Autowired private Environment environment;
     @Autowired private FormService genericFormSvc;
     @Autowired private FormValidatorFactory formValidatorFactory;
     @Autowired private AttributeService genericAttributeSvc;
@@ -263,6 +269,55 @@ public class FormController implements CrudActionNames{
         return formSvc;
     }    
     
+    //////////////////////////////////////////////////////////////////////////
+    // Exception handling
+    // @see https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc
+    //////////////////////////////////////////////////////////////////////////
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ModelAndView handleMaxSizeExceeded(
+        MaxUploadSizeExceededException exception, 
+        HttpServletRequest request,  
+        HttpServletResponse response) {
+
+// when form value entered, referer format:  http://.../create/blog     
+// RequestURI for above referer:             http://.../create/blog/validate
+//        final String referer = request.getHeader("referer");
+
+        final ModelAndView modelAndView = new ModelAndView(Templates.ERROR);
+
+        // 1MB is the default, if none is set in properties file
+        final String max = environment.getProperty(
+                SpringProperties.MULTIPART_MAX_FILE_SIZE, "1MB");
+        
+        final String error = 
+                "One or more files, you tried to upload exceeds the max of " + max;
+        
+        messageAttributesSvc.addErrorMessage(modelAndView.getModel(), error);
+        
+        return modelAndView;
+    }
+
+    @ExceptionHandler(FileNotFoundException.class)
+    public ModelAndView handleFileNotFound(
+        FileNotFoundException exception, 
+        HttpServletRequest request,  
+        HttpServletResponse response) {
+  
+        final ModelAndView modelAndView = new ModelAndView(Templates.ERROR);
+        
+        messageAttributesSvc.addErrorMessage(modelAndView.getModel(), 
+                "The file you requested was not found at: " + 
+                        "<br/><small>" + request.getRequestURI() + "</small>" + 
+                        "<p>It may have been moved, or it is no longer available</p>" +
+                        "Also, check that you entered the correct address in the browser." +
+                        "<p>However, keep calm, keep browsing</p>");
+        
+        modelAndView.setStatus(HttpStatus.NOT_FOUND);
+        
+        return modelAndView;
+    }
+    
     private void trace(String method, Object modelMap, FormRequestParams params,
             HttpServletRequest request, HttpServletResponse response) {
         if(LOG.isTraceEnabled()) {
@@ -278,3 +333,26 @@ public class FormController implements CrudActionNames{
         }
     }
 }
+/**
+ * 
+    
+    // When we re-directed to say the form page, the entire gamut of attributes
+    // required for that page to work was missing. Errors everwhere
+    //
+    private String getTarget(HttpServletRequest request, String resultIfNone){
+        final String uri = request.getRequestURI();
+        String target = resultIfNone;
+        if(uri != null && ! uri.isEmpty()) {
+            if(uri.contains("/validate")) {
+                target = Templates.FORM;
+            }else if(uri.contains("/submit")) {
+                target = Templates.FORM_CONFIRMATION;
+            }else{
+                target = resultIfNone;
+            }
+        }
+        LOG.debug("Request.URI: {}, target: {}", uri, target);
+        return target;
+    }
+ * 
+ */
