@@ -5,7 +5,7 @@ import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.CrudActionNames;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.FormController;
+import com.looseboxes.webform.controllers.FormController;
 import com.looseboxes.webform.Print;
 import com.looseboxes.webform.form.FormRequestParams;
 import java.util.List;

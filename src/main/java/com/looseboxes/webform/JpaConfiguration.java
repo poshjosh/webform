@@ -1,5 +1,6 @@
 package com.looseboxes.webform;
 
+import com.looseboxes.webform.controllers.FormController;
 import com.bc.jpa.spring.AbstractJpaConfiguration;
 import com.looseboxes.webform.form.validators.EntityUniqueColumnsValidator;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;

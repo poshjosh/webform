@@ -55,13 +55,6 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
     @Autowired private PropertySearch propertySearch;
     @Autowired private TypeTests typeTests;
     
-//    @Override
-//    public void addViewControllers(ViewControllerRegistry registry) {
-//        registry.addViewController("/home").setViewName("home");
-//        registry.addViewController("/").setViewName("home");
-//        registry.addViewController("/login").setViewName("login");
-//    }
-    
     @Override
     public void addFormatters(FormatterRegistry registry) {
         
@@ -71,10 +64,8 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         registry.addConverter(this.multipartFileToStringConverter());
         registry.addConverter(this.stringToDateConverter());
         registry.addConverter(this.dateToStringConverter());
-//        registry.addConverterFactory(this.idToEntityConverterFactory());
-//        registry.addConverter(this.entityToStringConverter());
-  
-//        registry.addConverter(this.stringIdToBlogTypeConverter());
+        registry.addConverterFactory(this.idToEntityConverterFactory());
+        registry.addConverter(this.entityToStringConverter());
 
         registry.addPrinter(this.domainObjectPrinter());
         registry.addParser(this.domainObjectParser());
@@ -83,10 +74,6 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
     @Bean public EntityToIdConverter entityToIdConverter() {
         return new EntityToIdConverter(this.repoFactory);
     }
-    
-//    @Bean public StringIdToBlogTypeConverter stringIdToBlogTypeConverter() {
-//        return new StringIdToBlogTypeConverter();
-//    }
     
     @Bean public EntityToStringConverter entityToStringConverter() {
         return new EntityToStringConverter(this.typeTests,
