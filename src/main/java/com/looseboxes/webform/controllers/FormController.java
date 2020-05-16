@@ -1,5 +1,11 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.controllers;
 
+import com.looseboxes.webform.CrudActionNames;
+import com.looseboxes.webform.ModelAttributes;
+import com.looseboxes.webform.Params;
+import com.looseboxes.webform.Print;
+import com.looseboxes.webform.SpringProperties;
+import com.looseboxes.webform.Templates;
 import com.looseboxes.webform.form.FormRequestParams;
 import com.looseboxes.webform.services.FileUploadService;
 import com.looseboxes.webform.services.MessageAttributesService;
@@ -58,6 +64,8 @@ public class FormController implements CrudActionNames{
     @Autowired private MessageAttributesService messageAttributesSvc;
     @Autowired private FileUploadService fileUploadSvc;
     @Autowired private OnFormSubmitted onFormSubmitted;
+
+    public FormController() { }
     
     @RequestMapping("/") 
     public String home(){
@@ -335,6 +343,16 @@ public class FormController implements CrudActionNames{
 }
 /**
  * 
+    
+    @Autowired private Environment environment;
+    @Autowired private FormService genericFormSvc;
+    @Autowired private FormValidatorFactory formValidatorFactory;
+    @Autowired private AttributeService genericAttributeSvc;
+    @Autowired private MessageAttributesService messageAttributesSvc;
+    @Autowired private FileUploadService fileUploadSvc;
+    @Autowired private OnFormSubmitted onFormSubmitted;
+
+    public FormController() { }
     
     // When we re-directed to say the form page, the entire gamut of attributes
     // required for that page to work was missing. Errors everwhere
