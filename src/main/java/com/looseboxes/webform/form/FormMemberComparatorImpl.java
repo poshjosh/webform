@@ -12,10 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Comparator which considers the {@link com.looseboxes.webform.WebformProperties#ORDER ORDER}
+ * property declared in the properties file. 
+ * 
+ * See the properties file for documentation.
+ * 
  * @author hp
  */
 public class FormMemberComparatorImpl 
-        extends PreferMandatory implements FormMemberComparator{
+        extends PreferMandatory<Field, Object> implements FormMemberComparator{
 
     private static final Logger LOG = LoggerFactory.getLogger(FormMemberComparatorImpl.class);
     
@@ -26,9 +31,9 @@ public class FormMemberComparatorImpl
     }
 
     @Override
-    public int compare(FormMember lhs, FormMember rhs) {
+    public int compare(FormMember<Field, Object> lhs, FormMember<Field, Object> rhs) {
         
-        int result = this.comparePriorities(lhs, rhs, 0);
+        int result = this.comparePriorities(lhs, rhs);
         
         if(result == 0) {
         
@@ -39,38 +44,34 @@ public class FormMemberComparatorImpl
     }
     
     /**
-     * lhs and rhs are only compared if they both have priorities
      * @param lhs
      * @param rhs
-     * @param resultIfNone
      * @return 
      */
-    public int comparePriorities(FormMember lhs, FormMember rhs, int resultIfNone) {
+    public int comparePriorities(FormMember lhs, FormMember rhs) {
     
         final int left = this.getPriority(lhs);
+        final int right = this.getPriority(rhs);
         
-        int result = resultIfNone;
-        
-        if(left != -1) {
+        final int result;
+        if(left == -1 || right == -1) {
             
-            final int right = this.getPriority(rhs);
+            // Deliberately inverted lhs with rhs
+            //
+            result = Integer.compare(right, left);
             
-            if(right != -1) {
-            
-                result = Integer.compare(left, right);
-            }
+        }else{
+            result = Integer.compare(left, right);
         }
     
-        if(result == resultIfNone) {
-            LOG.trace("Compared priorities: {}, lhs: {}, rhs: {}", result, lhs.getName(), rhs.getName());
-        }else{
-            LOG.debug("Compared priorities: {}, lhs: {}, rhs: {}", result, lhs.getName(), rhs.getName());
-        }
+        LOG.trace("Compared priorities: {}, lhs: {}, rhs: {}", 
+                result, lhs.getName(), rhs.getName());
+
         return result;
     }
     
     /**
-     * A larger number implies a higher priority
+     * A smaller number implies a higher priority
      * @param member
      * @return The priority of the {@link com.bc.webform.FormMember}
      */
@@ -96,7 +97,7 @@ public class FormMemberComparatorImpl
     private String[] _cachedArr;
     
     /**
-     * A larger number implies a higher priority
+     * A smaller number implies a higher priority
      * @param field
      * @return The priority of the field
      */
@@ -113,11 +114,9 @@ public class FormMemberComparatorImpl
             _cachedArr = order;
             _cachedType = type;
         }
-        
-        final int n = order == null || order.length == 0 ? -1 :
+
+        final int result = order == null || order.length == 0 ? -1 :
                 this.indexOf(order, field);
-        
-        final int result = n == -1 ? -1 : (order.length - 1) - n;
         
         LOG.trace("Priority: {}, field: {}.{}", 
                 result, type.getSimpleName(), field.getName());
@@ -172,3 +171,33 @@ public class FormMemberComparatorImpl
         return -1;
     }
 }
+/**
+ * 
+ * 
+
+    public int comparePrioritiesOnlyIfBothHavePriorityValue(
+            FormMember lhs, FormMember rhs, int resultIfNone) {
+    
+        final int left = this.getPriority(lhs);
+        
+        int result = resultIfNone;
+        
+        if(left != -1) {
+            
+            final int right = this.getPriority(rhs);
+            
+            if(right != -1) {
+            
+                result = Integer.compare(left, right);
+            }
+        }
+    
+        if(result == resultIfNone) {
+            LOG.trace("Compared priorities: {}, lhs: {}, rhs: {}", result, lhs.getName(), rhs.getName());
+        }else{
+            LOG.debug("Compared priorities: {}, lhs: {}, rhs: {}", result, lhs.getName(), rhs.getName());
+        }
+        return result;
+    }
+ * 
+ */
