@@ -1,6 +1,6 @@
-package com.looseboxes.webform.properties;
+package com.looseboxes.webform.util;
 
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.PropertySearch;
 import com.looseboxes.webform.TestConfig;
 import java.lang.reflect.Field;
 import java.util.Date;

@@ -16,8 +16,8 @@
 
 package com.looseboxes.webform.converters;
 
-import com.looseboxes.webform.StringUtils;
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.StringArrayUtils;
+import com.looseboxes.webform.util.PropertySearch;
 import com.looseboxes.webform.WebformProperties;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -40,6 +40,9 @@ public class DateAndTimePatternsSupplierImpl
 
     public DateAndTimePatternsSupplierImpl(PropertySearch propertySearch) {
         Objects.requireNonNull(propertySearch);
+        
+        propertySearch = propertySearch.appendingInstance();
+        
         datetimePatterns = addProperties(
                 propertySearch, WebformProperties.FORMATS_DATETIME);
         datePatterns = addProperties(
@@ -62,7 +65,7 @@ public class DateAndTimePatternsSupplierImpl
 
         final String arr = propertySearch.find(propertyName).orElse(null);
         
-        StringUtils.toArrayStream(arr)
+        StringArrayUtils.toStream(arr)
                 .filter((e) -> ! collection.contains(e))
                 .forEach((e) -> collection.add(e));
 

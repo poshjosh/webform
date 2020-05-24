@@ -46,7 +46,6 @@ public class StringToDateConverter implements Converter<String, Date> {
 
     @Override
     public Date convert(String from) {
-        LOG.trace("DATES To convert to Date, String: {}", from);
         Date output = null;
         if(from != null && ! from.isEmpty()) {
             ValidationException ex = null;
@@ -56,9 +55,11 @@ public class StringToDateConverter implements Converter<String, Date> {
                     output = dateFormat.parse(from);
                     break;
                 }catch(java.text.ParseException e) {
-                    LOG.debug("DATES Exception parsing date: {}, with pattern: {}, {}", from, datePattern, e.toString());
+                    LOG.debug("Exception parsing date: {}, with pattern: {}, {}", 
+                            from, datePattern, e.toString());
                     if(ex == null) {
-                        ex = new ValidationException("Invalid value: " + from + ". Valid formats: " + datePatterns, e);
+                        ex = new ValidationException("Invalid value: " + from + 
+                                ". Valid formats: " + datePatterns, e);
                     }else{
                         ex.addSuppressed(e);
                     }

@@ -19,8 +19,9 @@ public class DateToStringConverterImpl implements DateToStringConverter {
         DATE, TIME, DATETIME
     }
     
-    private final SimpleDateFormat dateFormat;
     private final DateAndTimePatternsSupplier patternSupplier;
+    private final SimpleDateFormat dateFormat;
+    private final Set<String> patterns;
 
     public DateToStringConverterImpl(DateAndTimePatternsSupplier patternSupplier) {
         this(patternSupplier, Type.DATETIME);
@@ -29,19 +30,22 @@ public class DateToStringConverterImpl implements DateToStringConverter {
     private DateToStringConverterImpl(
             DateAndTimePatternsSupplier patternSupplier, Type type) {
         this.patternSupplier = Objects.requireNonNull(patternSupplier);
-        final String datePattern = this.getFirstPattern(type, "yyyy-MM-ddTHH:mm:ss");
-        this.dateFormat = new SimpleDateFormat(datePattern);
-//        this.dateFormat.setTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC));
+        this.dateFormat = new SimpleDateFormat();
+        this.patterns = this.getPatterns(type);
     }
 
     @Override
     public String convert(Date from) {
-        final String output = dateFormat.format(from);
-        LOG.trace("Converted: {}, to: {}, using: {}", 
-                from, 
-                output, 
-                dateFormat.toPattern());
-        return output;
+        for(String pattern : patterns) {
+            dateFormat.applyPattern(pattern);
+            final String output = dateFormat.format(from);
+            LOG.trace("Converted: {}, to: {}, using: {}", 
+                    from, 
+                    output, 
+                    dateFormat.toPattern());
+            return output;
+        }
+        return from.toString();
     }
     
     @Override
@@ -59,17 +63,15 @@ public class DateToStringConverterImpl implements DateToStringConverter {
         return new DateToStringConverterImpl(this.patternSupplier, Type.DATETIME);
     }
 
-    private String getFirstPattern(Type type, String resultIfNone) {
+    private Set<String> getPatterns(Type type) {
         final Set<String> patterns;
         switch(type) {
             case DATE: patterns = patternSupplier.getDatePatterns(); break;
             case TIME: patterns = patternSupplier.getTimePatterns(); break;
             case DATETIME: patterns = patternSupplier.getDatetimePatterns(); break;
-            default: throw Errors.unexpected("Type", type, (Object[])Type.values());
+            default: throw Errors.unexpected(type, (Object[])Type.values());
         }        
-        final String first = patterns.stream().findFirst().orElse(null);
-        LOG.trace("Type: {}, first pattern: {}, all patterns: {}", 
-                type, first, patterns);
-        return first == null ? resultIfNone : first;
+        LOG.trace("Type: {}, Patterns: {}", type,patterns);
+        return patterns;
     }
 }

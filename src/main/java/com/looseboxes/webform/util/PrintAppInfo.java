@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.util;
 
 import com.bc.db.meta.access.MetaDataAccess;
 import com.bc.jpa.spring.DomainClasses;

@@ -1,11 +1,13 @@
 package com.looseboxes.webform.controllers;
 
-import com.looseboxes.webform.CrudActionNames;
+import com.looseboxes.webform.FormEndpoints;
+import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.ModelAttributes;
 import com.looseboxes.webform.Params;
-import com.looseboxes.webform.Print;
+import com.looseboxes.webform.util.Print;
 import com.looseboxes.webform.SpringProperties;
-import com.looseboxes.webform.Templates;
+import com.looseboxes.webform.exceptions.RouteException;
+import com.looseboxes.webform.exceptions.TargetNotFoundException;
 import com.looseboxes.webform.form.FormRequestParams;
 import com.looseboxes.webform.services.FileUploadService;
 import com.looseboxes.webform.services.MessageAttributesService;
@@ -14,6 +16,7 @@ import com.looseboxes.webform.form.validators.FormValidatorFactory;
 import com.looseboxes.webform.services.AttributeService;
 import com.looseboxes.webform.store.StoreDelegate;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -42,13 +45,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
+import com.looseboxes.webform.CrudActionName;
 
 /**
  * @author hp
  */
 //@see https://stackoverflow.com/questions/30616051/how-to-post-generic-objects-to-a-spring-controller
 @SessionAttributes({ModelAttributes.MODELOBJECT}) 
-public class FormController implements CrudActionNames{
+public class FormController{
     
     private static final Logger LOG = LoggerFactory.getLogger(FormController.class);
     
@@ -66,19 +70,16 @@ public class FormController implements CrudActionNames{
     @Autowired private OnFormSubmitted onFormSubmitted;
 
     public FormController() { }
-    
-    @RequestMapping("/") 
-    public String home(){
-        // @TODO stream README.md
-        return Templates.HOME;
-    }
 
     @GetMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
     public String showForm(ModelMap model, 
             @PathVariable(name=Params.ACTION, required=true) String action,
+            @RequestParam(value=Params.FORMID, required=false) String formid,
             @PathVariable(name=Params.MODELNAME, required=true) String modelname,
             @RequestParam(value=Params.MODELID, required=false) String modelid,
             @RequestParam(value=Params.MODELFIELDS, required=false) String [] modelfields,
+            @RequestParam(value=Params.PARENT_FORMID, required=false) String parentFormId,
+            @RequestParam(value=Params.TARGET_ON_COMPLETION, required=false) String targetOnCompletion,
             HttpServletRequest request, HttpServletResponse response) 
             throws FileNotFoundException{
         
@@ -87,7 +88,9 @@ public class FormController implements CrudActionNames{
         final Object modelobject = formSvc.begin(action, modelname, modelid);
         
         final FormRequestParams formReqParams = formSvc
-                .toRequestParams(action, modelname, modelid, modelobject, modelfields);
+                .params(action, modelname, modelid, modelobject, 
+                        modelfields, parentFormId, 
+                        getTargetOnCompletion(parentFormId, targetOnCompletion));
         
         if(LOG.isTraceEnabled()) {
             this.trace("showForm", model, formReqParams, request, response);
@@ -96,12 +99,29 @@ public class FormController implements CrudActionNames{
         LOG.debug("{}", formReqParams);
         
         final AttributeService attributeSvc = this.getAttributeService(model, request);
-
+        
         attributeSvc.modelAttributes().putAll(formReqParams.toMap());
         
-        return formSvc.getTemplateForShowingForm(action);
+        formSvc.setSessionAttribute(formReqParams);
+        
+        return formSvc.getFormEndpoints().forCrudAction(CrudActionName.valueOf(action));
     }
     
+    public String getTargetOnCompletion(String parentFormId, String val) {
+        if(val == null || val.isEmpty()) {
+            return null;
+        }else if(parentFormId == null|| parentFormId.isEmpty()){
+            return val;
+        }else {
+            final String toAdd = Params.FORMID + '=' + parentFormId;
+            if( ! val.contains(toAdd)) {
+                final String joiner = val.contains("?") ? "&" : "?";
+                return val + joiner + toAdd;
+            }
+            return val;
+        }
+    }
+
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/validate")
     public String validateForm(
             @Valid @ModelAttribute(ModelAttributes.MODELOBJECT) Object modelobject,
@@ -112,12 +132,15 @@ public class FormController implements CrudActionNames{
             @PathVariable(name=Params.MODELNAME, required=true) String modelname,
             @RequestParam(value=Params.MODELID, required=false) String modelid,
             @RequestParam(value=Params.MODELFIELDS, required=false) String [] modelfields,
+            @RequestParam(value=Params.PARENT_FORMID, required=false) String parentFormId,
+            @RequestParam(value=Params.TARGET_ON_COMPLETION, required=false) String targetOnCompletion,
             HttpServletRequest request, HttpServletResponse response) {
         
         final FormService formSvc = getFormService(model, request);
-        
-        final FormRequestParams formReqParams = formSvc.toRequestParams(
-                action, formid, modelname, modelid, modelobject, modelfields);
+
+        final FormRequestParams formReqParams = formSvc
+                .paramsForValidate(action, formid, modelname, modelid, 
+                modelobject, modelfields, parentFormId, targetOnCompletion);
 
         if(LOG.isTraceEnabled()) {
             this.trace("validateForm", model, formReqParams, request, response);
@@ -132,21 +155,27 @@ public class FormController implements CrudActionNames{
             ValidationUtils.invokeValidator(validator, modelobject, bindingResult);
         }
         
-        final Map<String, Object> formParams = formReqParams.toMap();
-        
         formSvc.checkAll(formReqParams);
   
+        final Map<String, Object> formParams = formReqParams.toMap();
+        
+        final AttributeService attributeSvc = getAttributeService(model, request);
+
+        attributeSvc.modelAttributes().putAll(formParams);
+        
         final String target;
+        
+        final FormEndpoints endpoints = this.genericFormSvc.getFormEndpoints();
         
         if (bindingResult.hasErrors()) {
             
             this.messageAttributesSvc.addErrorsToModel(bindingResult, model);
             
-            target = Templates.FORM;
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            
+            target = endpoints.getForm();
             
         }else{
-            
-            final AttributeService attributeSvc = getAttributeService(model, request);
             
             if(request instanceof MultipartHttpServletRequest) {
             
@@ -156,12 +185,7 @@ public class FormController implements CrudActionNames{
                 attributeSvc.addUploadedFiles(uploadedFiles);
             }
             
-            attributeSvc.putAll(formParams);
-            
-            attributeSvc.sessionAttributes()
-                    .put(getAttributeName(formReqParams.getFormid()), formReqParams);
-            
-            target = Templates.FORM_CONFIRMATION;
+            target = endpoints.getFormConfirmation();
         }
 
         return target;
@@ -175,16 +199,15 @@ public class FormController implements CrudActionNames{
             @PathVariable(name=Params.MODELNAME, required=true) String modelname,
             @RequestParam(value=Params.MODELID, required=false) String modelid,
             @RequestParam(value=Params.MODELFIELDS, required=false) String [] modelfields,
+            @RequestParam(value=Params.PARENT_FORMID, required=false) String parentFormId,
+            @RequestParam(value=Params.TARGET_ON_COMPLETION, required=false) String targetOnCompletion,
             HttpServletRequest request, HttpServletResponse response) {
         
         final FormService formSvc = getFormService(model, request);
-
-        final AttributeService attributeSvc = getAttributeService(model, request);
         
-        final String formAttributeName = this.getAttributeName(formid);
-
-        final FormRequestParams formReqParams = (FormRequestParams)attributeSvc
-                .sessionAttributes().getOrDefault(formAttributeName, null);
+        final FormRequestParams formReqParams = formSvc.paramsForSubmit(
+                action, formid, modelname, modelid, 
+                modelfields, parentFormId, targetOnCompletion);
         
         if(LOG.isTraceEnabled()) {
             this.trace("submitForm", model, formReqParams, request, response);
@@ -196,6 +219,8 @@ public class FormController implements CrudActionNames{
 
         String target;
 
+        final AttributeService attributeSvc = getAttributeService(model, request);
+        
         try{
         
             this.onFormSubmitted.onFormSubmitted(formReqParams);
@@ -206,6 +231,13 @@ public class FormController implements CrudActionNames{
 
             target = this.onFormSubmitSuccessful(model, formReqParams, request, response);
             
+            if(CrudActionName.create.equals(action)) {
+                try{
+                    formSvc.updateParentWithNewlyCreated(formReqParams);
+                }catch(RuntimeException e) {
+                    LOG.warn("Failed to update parent with this form's value", e);
+                }
+            }
         }catch(RuntimeException e) {
 
             attributeSvc.deleteUploadedFiles();
@@ -214,18 +246,14 @@ public class FormController implements CrudActionNames{
             
         }finally{
             
-            attributeSvc.removeAll(new String[]{
-                formAttributeName, ModelAttributes.MODELOBJECT});
+            formSvc.removeSessionAttribute(formReqParams.getFormid());
+            attributeSvc.sessionAttributes().remove(HttpSessionAttributes.MODELOBJECT);
         }
         
         LOG.debug("Target: {}", target);
         
         return target;
     } 
-    
-    public String getAttributeName(String formid) {
-        return com.looseboxes.webform.SessionAttributes.forFormId(formid);    
-    }
 
     public String onFormSubmitSuccessful(
             ModelMap model, FormRequestParams formReqParams,
@@ -240,11 +268,13 @@ public class FormController implements CrudActionNames{
         
         request.setAttribute(ModelAttributes.MESSAGES, Collections.singletonList(m));
         
-        return getTargetAfterSubmit(formReqParams).orElse(Templates.SUCCESS);
+        return getTargetAfterSubmit(formReqParams).orElse(getSuccessEndpoint());
     }
     
     public Optional<String> getTargetAfterSubmit(FormRequestParams formReqParams) {
-        return Optional.empty();
+        final String targetOnCompletion = formReqParams.getTargetOnCompletion();
+        return targetOnCompletion == null ? Optional.empty() : 
+                Optional.of("redirect:" + targetOnCompletion);
     }    
     
     public String onFormSubmitFailed(
@@ -257,7 +287,7 @@ public class FormController implements CrudActionNames{
                 "Unexpected error occured while processing action: " + 
                         formReqParams.getAction() + ' ' + formReqParams.getModelname());
 
-        return Templates.ERROR;
+        return this.getErrorEndpoint();
     }
     
     private AttributeService getAttributeService(
@@ -292,7 +322,9 @@ public class FormController implements CrudActionNames{
 // RequestURI for above referer:             http://.../create/blog/validate
 //        final String referer = request.getHeader("referer");
 
-        final ModelAndView modelAndView = new ModelAndView(Templates.ERROR);
+        final String endpoint = this.getErrorEndpoint();
+
+        final ModelAndView modelAndView = new ModelAndView(endpoint);
 
         // 1MB is the default, if none is set in properties file
         final String max = environment.getProperty(
@@ -303,27 +335,73 @@ public class FormController implements CrudActionNames{
         
         messageAttributesSvc.addErrorMessage(modelAndView.getModel(), error);
         
+        LOG.warn(error, exception);
+        
         return modelAndView;
     }
 
-    @ExceptionHandler(FileNotFoundException.class)
+    @ExceptionHandler(TargetNotFoundException.class)
     public ModelAndView handleFileNotFound(
-        FileNotFoundException exception, 
+        TargetNotFoundException exception, 
         HttpServletRequest request,  
         HttpServletResponse response) {
   
-        final ModelAndView modelAndView = new ModelAndView(Templates.ERROR);
+        final String endpoint = this.getErrorEndpoint();
         
-        messageAttributesSvc.addErrorMessage(modelAndView.getModel(), 
-                "The file you requested was not found at: " + 
-                        "<br/><small>" + request.getRequestURI() + "</small>" + 
-                        "<p>It may have been moved, or it is no longer available</p>" +
-                        "Also, check that you entered the correct address in the browser." +
-                        "<p>However, keep calm, keep browsing</p>");
+        final ModelAndView modelAndView = new ModelAndView(endpoint);
+  
+        final List<String> errors = Arrays.asList(
+                "The page you request was not found",
+                "It may have been moved, or it is no longer available",
+                "Also, check that you entered the correct address in the browser.",
+                "",
+                request.getRequestURI(),
+                "",
+                "Meanwhile, keep calm, keep browsing");
         
+        messageAttributesSvc.addErrorMessage(modelAndView.getModel(), errors);
+
         modelAndView.setStatus(HttpStatus.NOT_FOUND);
         
+        LOG.warn(errors.toString(), exception);
+
         return modelAndView;
+    }
+
+    @ExceptionHandler(RouteException.class)
+    public ModelAndView handleFileNotFound(
+        RouteException exception, 
+        HttpServletRequest request,  
+        HttpServletResponse response) {
+  
+        final String endpoint = this.getErrorEndpoint();
+        
+        final ModelAndView modelAndView = new ModelAndView(endpoint);
+  
+        final List<String> errors = Arrays.asList(
+                "We are unable to fullfill your request at this time.",
+                "",
+                request.getRequestURI(),
+                "",
+                "Meanwhile, keep calm, keep browsing");
+        
+        messageAttributesSvc.addErrorMessage(modelAndView.getModel(), errors);
+
+        modelAndView.setStatus(HttpStatus.NOT_FOUND);
+        
+        LOG.warn(errors.toString(), exception);
+
+        return modelAndView;
+    }
+    
+    private String getErrorEndpoint() {
+        final String endpoint = this.genericFormSvc.getFormEndpoints().getError();
+        return endpoint;
+    }
+    
+    private String getSuccessEndpoint() {
+        final String endpoint = this.genericFormSvc.getFormEndpoints().getSuccess();
+        return endpoint;
     }
     
     private void trace(String method, Object modelMap, FormRequestParams params,
@@ -331,46 +409,43 @@ public class FormController implements CrudActionNames{
         if(LOG.isTraceEnabled()) {
             LOG.trace("==================== " + method + " ====================");
             final Print print = new Print();
-            params.toMap().forEach((k, v) -> {
-                print.add(k, v);
-            });
+            if(params != null) {
+                params.toMap().forEach((k, v) -> {
+                    print.add(k, v);
+                });
+            }
             print.add("ModelMap", modelMap)
             .addHttpRequest(request)
             .addHttpSession(request.getSession())
             .traceAdded();
         }
     }
-}
-/**
- * 
-    
-    @Autowired private Environment environment;
-    @Autowired private FormService genericFormSvc;
-    @Autowired private FormValidatorFactory formValidatorFactory;
-    @Autowired private AttributeService genericAttributeSvc;
-    @Autowired private MessageAttributesService messageAttributesSvc;
-    @Autowired private FileUploadService fileUploadSvc;
-    @Autowired private OnFormSubmitted onFormSubmitted;
 
-    public FormController() { }
-    
-    // When we re-directed to say the form page, the entire gamut of attributes
-    // required for that page to work was missing. Errors everwhere
-    //
-    private String getTarget(HttpServletRequest request, String resultIfNone){
-        final String uri = request.getRequestURI();
-        String target = resultIfNone;
-        if(uri != null && ! uri.isEmpty()) {
-            if(uri.contains("/validate")) {
-                target = Templates.FORM;
-            }else if(uri.contains("/submit")) {
-                target = Templates.FORM_CONFIRMATION;
-            }else{
-                target = resultIfNone;
-            }
-        }
-        LOG.debug("Request.URI: {}, target: {}", uri, target);
-        return target;
+    public Environment getEnvironment() {
+        return environment;
     }
- * 
- */
+
+    public FormService getGenericFormSvc() {
+        return genericFormSvc;
+    }
+
+    public FormValidatorFactory getFormValidatorFactory() {
+        return formValidatorFactory;
+    }
+
+    public AttributeService getGenericAttributeSvc() {
+        return genericAttributeSvc;
+    }
+
+    public MessageAttributesService getMessageAttributesSvc() {
+        return messageAttributesSvc;
+    }
+
+    public FileUploadService getFileUploadSvc() {
+        return fileUploadSvc;
+    }
+
+    public OnFormSubmitted getOnFormSubmitted() {
+        return onFormSubmitted;
+    }
+}

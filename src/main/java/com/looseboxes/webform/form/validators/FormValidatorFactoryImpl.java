@@ -16,13 +16,13 @@
 
 package com.looseboxes.webform.form.validators;
 
-import static com.looseboxes.webform.CrudActionNames.CREATE;
 import com.looseboxes.webform.form.FormRequestParams;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.validation.Validator;
+import static com.looseboxes.webform.CrudActionName.create;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 9:49:31 PM
@@ -40,7 +40,7 @@ public class FormValidatorFactoryImpl implements FormValidatorFactory {
         
         final List<Validator> output = new ArrayList<>(2);
         
-        if(CREATE.equals(formReqParams.getAction())) {
+        if(create.equals(formReqParams.getAction())) {
             
             final Object modelobject = formReqParams.getModelobject();
             

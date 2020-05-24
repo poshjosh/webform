@@ -20,8 +20,8 @@ import java.util.Objects;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.looseboxes.webform.SessionAttributes;
 import org.springframework.lang.Nullable;
+import com.looseboxes.webform.HttpSessionAttributes;
 
 /**
  * @author hp
@@ -74,7 +74,7 @@ public class AttributeService
             Collection<String> attrVal = getUploadedFiles(null);
             if(attrVal == null) {
                 attrVal = new ArrayList<>(filesToAdd.size());
-                final String attrName = SessionAttributes.UPLOADED_FILES_PENDING;
+                final String attrName = HttpSessionAttributes.UPLOADED_FILES_PENDING;
                 sessionAttributes().put(attrName, attrVal);
             }
             return attrVal.addAll(filesToAdd);
@@ -109,13 +109,13 @@ public class AttributeService
     
     public Collection<String> removeUploadedFiles(Collection<String> resultIfNone) {
         final Collection<String> removed = (Collection<String>)sessionAttributes()
-                .remove(SessionAttributes.UPLOADED_FILES_PENDING);
+                .remove(HttpSessionAttributes.UPLOADED_FILES_PENDING);
         return removed == null ? resultIfNone : removed;
     }
     
     public Collection<String> getUploadedFiles(Collection<String> resultIfNone) {
         return (Collection<String>)sessionAttributes()
-                .getOrDefault(SessionAttributes.UPLOADED_FILES_PENDING, resultIfNone);
+                .getOrDefault(HttpSessionAttributes.UPLOADED_FILES_PENDING, resultIfNone);
     }
 
     public AttributeStore<ModelMap> modelAttributes() {

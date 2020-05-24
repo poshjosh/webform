@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform.store;
+package com.looseboxes.webform.util;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
+import com.looseboxes.webform.store.PropertyStore;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,11 +39,29 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
 
     private final TypeFromNameResolver typeFromNameResolver;
     
-    public PropertySearchImpl(String prefix, PropertyStore store, 
+    private final String separator;
+
+    public PropertySearchImpl(PropertyStore store, 
             TypeFromNameResolver typeFromNameResolver) {
+        this("", store, typeFromNameResolver, "");
+    }
+    
+    public PropertySearchImpl(String prefix, PropertyStore store, 
+            TypeFromNameResolver typeFromNameResolver, String separator) {
         this.globalPrefix = Objects.requireNonNull(prefix);
         this.store = Objects.requireNonNull(store);
         this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
+        this.separator = Objects.requireNonNull(separator);
+    }
+    
+    @Override
+    public PropertySearch appendingInstance(String separator) {
+        if(separator.equals(this.separator)) {
+            return this;
+        }else{
+            return new PropertySearchImpl(this.globalPrefix, this.store, 
+                this.typeFromNameResolver, separator);
+        }
     }
     
     @Override
@@ -52,14 +71,21 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
 
         final List<String> suffixes = this.buildSuffixes(type, fieldName);
         
+        final boolean hasSeparator = ! this.isNullOrEmpty(separator);
+        
         String val = null;
         
         for(String suffix : suffixes) {
         
-            val = this.findOrDefault(propertyName, suffix, null);
+            final String found = this.findOrDefault(propertyName, suffix, null);
             
-            if(val != null) {
-                break;
+            if( ! hasSeparator) {
+                if(found != null) {
+                    val = found;
+                    break;
+                }
+            }else{
+                val = val == null ? found : val + separator + found;
             }
         }
         

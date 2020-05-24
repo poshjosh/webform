@@ -222,8 +222,7 @@ public class FileUploadService {
                         collection.addAll(propertyValueList);
                         value = collection;
                     }else{
-                        throw Errors.unexpected("Class", 
-                                propertyType, String.class, Collection.class);
+                        throw Errors.unexpected(propertyType, String.class, Collection.class);
                     }
                     
                     bean.setPropertyValue(propertyName, value);

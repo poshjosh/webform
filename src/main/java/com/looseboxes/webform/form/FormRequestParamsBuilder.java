@@ -37,13 +37,16 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
 
     private String action;
     private String modelname;
+    private String parentFormid;
     private String formid;
     private String modelid;
     private Object modelobject;
     
     private List<String> modelfields = Collections.EMPTY_LIST;
     
-    @Nullable private Form form;
+    @Nullable private String targetOnCompletion;
+    
+    @Nullable private Form<Object> form;
     
     private boolean buildAttempted;
 
@@ -64,6 +67,21 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         return this;
     }
     
+    public FormRequestParamsBuilder with(FormRequestParams arg) {
+        this.action(arg.getAction());
+        this.form(arg.getFormOptional().orElse(null));
+        this.formid(arg.getFormid());
+        this.modelfields(arg.getModelfields() == null ? null :
+                arg.getModelfields().isEmpty() ? Collections.EMPTY_LIST :
+                Collections.unmodifiableList(arg.getModelfields()));
+        this.modelid(arg.getModelid());
+        this.modelname(arg.getModelname());
+        this.modelobject(arg.getModelobject());
+        this.parentFormid(arg.getParentFormid());
+        this.targetOnCompletion(arg.getTargetOnCompletion());
+        return this;
+    }
+    
     public FormRequestParamsBuilder action(String arg) {
         this.action = arg;
         return this;
@@ -74,6 +92,11 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         return this;
     }
 
+    public FormRequestParamsBuilder parentFormid(String arg) {
+        this.parentFormid = arg;
+        return this;
+    }
+    
     public FormRequestParamsBuilder formid(String arg) {
         this.formid = arg;
         return this;
@@ -106,6 +129,11 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         this.modelfields = arg == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(arg);
         return this;
     }
+
+    public FormRequestParamsBuilder targetOnCompletion(String target) {
+        this.targetOnCompletion = target;
+        return this;
+    }
     
     public FormRequestParamsBuilder form(Form form) {
         this.form = form;
@@ -114,13 +142,15 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
 
     @Override
     public Map<String, Object> toMap() {
-        final Map<String, Object> map = new HashMap<>(7, 1.0f);
+        final Map<String, Object> map = new HashMap<>(16, 0.75f);
         map.put(Params.ACTION, getAction());
         map.put(Params.MODELNAME, getModelname());
+        map.put(Params.PARENT_FORMID, getParentFormid());
         map.put(Params.FORMID, getFormid());
         map.put(Params.MODELID, getModelid());
         map.put(Params.MODELFIELDS, getModelfields());
         map.put(ModelAttributes.MODELOBJECT, getModelobject());
+        map.put(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion());
         this.getFormOptional().ifPresent((f) -> {
             map.put(ModelAttributes.FORM, f);
         });
@@ -135,6 +165,11 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
     @Override
     public String getModelname() {
         return modelname;
+    }
+
+    @Override
+    public String getParentFormid() {
+        return parentFormid;
     }
 
     @Override
@@ -158,7 +193,12 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
     }
 
     @Override
-    public Optional<Form> getFormOptional() {
+    public String getTargetOnCompletion() {
+        return targetOnCompletion;
+    }
+
+    @Override
+    public Optional<Form<Object>> getFormOptional() {
         return Optional.ofNullable(form);
     }
 
@@ -167,10 +207,12 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         int hash = 3;
         hash = 41 * hash + Objects.hashCode(this.action);
         hash = 41 * hash + Objects.hashCode(this.modelname);
+        hash = 41 * hash + Objects.hash(this.parentFormid);
         hash = 41 * hash + Objects.hash(this.formid);
         hash = 41 * hash + Objects.hashCode(this.modelid);
         hash = 41 * hash + Objects.hashCode(this.modelobject);
         hash = 41 * hash + Objects.hashCode(this.modelfields);
+        hash = 41 * hash + Objects.hash(this.targetOnCompletion);
         hash = 41 * hash + Objects.hashCode(this.form);
         return hash;
     }
@@ -193,6 +235,9 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         if (!Objects.equals(this.modelname, other.modelname)) {
             return false;
         }
+        if (!Objects.equals(this.parentFormid, other.parentFormid)) {
+            return false;
+        }
         if (!Objects.equals(this.formid, other.formid)) {
             return false;
         }
@@ -205,6 +250,9 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         if (!Objects.equals(this.modelfields, other.modelfields)) {
             return false;
         }
+        if (!Objects.equals(this.targetOnCompletion, other.targetOnCompletion)) {
+            return false;
+        }
         if (!Objects.equals(this.form, other.form)) {
             return false;
         }
@@ -213,9 +261,11 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
 
     @Override
     public String toString() {
-        return "FormRequestParamsBuilder{" + "action=" + action + 
+        return "FormRequestParamsBuilder{" + "action=" + action +
+                ", parentFormid=" + parentFormid +
                 ", modelname=" + modelname + ", formid=" + formid + 
                 ", modelid=" + modelid + ", modelobject=" + modelobject + 
-                ", modelfields=" + modelfields + ", form=" + form.getDisplayName() + '}';
+                ", modelfields=" + modelfields + ", targetOnCompletion=" +
+                targetOnCompletion + ", form=" + form.getName() + '}';
     }
 }

@@ -17,16 +17,14 @@
 package com.looseboxes.webform;
 
 /**
- * @author Chinomso Bassey Ikwuagwu on Apr 19, 2019 4:48:42 PM
+ * @author Chinomso Bassey Ikwuagwu on Apr 20, 2019 2:39:09 PM
  */
-public interface Templates {
-    String ERROR = "error"; 
-    String FORM = "form"; 
-    String FORM_CONFIRMATION = "formConfirmation"; 
-    String FORM_DATA = "formData"; 
-    String HOME = "home"; 
-    String SUCCESS = "success"; 
-    static String [] all() {
-        return new String[]{ERROR, FORM, FORM_CONFIRMATION, FORM_DATA, HOME, SUCCESS};
-    }
+public enum CrudActionName {
+    
+    /**
+     * DO NOT CHANGE THESE TO UPPER CASE
+     * The names are expected in lower case
+     */
+    
+    create, read, update, delete;
 }

@@ -1,23 +1,20 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.form;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.looseboxes.webform.CrudActionNames;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.controllers.FormController;
-import com.looseboxes.webform.Print;
-import com.looseboxes.webform.form.FormRequestParams;
-import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.looseboxes.webform.CrudActionName;
 
 /**
  * @author hp
  */
 public class OnFormSubmittedImpl implements 
-        FormController.OnFormSubmitted, CrudActionNames{
+        FormController.OnFormSubmitted{
     
     private static final Logger LOG = LoggerFactory.getLogger(OnFormSubmittedImpl.class);
     
@@ -34,46 +31,44 @@ public class OnFormSubmittedImpl implements
     @Override
     public void onFormSubmitted(FormRequestParams formReqParams) {
                     
-        final Class entityType = entityTypeResolver.getType(formReqParams.getModelname());
+        final Class entityType = this.getType(formReqParams);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
         
         final String action = formReqParams.getAction();
-        switch(action) {
-            case CREATE:
+        final CrudActionName crudAction = CrudActionName.valueOf(action);
+        switch(crudAction) {
+            case create:
                 final Object modelobject = formReqParams.getModelobject();
                 repo.create(modelobject);
-//                this.printLastInserted(repo);
+                if(LOG.isDebugEnabled()) {
+                    final Object id = repo.getIdOptional(modelobject);
+                    LOG.debug("Inserted object id: {}", id);
+                }
                 break;
-            case READ:
+            case read:
                 break;
-            case UPDATE:
-                repo.update(getModelObject(repo, formReqParams));
+            case update:
+                repo.update(findModelObject(formReqParams, repo));
                 break;
-            case DELETE:
+            case delete:
                 final Object id = formReqParams.getModelid();
                 repo.deleteById(id);
                 break;
             default:
-                throw Errors.unexpectedAction(action);
+                throw Errors.unexpected(crudAction, (Object[])CrudActionName.values());
         }   
     }
     
-    public Object getModelObject(EntityRepository repo, FormRequestParams formReqParams) {
+    public Class getType(FormRequestParams formReqParams) {
+        final Object modelobject = formReqParams.getModelobject();
+        final Class entityType = modelobject != null ? modelobject.getClass() : 
+                entityTypeResolver.getType(formReqParams.getModelname());
+        return entityType;
+    }
+    
+    public Object findModelObject(FormRequestParams formReqParams, EntityRepository repo) {
         return formReqParams.getModelobject() != null ? 
                 formReqParams.getModelobject() :
                 repo.find(formReqParams.getModelid());
-    }
-    
-    private void printLastInserted(EntityRepository repo) {
-        if(LOG.isTraceEnabled()) {
-            if(repo.count() < 1000) {
-                final List found = repo.findAll();
-                if(found.isEmpty()) {
-                    throw new IllegalStateException();
-                }
-                final Object last = found.get(found.size() - 1);
-                new Print().trace("Printing inserted object:\n", last, "\n", "");
-            }
-        }
     }
 }

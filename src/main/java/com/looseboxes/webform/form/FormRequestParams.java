@@ -26,12 +26,11 @@ import java.util.Optional;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:16:30 PM
  */
-public interface FormRequestParams extends 
-        ModelAttributes, Params{
+public interface FormRequestParams extends ModelAttributes, Params{
     
     static String [] names() {
-        return new String[]{ACTION, MODELFIELDS, FORMID, 
-            MODELID, MODELNAME, MODELOBJECT, FORM};
+        return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
+            MODELOBJECT, PARENT_FORMID, TARGET_ON_COMPLETION, FORM};
     }
     
     class Builder extends FormRequestParamsBuilder{}
@@ -39,6 +38,8 @@ public interface FormRequestParams extends
     String getAction();
 
     List<String> getModelfields();
+    
+    String getParentFormid();
     
     String getFormid();
 
@@ -48,7 +49,9 @@ public interface FormRequestParams extends
 
     Object getModelobject();
     
-    Optional<Form> getFormOptional();
+    String getTargetOnCompletion();
+    
+    Optional<Form<Object>> getFormOptional();
     
     Map<String, Object> toMap();
 }

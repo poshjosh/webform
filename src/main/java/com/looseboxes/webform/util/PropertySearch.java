@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform.store;
+package com.looseboxes.webform.util;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -75,6 +75,28 @@ import javax.persistence.Column;
  * @author Chinomso Bassey Ikwuagwu on Apr 20, 2019 9:21:18 AM
  */
 public interface PropertySearch{
+    
+    /**
+     * @return An instance which appends multiple properties using the default
+     * separator
+     * @see #appendingInstance(java.lang.String) 
+     */
+    default PropertySearch appendingInstance(){
+        return this.appendingInstance(",");
+    }
+    
+    /**
+     * Create an instance which will extract and concatenate properties based
+     * on the specified separator. 
+     * 
+     * When multiple values are found for the same properties, they a 
+     * concatenated using the supplied separator.
+     * @param separator The appendingInstance to use in concatenating multiple 
+     * values
+     * @return An instance which appends multiple properties using the supplied
+     * separator
+     */
+    PropertySearch appendingInstance(String separator);
 
     default Optional<String> find(String propertyName, Field field) {
         return Optional.ofNullable(this.findOrDefault(propertyName, field, null));

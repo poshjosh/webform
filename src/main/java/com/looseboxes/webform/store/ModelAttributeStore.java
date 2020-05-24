@@ -1,6 +1,6 @@
 package com.looseboxes.webform.store;
 
-import com.looseboxes.webform.Errors;
+import com.looseboxes.webform.store.SessionAttributeStore.StoreNotBackedBySessionException;
 import java.util.Objects;
 import org.springframework.ui.ModelMap;
 
@@ -33,15 +33,14 @@ public class ModelAttributeStore implements AttributeStore<ModelMap> {
 
     @Override
     public Object put(String name, Object value) {
-        final Object got = getOrDefault(name, null);
+        final Object existing = this.remove(name);
         requireStore().addAttribute(name, value);
-        return got;
+        return existing;
     }
 
     @Override
     public Object remove(String name) {
         final Object got = getOrDefault(name, null);
-        requireStore().addAttribute(name, null);
         requireStore().remove(name);
         return got;
     }
@@ -54,7 +53,7 @@ public class ModelAttributeStore implements AttributeStore<ModelMap> {
     
     private ModelMap requireStore() {
         if(store == null) {
-            throw Errors.unbackedStore();
+            throw new StoreNotBackedBySessionException(ModelMap.class);
         }
         return store;
     }

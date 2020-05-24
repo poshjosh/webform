@@ -1,33 +1,29 @@
 package com.looseboxes.webform;
 
-import java.util.Objects;
-
 /**
  * @author hp
  */
 public interface WebformProperties {
 
-    String PROPERTY_PREFIX = "webform";
+    String _PREFIX = "webform.";
     
-    String FIELDS_TO_IGNORE = "webform.field.ignores";
+    String FIELDS_TO_IGNORE = _PREFIX + "field.ignores";
     
-    String FIELD_DEFAULT_VALUE = "field.default.value";
+    String FIELD_DEFAULT_VALUE = _PREFIX + "field.value.default";
 
-    String DEFAULT_FIELDS = "field.defaults";
+    String DEFAULT_FIELDS = _PREFIX + "field.name.selection.defaults";
     
-    String FIELD_TYPE = "field.type";
+    String FIELD_TYPE = _PREFIX + "field.type";
     
-    String MAX_ITEMS_IN_MULTICHOICE = "maxItemsInMultichoice";
+    String MAX_ITEMS_IN_MULTICHOICE = _PREFIX + "maxItemsInMultichoice";
 
-    String FORMATS_DATETIME = "formats.datetime";
-    String FORMATS_DATE = "formats.date";
-    String FORMATS_TIME = "formats.time";
+    String FORMATS_DATETIME = _PREFIX + "formats.datetime";
+    String FORMATS_DATE = _PREFIX + "formats.date";
+    String FORMATS_TIME = _PREFIX + "formats.time";
 
-    String LABEL = "label";
-    String ADVICE = "advice";
+    String LABEL = _PREFIX + "field.label";
     
-    static String withPrefix(String name) {
-        Objects.requireNonNull(name);
-        return PROPERTY_PREFIX + '.' + name;
-    }
+    String ADVICE = _PREFIX + "field.advice";
+    
+    String ORDER = _PREFIX + "field.order";
 }

@@ -17,7 +17,7 @@
 package com.looseboxes.webform;
 
 import com.bc.jpa.spring.DomainClasses;
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.PropertySearch;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplier;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplierImpl;
@@ -35,6 +35,10 @@ import com.looseboxes.webform.converters.EntityToIdConverter;
 import com.looseboxes.webform.converters.EntityToStringConverter;
 //import com.looseboxes.webform.converters.StringIdToBlogTypeConverter;
 import com.bc.webform.functions.TypeTests;
+import com.looseboxes.webform.converters.StringToTemporalConverter;
+import com.looseboxes.webform.converters.StringToTemporalConverterImpl;
+import com.looseboxes.webform.converters.TemporalToStringConverter;
+import com.looseboxes.webform.converters.TemporalToStringConverterImpl;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +68,8 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         registry.addConverter(this.multipartFileToStringConverter());
         registry.addConverter(this.stringToDateConverter());
         registry.addConverter(this.dateToStringConverter());
+        registry.addConverter(this.stringToTemporalConverter());
+        registry.addConverter(this.temporalToStringConverter());
         registry.addConverterFactory(this.idToEntityConverterFactory());
         registry.addConverter(this.entityToStringConverter());
 
@@ -112,6 +118,14 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         return new DateToStringConverterImpl(this.dateAndTimePatternsSupplier());
     }
     
+    @Bean public StringToTemporalConverter stringToTemporalConverter() {
+        return new StringToTemporalConverterImpl(this.dateAndTimePatternsSupplier());
+    }
+    
+    @Bean public TemporalToStringConverter temporalToStringConverter() {
+        return new TemporalToStringConverterImpl(this.dateAndTimePatternsSupplier());
+    }
+
     @Bean public IdToEntityConverterFactory idToEntityConverterFactory() {
         return new IdToEntityConverterFactory(this.repoFactory);
     }

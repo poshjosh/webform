@@ -23,6 +23,8 @@ public interface Params {
     String ACTION = "action";
     String MODELNAME = "modelname";
     String FORMID = "fid";
-    String MODELID = "modelid";
+    String MODELID = "mid";
     String MODELFIELDS = "modelfields";
+    String PARENT_FORMID = "parentfid";
+    String TARGET_ON_COMPLETION = "targetOnCompletion";
 }

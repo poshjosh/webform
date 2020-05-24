@@ -1,13 +1,13 @@
 package com.looseboxes.webform.converters;
 
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.looseboxes.webform.StringUtils;
+import com.looseboxes.webform.util.StringArrayUtils;
 import com.looseboxes.webform.WebformProperties;
 import java.util.Locale;
 import java.util.Objects;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.PropertySearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +42,12 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
             
             final Class type = object.getClass();
 
-            final String sval = propertyAccess.find(
+            final String sval = propertyAccess.appendingInstance().find(
                     WebformProperties.DEFAULT_FIELDS, type).orElse(null);
 
             if(sval != null) {
 
-                final String [] names = StringUtils.toArray(sval);
+                final String [] names = StringArrayUtils.toArray(sval);
                 
                 final BeanWrapper bean = PropertyAccessorFactory.forBeanPropertyAccess(object);
                 
@@ -67,13 +67,12 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
 
             if(output == null) {
 
-                final Object id = repoFactory.forEntity(type)
-                        .getIdOptional(object).orElse(null);
-
-                if(id != null) {
-
-                    output = id.toString();
-                }
+                output = object.toString();
+//                final Object id = repoFactory.forEntity(type)
+//                        .getIdOptional(object).orElse(null);
+//                if(id != null) {
+//                    output = id.toString();
+//                }
             }
         }
 

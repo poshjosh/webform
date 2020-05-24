@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 /**
  * @author hp
  */
-public class AttributeNotFoundException extends RuntimeException {
+public class AttributeNotFoundException extends MalformedRouteException {
 
     public AttributeNotFoundException(@Nullable String model, String attributeName) {
         super(model == null || model.isEmpty() ? 

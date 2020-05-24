@@ -17,7 +17,7 @@ import com.looseboxes.webform.converters.IdToEntityConverterFactory;
 import com.looseboxes.webform.converters.MultipartFileToStringConverter;
 import com.looseboxes.webform.converters.StringEmptyToNullConverter;
 import com.looseboxes.webform.converters.StringToDateConverter;
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.PropertySearch;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

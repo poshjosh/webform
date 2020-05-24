@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.util;
 
 import com.bc.webform.Form;
 import java.util.Arrays;
@@ -126,23 +126,23 @@ public class Print<A extends Appendable> {
         return appendTo;
     }
 
-    public void appendHtml(StringBuilder builder, Form form) {
+    public void appendHtml(StringBuilder builder, Form<Object> form) {
 
         final String prefix = "<!DOCTYPE html>" +
         "<html>"+
-                "<head><title>" + form.getDisplayName() + " Form</title></head>" +
+                "<head><title>" + form.getLabel() + " Form</title></head>" +
                 "<body>" + 
-                    "<h3>Form display name: " + form.getDisplayName() + "</h3>";
+                    "<h3>Form display name: " + form.getLabel() + "</h3>";
         
         builder.append(prefix);
         
-        final List<String> fieldNames = form.getFieldNames();
+        final List<String> fieldNames = form.getMemberNames();
         
         for(String fieldName : fieldNames) {
             
             builder.append("<br/>");
             
-            form.getFormField(fieldName).ifPresent(ff -> {
+            form.getMember(fieldName).ifPresent(ff -> {
             
                 builder.append("<br/>").append("Form field name: ").append("<b>").append(fieldName).append("</b>");
                 builder.append("<br/>").append("Advice").append(" = ").append(ff.getAdvice());
@@ -157,22 +157,6 @@ public class Print<A extends Appendable> {
                 final String type = ff.getType();
                 builder.append("<br/>").append("Type").append(" = ").append(type);
                 builder.append("<br/>").append("Value").append(" = ").append(ff.getValue());
-
-                builder.append("<br/>").append("Is checkbox: ").append(" = ").append(ff.isCheckboxType(type));
-                builder.append("<br/>").append("Is date: ").append(" = ").append(ff.isDateType(type));
-                builder.append("<br/>").append("Is datetime: ").append(" = ").append(ff.isDatetimeType(type));
-                builder.append("<br/>").append("Is file: ").append(" = ").append(ff.isFileType(type));
-                builder.append("<br/>").append("Is form refence: ").append(" = ").append(ff.isFormReference());
-                builder.append("<br/>").append("Is hidden: ").append(" = ").append(ff.isHidden(type));
-                builder.append("<br/>").append("Is multi choice: ").append(" = ").append(ff.isMultiChoice());
-                builder.append("<br/>").append("Is multi value: ").append(" = ").append(ff.isMultiValue());
-                builder.append("<br/>").append("Is number: ").append(" = ").append(ff.isNumberType(type));
-                builder.append("<br/>").append("Is optional: ").append(" = ").append(ff.isOptional());
-                builder.append("<br/>").append("Is password: ").append(" = ").append(ff.isPasswordType(type));
-                builder.append("<br/>").append("Is required: ").append(" = ").append(ff.isRequired());
-                builder.append("<br/>").append("Is text: ").append(" = ").append(ff.isTextType(type));
-                builder.append("<br/>").append("Is time: ").append(" = ").append(ff.isTimeType(type));
-            
             });
         }
         

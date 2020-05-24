@@ -1,6 +1,6 @@
 package com.looseboxes.webform.store;
 
-import com.looseboxes.webform.Errors;
+import com.looseboxes.webform.store.SessionAttributeStore.StoreNotBackedBySessionException;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,7 +53,7 @@ public class RequestAttributeStore implements AttributeStore<HttpServletRequest>
     
     private HttpServletRequest requireStore() {
         if(store == null) {
-            throw Errors.unbackedStore();
+            throw new StoreNotBackedBySessionException(HttpServletRequest.class);
         }
         return store;
     }

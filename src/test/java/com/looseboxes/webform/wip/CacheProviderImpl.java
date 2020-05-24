@@ -1,6 +1,6 @@
 package com.looseboxes.webform.wip;
 
-import com.looseboxes.webform.store.PropertySearch;
+import com.looseboxes.webform.util.PropertySearch;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.cache.Cache;

@@ -1,6 +1,5 @@
 package com.looseboxes.webform.store;
 
-import com.looseboxes.webform.Errors;
 import java.util.Objects;
 import javax.servlet.http.HttpSession;
 
@@ -13,6 +12,12 @@ public class SessionAttributeStore implements AttributeStore<HttpSession> {
     
     public static class StoreNotBackedBySessionException extends UnbackedStoreException{
         public StoreNotBackedBySessionException() { }
+        public StoreNotBackedBySessionException(Class expectedBackingType) { 
+            super("You attempted to use a store that was not backed by any " + 
+                    expectedBackingType.getName() + 
+                    ". Rather, call method AttributesStore.wrap(" + expectedBackingType.getSimpleName() + 
+                    ") and use the returned instance");
+        }
         public StoreNotBackedBySessionException(String string) {
             super(string);
         }
@@ -60,7 +65,7 @@ public class SessionAttributeStore implements AttributeStore<HttpSession> {
 
     private HttpSession requireStore() {
         if(store == null) {
-            throw Errors.unbackedStore();
+            throw new StoreNotBackedBySessionException(HttpSession.class);
         }
         return store;
     }
