@@ -8,7 +8,7 @@ import com.looseboxes.webform.controllers.FormController;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.looseboxes.webform.CrudActionName;
+import com.looseboxes.webform.CrudAction;
 
 /**
  * @author hp
@@ -34,8 +34,7 @@ public class OnFormSubmittedImpl implements
         final Class entityType = this.getType(formReqParams);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
         
-        final String action = formReqParams.getAction();
-        final CrudActionName crudAction = CrudActionName.valueOf(action);
+        final CrudAction crudAction = formReqParams.getAction();
         switch(crudAction) {
             case create:
                 final Object modelobject = formReqParams.getModelobject();
@@ -55,7 +54,7 @@ public class OnFormSubmittedImpl implements
                 repo.deleteById(id);
                 break;
             default:
-                throw Errors.unexpected(crudAction, (Object[])CrudActionName.values());
+                throw Errors.unexpected(crudAction, (Object[])CrudAction.values());
         }   
     }
     
