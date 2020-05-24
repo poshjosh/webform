@@ -82,7 +82,7 @@ public class WebformConfiguration {
                 );
                 
     }
-
+    
     @Bean @Scope("prototype") public FormMemberBuilder<Object, Field, Object> formMemberBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
@@ -141,7 +141,7 @@ public class WebformConfiguration {
         );
     }
     
-    @Bean @Scope("prototype") public FormFieldTest formFieldTest(
+    @Bean public FormFieldTest formFieldTest(
             @Autowired PropertySearch propertySearch) {
         return new FormFieldTestImpl(propertySearch, this.typeTests());
     }
