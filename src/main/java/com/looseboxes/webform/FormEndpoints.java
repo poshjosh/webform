@@ -1,10 +1,5 @@
 package com.looseboxes.webform;
 
-import static com.looseboxes.webform.CrudActionName.create;
-import static com.looseboxes.webform.CrudActionName.read;
-import static com.looseboxes.webform.CrudActionName.update;
-import static com.looseboxes.webform.CrudActionName.delete;
-
 /**
  * @author hp
  */
@@ -32,16 +27,16 @@ public interface FormEndpoints {
     
     /**
      * @return The endpoint for display form information initiated by the read
-     * {@link com.looseboxes.webform.CrudActionName CRUDActionName}
+     * {@link com.looseboxes.webform.CrudAction CRUDActionName}
      */
     String getFormData();
     
     /**
-     * @param crudAction One of {@link com.looseboxes.webform.CrudActionName CRUDActionName}
-     * @return The endpoint for the {@link com.looseboxes.webform.CrudActionName CRUDActionName}
-     * @see com.looseboxes.webform.CrudActionName
+     * @param crudAction One of {@link com.looseboxes.webform.CrudAction CRUDActionName}
+     * @return The endpoint for the {@link com.looseboxes.webform.CrudAction CRUDActionName}
+     * @see com.looseboxes.webform.CrudAction
      */
-    default String forCrudAction(CrudActionName crudAction) {
+    default String forCrudAction(CrudAction crudAction) {
         final String endpoint;
         switch(crudAction) {
             case create:
@@ -53,7 +48,7 @@ public interface FormEndpoints {
             case delete:
                 endpoint = this.getFormConfirmation(); break;
             default:
-                throw Errors.unexpected(crudAction, (Object[])CrudActionName.values());
+                throw Errors.unexpected(crudAction, (Object[])CrudAction.values());
         }
         return endpoint;
     }
