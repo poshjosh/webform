@@ -17,6 +17,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
+import com.looseboxes.webform.CrudAction;
 import com.looseboxes.webform.ModelAttributes;
 import com.looseboxes.webform.Params;
 import java.util.List;
@@ -35,7 +36,7 @@ public interface FormRequestParams extends ModelAttributes, Params{
     
     class Builder extends FormRequestParamsBuilder{}
 
-    String getAction();
+    CrudAction getAction();
 
     List<String> getModelfields();
     

@@ -28,11 +28,7 @@ import org.springframework.stereotype.Service;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.FormUpdateException;
 import java.lang.reflect.Field;
-import com.looseboxes.webform.CrudActionName;
-import static com.looseboxes.webform.CrudActionName.create;
-import static com.looseboxes.webform.CrudActionName.read;
-import static com.looseboxes.webform.CrudActionName.update;
-import static com.looseboxes.webform.CrudActionName.delete;
+import com.looseboxes.webform.CrudAction;
 
 /**
  * @author hp
@@ -84,15 +80,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return this.attributeService.unwrap();
     }
     
-    public Object begin(String action, String modelname, String modelid) {
-        final CrudActionName crudAction = CrudActionName.valueOf(action);
+    public Object begin(CrudAction crudAction, String modelname, String modelid) {
         final Object object;
         switch(crudAction) {
             case create: object = this.beginCreate(modelname); break;
             case read: object = this.beginRead(modelname, modelid); break;
             case update: object = this.beginUpdate(modelname, modelid); break;
             case delete: object = this.beginDelete(modelname, modelid); break;
-            default: throw Errors.unexpected(crudAction, (Object[])CrudActionName.values());
+            default: throw Errors.unexpected(crudAction, (Object[])CrudAction.values());
         }
         return object;
     }
@@ -182,7 +177,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }
 
     public FormRequestParams params(
-            String action, 
+            CrudAction action, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
             @Nullable String parentFormId, @Nullable String targetOnCompletion) {
@@ -194,7 +189,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }
 
     public FormRequestParams paramsForValidate(
-            String action, @Nullable String formid, 
+            CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
             @Nullable String parentFormId, @Nullable String targetOnCompletion) {
@@ -205,7 +200,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }
     
     public FormRequestParams paramsForSubmit(
-            String action, @Nullable String formid, 
+            CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             String [] modelfields,
             @Nullable String parentFormId, @Nullable String targetOnCompletion) {
@@ -214,15 +209,15 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 true, true, action, formid, modelname, modelid, null, 
                 modelfields, parentFormId, targetOnCompletion);
     }
-
+    
     public FormRequestParams toRequestParams(
             boolean existingForm, boolean useExistingModelObject,
-            String action, String formid, 
+            CrudAction action, String formid, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
             @Nullable String parentFormId, @Nullable String targetOnCompletion) {
         
-        if(! CrudActionName.create.equals(action) && modelid == null) {
+        if(CrudAction.create != action && modelid == null) {
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
@@ -271,7 +266,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }   
     
     public void validate(FormRequestParams params, 
-            String action, @Nullable String formid, 
+            CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
             @Nullable String parentFormId, @Nullable String targetOnCompletion) {
@@ -299,7 +294,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     public boolean updateParentWithNewlyCreated(FormRequestParams params) 
             throws FormUpdateException{
         
-        if( ! CrudActionName.create.equals(params.getAction())) {
+        if(CrudAction.create != params.getAction()) {
             throw new UnsupportedOperationException(
                     "Only 'create' supported but found: " + params.getAction());
         }
@@ -374,7 +369,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         final String msg = target + " not found for: " + params;
         return new FormUpdateException(msg);
     }
-    
+
     /**
      * Form ids need to be unique within a session.
      * @return 

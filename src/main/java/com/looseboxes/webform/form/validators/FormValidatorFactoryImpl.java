@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.validation.Validator;
-import static com.looseboxes.webform.CrudActionName.create;
+import static com.looseboxes.webform.CrudAction.create;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 9:49:31 PM

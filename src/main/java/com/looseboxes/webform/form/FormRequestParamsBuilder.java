@@ -17,6 +17,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
+import com.looseboxes.webform.CrudAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.ModelAttributes;
 import com.looseboxes.webform.Params;
@@ -35,7 +36,7 @@ import org.springframework.lang.Nullable;
  */
 public class FormRequestParamsBuilder implements Serializable, FormRequestParams {
 
-    private String action;
+    private CrudAction action;
     private String modelname;
     private String parentFormid;
     private String formid;
@@ -82,7 +83,7 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         return this;
     }
     
-    public FormRequestParamsBuilder action(String arg) {
+    public FormRequestParamsBuilder action(CrudAction arg) {
         this.action = arg;
         return this;
     }
@@ -158,7 +159,7 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
     }
 
     @Override
-    public String getAction() {
+    public CrudAction getAction() {
         return action;
     }
 

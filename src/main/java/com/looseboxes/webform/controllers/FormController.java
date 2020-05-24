@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
-import com.looseboxes.webform.CrudActionName;
+import com.looseboxes.webform.CrudAction;
 
 /**
  * @author hp
@@ -83,12 +83,14 @@ public class FormController{
             HttpServletRequest request, HttpServletResponse response) 
             throws FileNotFoundException{
         
+        final CrudAction crudAction = CrudAction.valueOf(action);
+        
         final FormService formSvc = getFormService(model, request);
         
-        final Object modelobject = formSvc.begin(action, modelname, modelid);
+        final Object modelobject = formSvc.begin(crudAction, modelname, modelid);
         
         final FormRequestParams formReqParams = formSvc
-                .params(action, modelname, modelid, modelobject, 
+                .params(crudAction, modelname, modelid, modelobject, 
                         modelfields, parentFormId, 
                         getTargetOnCompletion(parentFormId, targetOnCompletion));
         
@@ -104,7 +106,7 @@ public class FormController{
         
         formSvc.setSessionAttribute(formReqParams);
         
-        return formSvc.getFormEndpoints().forCrudAction(CrudActionName.valueOf(action));
+        return formSvc.getFormEndpoints().forCrudAction(crudAction);
     }
     
     public String getTargetOnCompletion(String parentFormId, String val) {
@@ -136,10 +138,12 @@ public class FormController{
             @RequestParam(value=Params.TARGET_ON_COMPLETION, required=false) String targetOnCompletion,
             HttpServletRequest request, HttpServletResponse response) {
         
+        final CrudAction crudAction = CrudAction.valueOf(action);
+
         final FormService formSvc = getFormService(model, request);
 
         final FormRequestParams formReqParams = formSvc
-                .paramsForValidate(action, formid, modelname, modelid, 
+                .paramsForValidate(crudAction, formid, modelname, modelid, 
                 modelobject, modelfields, parentFormId, targetOnCompletion);
 
         if(LOG.isTraceEnabled()) {
@@ -203,10 +207,12 @@ public class FormController{
             @RequestParam(value=Params.TARGET_ON_COMPLETION, required=false) String targetOnCompletion,
             HttpServletRequest request, HttpServletResponse response) {
         
+        final CrudAction crudAction = CrudAction.valueOf(action);
+        
         final FormService formSvc = getFormService(model, request);
         
         final FormRequestParams formReqParams = formSvc.paramsForSubmit(
-                action, formid, modelname, modelid, 
+                crudAction, formid, modelname, modelid, 
                 modelfields, parentFormId, targetOnCompletion);
         
         if(LOG.isTraceEnabled()) {
@@ -231,7 +237,7 @@ public class FormController{
 
             target = this.onFormSubmitSuccessful(model, formReqParams, request, response);
             
-            if(CrudActionName.create.equals(action)) {
+            if(CrudAction.create.equals(crudAction)) {
                 try{
                     formSvc.updateParentWithNewlyCreated(formReqParams);
                 }catch(RuntimeException e) {
