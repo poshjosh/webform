@@ -27,14 +27,14 @@ import java.util.Optional;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:16:30 PM
  */
-public interface FormRequestParams extends ModelAttributes, Params{
+public interface FormConfig extends ModelAttributes, Params{
     
     static String [] names() {
         return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
             MODELOBJECT, PARENT_FORMID, TARGET_ON_COMPLETION, FORM};
     }
     
-    class Builder extends FormRequestParamsBuilder{}
+    class Builder extends FormConfigBuilder{}
 
     CrudAction getAction();
 

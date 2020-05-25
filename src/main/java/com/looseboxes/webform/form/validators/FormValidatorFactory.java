@@ -16,14 +16,14 @@
 
 package com.looseboxes.webform.form.validators;
 
-import com.looseboxes.webform.form.FormRequestParams;
 import java.util.List;
 import org.springframework.validation.Validator;
+import com.looseboxes.webform.form.FormConfig;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 9:48:35 PM
  */
 public interface FormValidatorFactory {
 
-    List<Validator> get(FormRequestParams formRequestParams);
+    List<Validator> get(FormConfig formRequestParams);
 }

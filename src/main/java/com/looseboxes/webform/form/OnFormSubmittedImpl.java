@@ -29,7 +29,7 @@ public class OnFormSubmittedImpl implements
     }
     
     @Override
-    public void onFormSubmitted(FormRequestParams formReqParams) {
+    public void onFormSubmitted(FormConfig formReqParams) {
                     
         final Class entityType = this.getType(formReqParams);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
@@ -58,14 +58,14 @@ public class OnFormSubmittedImpl implements
         }   
     }
     
-    public Class getType(FormRequestParams formReqParams) {
+    public Class getType(FormConfig formReqParams) {
         final Object modelobject = formReqParams.getModelobject();
         final Class entityType = modelobject != null ? modelobject.getClass() : 
                 entityTypeResolver.getType(formReqParams.getModelname());
         return entityType;
     }
     
-    public Object findModelObject(FormRequestParams formReqParams, EntityRepository repo) {
+    public Object findModelObject(FormConfig formReqParams, EntityRepository repo) {
         return formReqParams.getModelobject() != null ? 
                 formReqParams.getModelobject() :
                 repo.find(formReqParams.getModelid());

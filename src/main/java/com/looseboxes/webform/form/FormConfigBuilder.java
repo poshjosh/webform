@@ -34,7 +34,7 @@ import org.springframework.lang.Nullable;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
  */
-public class FormRequestParamsBuilder implements Serializable, FormRequestParams {
+public class FormConfigBuilder implements Serializable, FormConfig {
 
     private CrudAction action;
     private String modelname;
@@ -51,9 +51,9 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
     
     private boolean buildAttempted;
 
-    public FormRequestParamsBuilder() { }
+    public FormConfigBuilder() { }
     
-    public FormRequestParams build() {
+    public FormConfig build() {
 
         if(buildAttempted) {
             throw Errors.methodAlreadyCalled("build()");
@@ -68,7 +68,7 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         return this;
     }
     
-    public FormRequestParamsBuilder with(FormRequestParams arg) {
+    public FormConfigBuilder with(FormConfig arg) {
         this.action(arg.getAction());
         this.form(arg.getFormOptional().orElse(null));
         this.formid(arg.getFormid());
@@ -83,41 +83,41 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         return this;
     }
     
-    public FormRequestParamsBuilder action(CrudAction arg) {
+    public FormConfigBuilder action(CrudAction arg) {
         this.action = arg;
         return this;
     }
 
-    public FormRequestParamsBuilder modelname(String arg) {
+    public FormConfigBuilder modelname(String arg) {
         this.modelname = arg;
         return this;
     }
 
-    public FormRequestParamsBuilder parentFormid(String arg) {
+    public FormConfigBuilder parentFormid(String arg) {
         this.parentFormid = arg;
         return this;
     }
     
-    public FormRequestParamsBuilder formid(String arg) {
+    public FormConfigBuilder formid(String arg) {
         this.formid = arg;
         return this;
     }
     
-    public FormRequestParamsBuilder modelid(String arg) {
+    public FormConfigBuilder modelid(String arg) {
         this.modelid = arg;
         return this;
     }
 
-    public FormRequestParamsBuilder modelobject(Object arg) {
+    public FormConfigBuilder modelobject(Object arg) {
         this.modelobject = arg;
         return this;
     }
 
-    public FormRequestParamsBuilder modelfields(String arg) {
+    public FormConfigBuilder modelfields(String arg) {
         return modelfields(Collections.singletonList(Objects.requireNonNull(arg)));
     }
     
-    public FormRequestParamsBuilder modelfields(String... arg) {
+    public FormConfigBuilder modelfields(String... arg) {
         if(arg == null) {
             return modelfields(Collections.EMPTY_LIST);
         }else if(arg.length == 0) {
@@ -126,17 +126,17 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
             return modelfields(Arrays.asList(arg));
         }
     }
-    public FormRequestParamsBuilder modelfields(List<String> arg) {
+    public FormConfigBuilder modelfields(List<String> arg) {
         this.modelfields = arg == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(arg);
         return this;
     }
 
-    public FormRequestParamsBuilder targetOnCompletion(String target) {
+    public FormConfigBuilder targetOnCompletion(String target) {
         this.targetOnCompletion = target;
         return this;
     }
     
-    public FormRequestParamsBuilder form(Form form) {
+    public FormConfigBuilder form(Form form) {
         this.form = form;
         return this;
     }
@@ -229,7 +229,7 @@ public class FormRequestParamsBuilder implements Serializable, FormRequestParams
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final FormRequestParamsBuilder other = (FormRequestParamsBuilder) obj;
+        final FormConfigBuilder other = (FormConfigBuilder) obj;
         if (!Objects.equals(this.action, other.action)) {
             return false;
         }

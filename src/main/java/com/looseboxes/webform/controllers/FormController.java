@@ -8,7 +8,6 @@ import com.looseboxes.webform.util.Print;
 import com.looseboxes.webform.SpringProperties;
 import com.looseboxes.webform.exceptions.RouteException;
 import com.looseboxes.webform.exceptions.TargetNotFoundException;
-import com.looseboxes.webform.form.FormRequestParams;
 import com.looseboxes.webform.services.FileUploadService;
 import com.looseboxes.webform.services.MessageAttributesService;
 import com.looseboxes.webform.services.FormService;
@@ -46,6 +45,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.form.FormConfig;
 
 /**
  * @author hp
@@ -58,7 +58,7 @@ public class FormController{
     
     @FunctionalInterface
     public static interface OnFormSubmitted{
-        void onFormSubmitted(FormRequestParams formReqParams);
+        void onFormSubmitted(FormConfig formReqParams);
     }
     
     @Autowired private Environment environment;
@@ -89,7 +89,7 @@ public class FormController{
         
         final Object modelobject = formSvc.begin(crudAction, modelname, modelid);
         
-        final FormRequestParams formReqParams = formSvc
+        final FormConfig formReqParams = formSvc
                 .params(crudAction, modelname, modelid, modelobject, 
                         modelfields, parentFormId, 
                         getTargetOnCompletion(parentFormId, targetOnCompletion));
@@ -142,7 +142,7 @@ public class FormController{
 
         final FormService formSvc = getFormService(model, request);
 
-        final FormRequestParams formReqParams = formSvc
+        final FormConfig formReqParams = formSvc
                 .paramsForValidate(crudAction, formid, modelname, modelid, 
                 modelobject, modelfields, parentFormId, targetOnCompletion);
 
@@ -211,7 +211,7 @@ public class FormController{
         
         final FormService formSvc = getFormService(model, request);
         
-        final FormRequestParams formReqParams = formSvc.paramsForSubmit(
+        final FormConfig formReqParams = formSvc.paramsForSubmit(
                 crudAction, formid, modelname, modelid, 
                 modelfields, parentFormId, targetOnCompletion);
         
@@ -262,7 +262,7 @@ public class FormController{
     } 
 
     public String onFormSubmitSuccessful(
-            ModelMap model, FormRequestParams formReqParams,
+            ModelMap model, FormConfig formReqParams,
             HttpServletRequest request, HttpServletResponse response) {
 
         LOG.debug("SUCCESS: {}", formReqParams);
@@ -277,14 +277,14 @@ public class FormController{
         return getTargetAfterSubmit(formReqParams).orElse(getSuccessEndpoint());
     }
     
-    public Optional<String> getTargetAfterSubmit(FormRequestParams formReqParams) {
+    public Optional<String> getTargetAfterSubmit(FormConfig formReqParams) {
         final String targetOnCompletion = formReqParams.getTargetOnCompletion();
         return targetOnCompletion == null ? Optional.empty() : 
                 Optional.of("redirect:" + targetOnCompletion);
     }    
     
     public String onFormSubmitFailed(
-            ModelMap model, FormRequestParams formReqParams, Exception e,
+            ModelMap model, FormConfig formReqParams, Exception e,
             HttpServletRequest request, HttpServletResponse response) {
     
         LOG.warn("Failed to process: " + formReqParams, e);
@@ -410,7 +410,7 @@ public class FormController{
         return endpoint;
     }
     
-    private void trace(String method, Object modelMap, FormRequestParams params,
+    private void trace(String method, Object modelMap, FormConfig params,
             HttpServletRequest request, HttpServletResponse response) {
         if(LOG.isTraceEnabled()) {
             LOG.trace("==================== " + method + " ====================");

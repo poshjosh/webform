@@ -9,7 +9,6 @@ import com.bc.webform.functions.FormInputContext;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.FormEndpoints;
 import com.looseboxes.webform.form.FormFactory;
-import com.looseboxes.webform.form.FormRequestParams;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.Wrapper;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
@@ -29,6 +28,7 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.FormUpdateException;
 import java.lang.reflect.Field;
 import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.form.FormConfig;
 
 /**
  * @author hp
@@ -158,7 +158,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return modelobject;
     }
 
-    public void checkAll(FormRequestParams params){
+    public void checkAll(FormConfig params){
 
         Objects.requireNonNull(params.getAction());
         Objects.requireNonNull(params.getFormid());
@@ -176,7 +176,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
 
-    public FormRequestParams params(
+    public FormConfig params(
             CrudAction action, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
@@ -188,7 +188,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 parentFormId, targetOnCompletion);
     }
 
-    public FormRequestParams paramsForValidate(
+    public FormConfig paramsForValidate(
             CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
@@ -199,7 +199,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 modelobject, modelfields, parentFormId, targetOnCompletion);
     }
     
-    public FormRequestParams paramsForSubmit(
+    public FormConfig paramsForSubmit(
             CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             String [] modelfields,
@@ -210,7 +210,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 modelfields, parentFormId, targetOnCompletion);
     }
     
-    public FormRequestParams toRequestParams(
+    public FormConfig toRequestParams(
             boolean existingForm, boolean useExistingModelObject,
             CrudAction action, String formid, 
             String modelname, @Nullable String modelid,
@@ -221,7 +221,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
-        FormRequestParams formReqParams = ! existingForm ?
+        FormConfig formReqParams = ! existingForm ?
                 this.getFormConfigAttribute(formid, modelname, null) :
                 this.getFormConfigAttributeOrException(formid, modelname);
         
@@ -243,7 +243,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
 
         if(formReqParams == null) {
             
-            formReqParams = new FormRequestParams.Builder()
+            formReqParams = new FormConfig.Builder()
                     .action(action)
                     .formid(formid)
                     .modelname(modelname)
@@ -265,7 +265,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return formReqParams;
     }   
     
-    public void validate(FormRequestParams params, 
+    public void validate(FormConfig params, 
             CrudAction action, @Nullable String formid, 
             String modelname, @Nullable String modelid,
             Object modelobject, String [] modelfields,
@@ -291,7 +291,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
     
-    public boolean updateParentWithNewlyCreated(FormRequestParams params) 
+    public boolean updateParentWithNewlyCreated(FormConfig params) 
             throws FormUpdateException{
         
         if(CrudAction.create != params.getAction()) {
@@ -310,7 +310,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         final String memberName = form.getName();
         final FormMember member = parent.getMember(memberName).orElse(null);
         if(member == null) {
-            throw parentUpdateException(FormRequestParams.class, "name: "+memberName);
+            throw parentUpdateException(FormConfig.class, "name: "+memberName);
         }
         
         this.updateForm(form, memberName, params.getModelobject());
@@ -325,11 +325,11 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         
         final String modelname = form.getName();
         
-        final FormRequestParams formReqParams = getFormConfigAttribute(
+        final FormConfig formReqParams = getFormConfigAttribute(
                 formid, modelname, null);
         
         if(formReqParams == null) {
-            throw parentUpdateException(FormRequestParams.class, 
+            throw parentUpdateException(FormConfig.class, 
                     String.format("formid: %1s, modelname: %2s", formid, modelname));
         }
         
@@ -347,14 +347,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         
         final Form updateForm = newForm(form.getParent(), formid, modelname, modelobject);
         
-        final FormRequestParams update = update(formReqParams, updateForm, modelobject);
+        final FormConfig update = update(formReqParams, updateForm, modelobject);
         
         this.setSessionAttribute(update);
     }
 
-    public FormRequestParams update(
-            FormRequestParams formReqParams, Form form, Object modelobject) {
-        return new FormRequestParams.Builder()
+    public FormConfig update(
+            FormConfig formReqParams, Form form, Object modelobject) {
+        return new FormConfig.Builder()
                 .with(formReqParams)
                 .form(form)
                 .modelobject(modelobject)
@@ -383,7 +383,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         Objects.requireNonNull(formid);
         Objects.requireNonNull(modelname);
         
-        final FormRequestParams parentFormParams = 
+        final FormConfig parentFormParams = 
                 getFormConfigAttributeOrException(formid, modelname);
         
         final Form parentForm = parentFormParams.getFormOptional()
@@ -394,13 +394,13 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return parentForm;
     }  
     
-    public FormRequestParams getFormConfigAttributeOrException(
+    public FormConfig getFormConfigAttributeOrException(
             String formid, String modelname) {
         
         Objects.requireNonNull(formid);
         Objects.requireNonNull(modelname);
         
-        final FormRequestParams formReqParams = getSessionAttribute(formid, null);
+        final FormConfig formReqParams = getSessionAttribute(formid, null);
         
         if(formReqParams == null) {
             throw new InvalidRouteException();
@@ -409,23 +409,23 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return formReqParams;
     }
     
-    public FormRequestParams getFormConfigAttribute(
-            String formid, String modelname, FormRequestParams resultIfNone) {
+    public FormConfig getFormConfigAttribute(
+            String formid, String modelname, FormConfig resultIfNone) {
         Objects.requireNonNull(formid);
         Objects.requireNonNull(modelname);
-        final FormRequestParams formReqParams = formid == null ? 
+        final FormConfig formReqParams = formid == null ? 
                 null : this.getSessionAttribute(formid, null);
         return formReqParams == null ? resultIfNone : formReqParams;
     }
     
-    public FormRequestParams getSessionAttribute(
-            String formid, FormRequestParams resultIfNone) {
+    public FormConfig getSessionAttribute(
+            String formid, FormConfig resultIfNone) {
         final String attributeName = this.getAttributeName(formid);
         Objects.requireNonNull(attributeName);
         final Object value = this.sessionAttributes()
                 .getOrDefault(attributeName, null);
         LOG.trace("Get {} = {}", attributeName, value);
-        return (FormRequestParams)value;
+        return (FormConfig)value;
     }
 
     public void removeSessionAttribute(String formid) {
@@ -435,14 +435,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         LOG.trace("Removed {} = {}", name, removed);
     }
     
-    public void setSessionAttribute(FormRequestParams formReqParams){
+    public void setSessionAttribute(FormConfig formReqParams){
         final String attributeName = this.getAttributeName(formReqParams);
         Objects.requireNonNull(attributeName);
         this.sessionAttributes().put(attributeName, formReqParams);
         LOG.trace("Set {} = {}", attributeName, formReqParams);
     }
 
-    public String getAttributeName(FormRequestParams formReqParams) {
+    public String getAttributeName(FormConfig formReqParams) {
         return this.getAttributeName(formReqParams.getFormid());
     }
     
