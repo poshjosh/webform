@@ -28,30 +28,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import org.springframework.lang.Nullable;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
  */
-public class FormConfigBuilder implements Serializable, FormConfig {
+public class FormConfigDTO implements Serializable, FormConfig {
 
-    private CrudAction action;
+    @NotNull
+    private String action;
+    
+    @NotNull
     private String modelname;
-    private String parentFormid;
-    private String formid;
-    private String modelid;
+    
+    private String parentfid;
+
+    private String fid;
+
+    private String mid;
+
     private Object modelobject;
     
     private List<String> modelfields = Collections.EMPTY_LIST;
     
-    @Nullable private String targetOnCompletion;
+    private String targetOnCompletion;
     
-    @Nullable private Form<Object> form;
+    private Form<Object> form;
     
     private boolean buildAttempted;
 
-    public FormConfigBuilder() { }
+    public FormConfigDTO() { }
     
     public FormConfig build() {
 
@@ -63,14 +69,14 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         
         Objects.requireNonNull(action);
         Objects.requireNonNull(modelname);
-        Objects.requireNonNull(formid);
+        Objects.requireNonNull(fid);
         
         return this;
     }
     
-    public FormConfigBuilder with(FormConfig arg) {
-        this.action(arg.getAction());
-        this.form(arg.getFormOptional().orElse(null));
+    public FormConfigDTO with(FormConfig arg) {
+        this.action(arg.getCrudAction());
+        this.form(arg.getForm());
         this.formid(arg.getFormid());
         this.modelfields(arg.getModelfields() == null ? null :
                 arg.getModelfields().isEmpty() ? Collections.EMPTY_LIST :
@@ -82,42 +88,58 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         this.targetOnCompletion(arg.getTargetOnCompletion());
         return this;
     }
-    
-    public FormConfigBuilder action(CrudAction arg) {
+
+    public FormConfigDTO action(CrudAction arg) {
+        return this.action(arg.name());
+    }
+
+    public FormConfigDTO action(String arg) {
         this.action = arg;
         return this;
     }
-
-    public FormConfigBuilder modelname(String arg) {
+    
+    public FormConfigDTO modelname(String arg) {
         this.modelname = arg;
         return this;
     }
 
-    public FormConfigBuilder parentFormid(String arg) {
-        this.parentFormid = arg;
-        return this;
+    public FormConfigDTO parentFormid(String arg) {
+        return this.parentfid(arg);
     }
-    
-    public FormConfigBuilder formid(String arg) {
-        this.formid = arg;
-        return this;
-    }
-    
-    public FormConfigBuilder modelid(String arg) {
-        this.modelid = arg;
+
+    public FormConfigDTO parentfid(String arg) {
+        this.parentfid = arg;
         return this;
     }
 
-    public FormConfigBuilder modelobject(Object arg) {
+    public FormConfigDTO formid(String arg) {
+        return this.fid(arg);
+    }
+    
+    public FormConfigDTO fid(String arg) {
+        this.fid = arg;
+        return this;
+    }
+    
+    public FormConfigDTO modelid(String arg) {
+        return this.mid(arg);
+    }
+
+    public FormConfigDTO mid(String arg) {
+        this.mid = arg;
+        return this;
+    }
+
+    public FormConfigDTO modelobject(Object arg) {
         this.modelobject = arg;
         return this;
     }
 
-    public FormConfigBuilder modelfields(String arg) {
+    public FormConfigDTO modelfields(String arg) {
         return modelfields(Collections.singletonList(Objects.requireNonNull(arg)));
     }
     
-    public FormConfigBuilder modelfields(String... arg) {
+    public FormConfigDTO modelfields(String... arg) {
         if(arg == null) {
             return modelfields(Collections.EMPTY_LIST);
         }else if(arg.length == 0) {
@@ -126,17 +148,17 @@ public class FormConfigBuilder implements Serializable, FormConfig {
             return modelfields(Arrays.asList(arg));
         }
     }
-    public FormConfigBuilder modelfields(List<String> arg) {
+    public FormConfigDTO modelfields(List<String> arg) {
         this.modelfields = arg == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(arg);
         return this;
     }
 
-    public FormConfigBuilder targetOnCompletion(String target) {
+    public FormConfigDTO targetOnCompletion(String target) {
         this.targetOnCompletion = target;
         return this;
     }
     
-    public FormConfigBuilder form(Form form) {
+    public FormConfigDTO form(Form form) {
         this.form = form;
         return this;
     }
@@ -144,6 +166,7 @@ public class FormConfigBuilder implements Serializable, FormConfig {
     @Override
     public Map<String, Object> toMap() {
         final Map<String, Object> map = new HashMap<>(16, 0.75f);
+        // We add action NOT crudAction
         map.put(Params.ACTION, getAction());
         map.put(Params.MODELNAME, getModelname());
         map.put(Params.PARENT_FORMID, getParentFormid());
@@ -151,16 +174,27 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         map.put(Params.MODELID, getModelid());
         map.put(Params.MODELFIELDS, getModelfields());
         map.put(ModelAttributes.MODELOBJECT, getModelobject());
-        map.put(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion());
-        this.getFormOptional().ifPresent((f) -> {
-            map.put(ModelAttributes.FORM, f);
-        });
+        map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
+        map.put(ModelAttributes.FORM, getForm());
         return Collections.unmodifiableMap(map);
+    }
+    
+    @Override
+    public String getAction() {
+        return this.getCrudAction().name();
+    }
+    
+    public void setAction(String crudAction) {
+        this.setCrudAction(CrudAction.valueOf(crudAction));
     }
 
     @Override
-    public CrudAction getAction() {
-        return action;
+    public CrudAction getCrudAction() {
+        return CrudAction.valueOf(action);
+    }
+
+    public void setCrudAction(CrudAction crudAction) {
+        this.action = crudAction.name();
     }
 
     @Override
@@ -168,19 +202,62 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         return modelname;
     }
 
+    public void setModelname(String modelname) {
+        this.modelname = modelname;
+    }
+
     @Override
     public String getParentFormid() {
-        return parentFormid;
+        return this.getParentfid();
+    }
+
+    public void setParentFormid(String parentFormid) {
+        this.setParentfid(parentFormid);
+    }
+
+    @Override
+    public String getParentfid() {
+        return parentfid;
+    }
+
+    public void setParentfid(String parentFormid) {
+        this.parentfid = parentFormid;
     }
 
     @Override
     public String getFormid() {
-        return formid;
+        return this.getFid();
+    }
+
+    public void setFormid(String formid) {
+        this.setFid(formid);
+    }
+
+    @Override
+    public String getFid() {
+        return fid;
+    }
+    
+    public void setFid(String formid) {
+        this.fid = formid;
+    }
+
+    @Override
+    public String getMid() {
+        return mid;
+    }
+    
+    public void setMid(String modelid) {
+        this.mid = modelid;
     }
     
     @Override
     public String getModelid() {
-        return modelid;
+        return this.getMid();
+    }
+
+    public void setModelid(String modelid) {
+        this.setMid(modelid);
     }
 
     @Override
@@ -188,9 +265,17 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         return modelobject;
     }
 
+    public void setModelobject(Object modelobject) {
+        this.modelobject = modelobject;
+    }
+
     @Override
     public List<String> getModelfields() {
         return modelfields;
+    }
+
+    public void setModelfields(List<String> modelfields) {
+        this.modelfields = modelfields;
     }
 
     @Override
@@ -198,9 +283,17 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         return targetOnCompletion;
     }
 
+    public void setTargetOnCompletion(String targetOnCompletion) {
+        this.targetOnCompletion = targetOnCompletion;
+    }
+
+    public void setForm(Form<Object> form) {
+        this.form = form;
+    }
+
     @Override
-    public Optional<Form<Object>> getFormOptional() {
-        return Optional.ofNullable(form);
+    public Form<Object> getForm() {
+        return this.form;
     }
 
     @Override
@@ -208,9 +301,9 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         int hash = 3;
         hash = 41 * hash + Objects.hashCode(this.action);
         hash = 41 * hash + Objects.hashCode(this.modelname);
-        hash = 41 * hash + Objects.hash(this.parentFormid);
-        hash = 41 * hash + Objects.hash(this.formid);
-        hash = 41 * hash + Objects.hashCode(this.modelid);
+        hash = 41 * hash + Objects.hash(this.parentfid);
+        hash = 41 * hash + Objects.hash(this.fid);
+        hash = 41 * hash + Objects.hashCode(this.mid);
         hash = 41 * hash + Objects.hashCode(this.modelobject);
         hash = 41 * hash + Objects.hashCode(this.modelfields);
         hash = 41 * hash + Objects.hash(this.targetOnCompletion);
@@ -229,20 +322,20 @@ public class FormConfigBuilder implements Serializable, FormConfig {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final FormConfigBuilder other = (FormConfigBuilder) obj;
+        final FormConfigDTO other = (FormConfigDTO) obj;
         if (!Objects.equals(this.action, other.action)) {
             return false;
         }
         if (!Objects.equals(this.modelname, other.modelname)) {
             return false;
         }
-        if (!Objects.equals(this.parentFormid, other.parentFormid)) {
+        if (!Objects.equals(this.parentfid, other.parentfid)) {
             return false;
         }
-        if (!Objects.equals(this.formid, other.formid)) {
+        if (!Objects.equals(this.fid, other.fid)) {
             return false;
         }
-        if (!Objects.equals(this.modelid, other.modelid)) {
+        if (!Objects.equals(this.mid, other.mid)) {
             return false;
         }
         if (!Objects.equals(this.modelobject, other.modelobject)) {
@@ -262,11 +355,12 @@ public class FormConfigBuilder implements Serializable, FormConfig {
 
     @Override
     public String toString() {
-        return "FormRequestParamsBuilder{" + "action=" + action +
-                ", parentFormid=" + parentFormid +
-                ", modelname=" + modelname + ", formid=" + formid + 
-                ", modelid=" + modelid + ", modelobject=" + modelobject + 
+        return "FormConfigDTO{" + "action=" + action +
+                ", parentFormid=" + parentfid +
+                ", modelname=" + modelname + ", formid=" + fid + 
+                ", modelid=" + mid + ", modelobject=" + modelobject + 
                 ", modelfields=" + modelfields + ", targetOnCompletion=" +
-                targetOnCompletion + ", form=" + form.getName() + '}';
+                targetOnCompletion + ", form=" + 
+                (form == null ? null : form.getName()) + '}';
     }
 }

@@ -38,12 +38,13 @@ public class ConvertIdToEntity implements Converter<String, Object> {
     @Override
     public Object convert(String toConvert) {
         try{
+//            LOG.trace("Converting: {} to entity instance", toConvert);
             final Object update = entityRepository.find(toConvert);
             LOG.trace("Converted: {} to: {}", toConvert, update);
             return update;
         }catch(RuntimeException e) {
-            LOG.debug("Failed to convert {}, reason: {}", toConvert, e.toString());
-            return toConvert;
+            LOG.debug("Failed to convert {}", toConvert, e);
+            throw e;
         }
     }
 }

@@ -6,11 +6,10 @@ import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DateToStringConverter;
-import com.looseboxes.webform.converters.EntityToIdConverter;
+import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
@@ -19,6 +18,7 @@ import javax.persistence.Column;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
+import com.looseboxes.webform.util.TextExpressionResolver;
 
 /**
  * @author hp
@@ -29,75 +29,81 @@ public class FormInputContextImpl extends FormInputContextForJpaEntity{
     
     private final TypeTests typeTests;
     private final PropertySearch propertySearch;
-    private final PropertyExpressionsResolver propertyExpressionsResolver;
+    private final TextExpressionResolver propertyExpressionResolver;
     private final DateToStringConverter dateToStringConverter;
     private final TemporalToStringConverter temporalToStringConverter;
-    private final EntityToIdConverter entityToIdConverter;
+    private final DomainTypeToIdConverter domainTypeToIdConverter;
 
     public FormInputContextImpl(
             TypeTests typeTests,
             PropertySearch propertySearch, 
-            PropertyExpressionsResolver propertyExpressionsResolver,
+            TextExpressionResolver propertyExpressionResolver,
             DateToStringConverter dateToStringConverter, 
             TemporalToStringConverter temporalToStringConverter,
-            EntityToIdConverter entityToIdConverter) {
+            DomainTypeToIdConverter entityToIdConverter) {
         this.typeTests = Objects.requireNonNull(typeTests);
         this.propertySearch = Objects.requireNonNull(propertySearch);
-        this.propertyExpressionsResolver = Objects.requireNonNull(propertyExpressionsResolver);
+        this.propertyExpressionResolver = Objects.requireNonNull(propertyExpressionResolver);
         this.dateToStringConverter = Objects.requireNonNull(dateToStringConverter);
         this.temporalToStringConverter = Objects.requireNonNull(temporalToStringConverter);
-        this.entityToIdConverter = Objects.requireNonNull(entityToIdConverter);
+        this.domainTypeToIdConverter = Objects.requireNonNull(entityToIdConverter);
     }
     
     @Override
     public Object getValue(Object source, Field field) {
         
-        Object fieldValue = super.getValue(source, field);
+        final Object fieldValue = super.getValue(source, field);
         
-        if(fieldValue == null){
+        Object result;
+        
+        if(fieldValue != null){
+            result = fieldValue;
+        }else{    
         
             final String propStr = this.getValueFromProperties(field, null);
             
             if(propStr == null) {
                 
-                fieldValue = null;
+                result = null;
                 
-            }else if(this.isExpression(propStr)) {
+            }else if(propertyExpressionResolver.isExpression(propStr)) {
                 
-                fieldValue = this.getExpressionValue(propStr, null);
+                result = propertyExpressionResolver.resolve(propStr, field.getType(), null);
                 
             }else{
                 
-                fieldValue = propStr;
+                result = propStr;
             }
-            
-            if(fieldValue != null) {
-                
-                if(field.getType().isAssignableFrom(fieldValue.getClass())) {
-                
-                    // This value is from the properties file
-                    // We now use it to update the model object i.e source or
-                    // declaring instance of the field
-                    // 
-                    if( ! this.setValue(source, field, fieldValue)) {
+        }
 
-                        LOG.warn("Failed to set value to {}, for: {}.{}", fieldValue,
-                                source.getClass().getSimpleName(), field.getName());
-                    }
-                }else{
+        final boolean resultNotFromFieldValue = fieldValue == null;
+        
+        if(result != null && resultNotFromFieldValue) {
 
-                    LOG.warn("Type mismatch: field type: {} is not assignable from value type: {}",
-                            field.getType(), fieldValue.getClass());
+            if(field.getType().isAssignableFrom(result.getClass())) {
+
+                // This value is from the properties file
+                // We now use it to update the model object i.e source or
+                // declaring instance of the field
+                // 
+                if( ! this.setValue(source, field, result)) {
+
+                    LOG.warn("Failed to set value to {}, for: {}.{}", result,
+                            source.getClass().getSimpleName(), field.getName());
                 }
+            }else{
+
+                LOG.warn("Type mismatch: field type: {} is not assignable from value type: {}",
+                        field.getType(), result.getClass());
             }
         }
         
-        fieldValue = this.format(source, field, fieldValue);
+        result = this.format(source, field, result);
         
-        LOG.trace("Value: {}, field: {}.{}", fieldValue, 
+        LOG.trace("Value: {}, field: {}.{}", result, 
                 field.getDeclaringClass().getName(), field.getName());
         
-        return fieldValue;
+        return result;
     }
     
     public Object format(Object source, Field field, Object fieldValue) {
@@ -118,7 +124,7 @@ public class FormInputContextImpl extends FormInputContextForJpaEntity{
             
         }else if(this.getTypeTests().isDomainType(field.getType())) {
             
-            fieldValue = this.entityToIdConverter.convert(fieldValue);
+            fieldValue = this.domainTypeToIdConverter.convert(fieldValue);
             
         }else if (fieldValue instanceof Collection) {
             
@@ -128,7 +134,7 @@ public class FormInputContextImpl extends FormInputContextForJpaEntity{
                 final Collection update = (Collection)new ReflectionUtil()
                         .newInstanceForCollectionType(fieldValue.getClass());
                 fieldValue = currentValue.stream()
-                        .map((e) -> entityToIdConverter.convert(e))
+                        .map((e) -> domainTypeToIdConverter.convert(e))
                         .collect(Collectors.toCollection(() -> update));
                 
                 LOG.trace("For field: {}\nConverted: {}\n       To: {}", 
@@ -145,35 +151,6 @@ public class FormInputContextImpl extends FormInputContextForJpaEntity{
                 WebformProperties.FIELD_DEFAULT_VALUE, field, null);
         
         return valStr == null || valStr.isEmpty() ? resultIfNone : valStr;
-    }
-    
-    public Object getExpressionValue(String text, Object resultIfNone) {
-        if( ! this.isExpression(text)) {
-            throw new IllegalArgumentException(text);
-        }    
-        Object value = null;
-        final String method = text.substring(1);
-        switch(method) {
-            case "current_date":
-                value = propertyExpressionsResolver.current_date(); break;
-            case "current_time":
-                value = propertyExpressionsResolver.current_time(); break;
-            case "current_timestamp":
-                value = propertyExpressionsResolver.current_timestamp(); break;
-            default:
-                final Class type = this.propertyExpressionsResolver.getClass();
-                try{
-                    value = type.getMethod(method).invoke(this.propertyExpressionsResolver);
-                }catch(IllegalAccessException | IllegalArgumentException | 
-                        NoSuchMethodException | SecurityException | InvocationTargetException e) {
-                    LOG.warn("Could not resolve: " + text + " to any method in " + type, e);
-                }
-        }
-        return value == null ? resultIfNone : value;
-    }
-    
-    public boolean isExpression(String text) {
-        return text.startsWith("#");
     }
 
     public Converter<Date, String> getDateToStringConverter(javax.persistence.Temporal temporal) {

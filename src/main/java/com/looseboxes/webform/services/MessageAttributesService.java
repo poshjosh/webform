@@ -48,7 +48,14 @@ public class MessageAttributesService {
                 
                 final Function<FieldError, String> mapper = (fieldErr) -> {
                     
-                    return fieldErr.getField() + (fieldErr.getDefaultMessage() == null ? "" : ": " + fieldErr.getDefaultMessage());
+                    final String errMsg;
+                    if(fieldErr.isBindingFailure()) {
+                        errMsg = "internal error";
+                    }else{
+                        errMsg = fieldErr.getDefaultMessage();
+                    }
+
+                    return fieldErr.getField() + (errMsg == null ? "" : ": " + errMsg);
                 };
 
                 final List<String> errorMessages = (List<String>)fieldErrors.stream()

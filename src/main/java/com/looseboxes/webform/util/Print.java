@@ -1,12 +1,14 @@
 package com.looseboxes.webform.util;
 
 import com.bc.webform.Form;
+import com.looseboxes.webform.form.FormConfig;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +22,11 @@ public class Print<A extends Appendable> {
     
     private static final Logger LOG = LoggerFactory.getLogger(Print.class);
     
-    private StringBuilder b = new StringBuilder();
+    private StringBuilder buffer = new StringBuilder();
     private String separator = "\n";
     
     public Print reset() {
-        b.setLength(0);
+        buffer.setLength(0);
         separator = "\n";
         return this;
     }
@@ -35,12 +37,12 @@ public class Print<A extends Appendable> {
     }
     
     public Print add(Object k, Object v) {
-        b.append(separator).append(k).append(" = ").append(v);
+        buffer.append(separator).append(k).append(" = ").append(v);
         return this;
     }
     
     public Print addHttpRequest(HttpServletRequest request) {
-        b.append(separator).append(" - - - - - - - HttpServletRequest - - - - - - - ");
+        buffer.append(separator).append(" - - - - - - - HttpServletRequest - - - - - - - ");
         this.add("request.characterEncoding", request.getCharacterEncoding());
         this.add("request.contentLength", request.getContentLengthLong());
         this.add("request.contentType", request.getContentType());
@@ -76,7 +78,7 @@ public class Print<A extends Appendable> {
     }
 
     public Print addHttpSession(HttpSession session) {
-        b.append(separator).append(" - - - - - - - HttpSession - - - - - - - ");
+        buffer.append(separator).append(" - - - - - - - HttpSession - - - - - - - ");
         this.add("session.id", session.getId());
         final Enumeration<String> en = session.getAttributeNames();
         while(en.hasMoreElements()) {
@@ -85,16 +87,36 @@ public class Print<A extends Appendable> {
         }
         return this;
     }
-
+    
+    public void trace(String method, Object modelMap, FormConfig formConfig,
+            HttpServletRequest request, HttpServletResponse response) {
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("==================== " + method + " ====================");
+            if(formConfig != null) {
+                formConfig.toMap().forEach((k, v) -> {
+                    this.add(k, v);
+                });
+            }
+            this.add("ModelMap", modelMap)
+            .addHttpRequest(request)
+            .addHttpSession(request.getSession())
+            .traceAdded();
+        }
+    }
+    
     public Print traceAdded() {
         try{
-            LOG.trace("{}", b.toString());
+            LOG.trace("{}", buffer.toString());
         }finally{
             this.reset();
         }
         return this;
     }
     
+    public StringBuilder getBuffer() {
+        return buffer;
+    }
+
     public void trace(String prefix, Object obj, String separator, String suffix) {
         final String print = new Print<StringBuilder>().append(
                 new StringBuilder(), obj, separator).toString();

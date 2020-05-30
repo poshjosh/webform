@@ -40,7 +40,7 @@ public class FormValidatorFactoryImpl implements FormValidatorFactory {
         
         final List<Validator> output = new ArrayList<>(2);
         
-        if(create.equals(formReqParams.getAction())) {
+        if(create.equals(formReqParams.getCrudAction())) {
             
             final Object modelobject = formReqParams.getModelobject();
             

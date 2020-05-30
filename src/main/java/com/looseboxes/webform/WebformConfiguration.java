@@ -13,7 +13,6 @@ import com.bc.webform.FormBuilderForJpaEntity;
 import com.bc.webform.FormMemberBuilder;
 import com.looseboxes.webform.converters.DateToStringConverter;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
-import com.looseboxes.webform.converters.EntityToIdConverter;
 import com.looseboxes.webform.form.FormMemberComparatorImpl;
 import com.looseboxes.webform.form.FormFieldTest;
 import com.looseboxes.webform.form.FormFieldTestImpl;
@@ -23,6 +22,7 @@ import com.bc.webform.functions.MultiChoiceContext;
 import com.bc.webform.functions.ReferencedFormContext;
 import com.bc.webform.functions.TypeTests;
 import com.bc.webform.functions.TypeTestsImpl;
+import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.form.FormInputContextImpl;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
@@ -36,9 +36,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import com.looseboxes.webform.form.FormMemberComparator;
-import com.looseboxes.webform.form.PropertyExpressionsResolver;
-import com.looseboxes.webform.form.PropertyExpressionsResolverImpl;
+import com.looseboxes.webform.util.TextExpressionMethodsImpl;
 import com.looseboxes.webform.form.ReferencedFormContextImpl;
+import com.looseboxes.webform.util.TextExpressionResolverImpl;
+import com.looseboxes.webform.util.TextExpressionMethods;
+import com.looseboxes.webform.util.TextExpressionResolver;
 
 /**
  * @author hp
@@ -53,13 +55,13 @@ public class WebformConfiguration {
     @Autowired private Environment environment;
     
     public WebformConfiguration() { }
-
+    
     @Bean @Scope("prototype") public FormFactory formFactory(
             @Autowired TypeFromNameResolver typeFromNameResolver,
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired EntityToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter entityToIdConverter) {
         
         return new FormFactoryImpl(
                 typeFromNameResolver, 
@@ -71,7 +73,7 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired EntityToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter entityToIdConverter) {
         return new FormBuilderForJpaEntity()
                 .sourceFieldsProvider(this.formFieldTest(propertySearch))
                 .formMemberComparator(this.formMemberComparator(propertySearch))
@@ -87,7 +89,7 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired EntityToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter entityToIdConverter) {
         
         final FormInputContext<Object, Field, Object> formInputContext = 
                 formInputContext(propertySearch, dateToStringConverter, 
@@ -111,7 +113,7 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired EntityToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter domainTypeToIdConverter) {
         
         return new FormInputContextImpl(
                 this.typeTests(),
@@ -119,11 +121,17 @@ public class WebformConfiguration {
                 this.propertyExpressionsResolver(),
                 dateToStringConverter,
                 temporalToStringConverter,
-                entityToIdConverter);
+                domainTypeToIdConverter);
+    }
+
+    @Bean public TextExpressionResolver propertyExpressionsResolver() {
+        return new TextExpressionResolverImpl(
+                this.propertyExpressionMethods()
+        );
     }
     
-    @Bean public PropertyExpressionsResolver propertyExpressionsResolver() {
-        return new PropertyExpressionsResolverImpl();
+    @Bean public TextExpressionMethods propertyExpressionMethods() {
+        return new TextExpressionMethodsImpl();
     }
     
     @Bean @Scope("prototype") public MultiChoiceContext<Object, Field> multiChoiceContext(
@@ -150,7 +158,7 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch) {
         return new FormMemberComparatorImpl(propertySearch);
     }
-
+    
     @Bean @Scope("prototype") public TypeTests typeTests() {
         return new TypeTestsImpl();
     }

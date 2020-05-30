@@ -2,6 +2,7 @@ package com.looseboxes.webform.converters;
 
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import java.util.Objects;
+import javax.persistence.PersistenceUnitUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
@@ -9,14 +10,17 @@ import org.springframework.core.convert.converter.Converter;
 /**
  * @author hp
  */
-public class EntityToIdConverter implements Converter<Object, Object>{
+public class DomainTypeToIdConverter implements Converter<Object, Object>{
 
-    private static final Logger LOG = LoggerFactory.getLogger(EntityToIdConverter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DomainTypeToIdConverter.class);
     
     private final EntityRepositoryFactory repoFactory;
+    
+    private final PersistenceUnitUtil persistenceUnitUtil;
 
-    public EntityToIdConverter(EntityRepositoryFactory repoFactory) {
+    public DomainTypeToIdConverter(EntityRepositoryFactory repoFactory) {
         this.repoFactory = Objects.requireNonNull(repoFactory);
+        this.persistenceUnitUtil = this.repoFactory.getEntityManagerFactory().getPersistenceUnitUtil();
     }
 
     @Override
@@ -25,10 +29,14 @@ public class EntityToIdConverter implements Converter<Object, Object>{
         if(source == null) {
             update = null;
         }else{
+            
             final Class sourceType = source.getClass();
+            
             if(repoFactory.isSupported(sourceType)) {
-                final Object id = repoFactory.forEntity(sourceType)
-                        .getIdOptional(source).orElse(null);
+                
+                final Object id = this.persistenceUnitUtil.getIdentifier(source);
+//                final Object id = repoFactory.forEntity(sourceType)
+//                        .getIdOptional(source).orElse(null);
                 if(id != null) {
                     update = id;
                 }else{

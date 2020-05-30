@@ -22,7 +22,6 @@ import com.looseboxes.webform.ModelAttributes;
 import com.looseboxes.webform.Params;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:16:30 PM
@@ -33,10 +32,37 @@ public interface FormConfig extends ModelAttributes, Params{
         return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
             MODELOBJECT, PARENT_FORMID, TARGET_ON_COMPLETION, FORM};
     }
-    
-    class Builder extends FormConfigBuilder{}
 
-    CrudAction getAction();
+    class Builder extends FormConfigDTO{}
+    
+    /**
+     * Synonymous to {@link #getFormid()}
+     * @return String. The id of the respective form for this config
+     * @see #getFormid() 
+     */
+    String getFid();
+
+    /**
+     * Synonymous to {@link #getParentFormid()}
+     * @return String. The id of the respective parent form of the form for this config
+     * @see #getParentFormid() 
+     */
+    String getParentfid();
+
+    /**
+     * Synonymous to {@link #getModelid()}
+     * @return String. The id of the model which the form of this config relates to
+     * @see #getModelid() 
+     */
+    String getMid();
+    
+    /**
+     * @return String. The name of the enum returned by {@link #getCrudAction()}
+     * @see #getCrudAction() 
+     */
+    String getAction();
+    
+    CrudAction getCrudAction();
 
     List<String> getModelfields();
     
@@ -52,7 +78,7 @@ public interface FormConfig extends ModelAttributes, Params{
     
     String getTargetOnCompletion();
     
-    Optional<Form<Object>> getFormOptional();
+    Form<Object> getForm();
     
     Map<String, Object> toMap();
 }

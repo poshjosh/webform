@@ -4,7 +4,7 @@ import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.controllers.FormController;
+import com.looseboxes.webform.controllers.FormControllerHtml;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ import com.looseboxes.webform.CrudAction;
  * @author hp
  */
 public class OnFormSubmittedImpl implements 
-        FormController.OnFormSubmitted{
+        FormControllerHtml.OnFormSubmitted{
     
     private static final Logger LOG = LoggerFactory.getLogger(OnFormSubmittedImpl.class);
     
@@ -34,7 +34,7 @@ public class OnFormSubmittedImpl implements
         final Class entityType = this.getType(formReqParams);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
         
-        final CrudAction crudAction = formReqParams.getAction();
+        final CrudAction crudAction = formReqParams.getCrudAction();
         switch(crudAction) {
             case create:
                 final Object modelobject = formReqParams.getModelobject();

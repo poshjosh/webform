@@ -10,15 +10,15 @@ import org.springframework.core.convert.converter.Converter;
 /**
  * @author hp
  */
-public class EntityToStringConverter implements Converter<Object, String> {
+public class DomainTypeToStringConverter implements Converter<Object, String> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EntityToStringConverter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DomainTypeToStringConverter.class);
     
     private final TypeTests typeTests;
     private final DomainObjectPrinter printer;
     private final Locale locale;
 
-    public EntityToStringConverter(TypeTests typeTests, 
+    public DomainTypeToStringConverter(TypeTests typeTests, 
             DomainObjectPrinter printer, Locale locale) {
         this.typeTests = Objects.requireNonNull(typeTests);
         this.printer = Objects.requireNonNull(printer);

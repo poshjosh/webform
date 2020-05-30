@@ -1,7 +1,7 @@
 package com.looseboxes.webform;
 
 import com.looseboxes.webform.form.OnFormSubmittedImpl;
-import com.looseboxes.webform.controllers.FormController;
+import com.looseboxes.webform.controllers.FormControllerHtml;
 import com.bc.jpa.spring.AbstractJpaConfiguration;
 import com.looseboxes.webform.form.validators.EntityUniqueColumnsValidator;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
  */
 public abstract class JpaConfiguration extends AbstractJpaConfiguration{
 
-    @Bean @Scope("prototype") public FormController.OnFormSubmitted onFormSubmitted() {
+    @Bean @Scope("prototype") public FormControllerHtml.OnFormSubmitted onFormSubmitted() {
         return new OnFormSubmittedImpl(
                 this.typeFromNameResolver(),
                 this.entityRepositoryFactory());

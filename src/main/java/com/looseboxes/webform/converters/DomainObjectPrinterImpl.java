@@ -32,6 +32,8 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
     @Override
     public String print(Object object, Locale locale) {
         
+        LOG.trace("Converting {} to java.lang.String");
+        
         String output = null;
         
         if(object == null) {
