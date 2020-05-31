@@ -37,7 +37,8 @@ public class FormControllerRest extends FormControllerBase{
     public FormControllerRest() { }
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
-    public ResponseEntity<FormConfig> begin(ModelMap model, FormConfigDTO formConfigDTO,
+    public ResponseEntity<FormConfig> begin(
+            ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) 
             throws FileNotFoundException{
 
@@ -70,8 +71,7 @@ public class FormControllerRest extends FormControllerBase{
     public ResponseEntity<FormConfig> validate(
             @Valid @ModelAttribute(ModelAttributes.MODELOBJECT) Object modelobject,
             BindingResult bindingResult,
-            ModelMap model,
-            FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
         ResponseEntity<FormConfig> result;
@@ -98,8 +98,7 @@ public class FormControllerRest extends FormControllerBase{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/submit")
     public ResponseEntity<Object> submit(
-            ModelMap model,
-            FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
         final CrudAction action = formConfigDTO.getCrudAction();
