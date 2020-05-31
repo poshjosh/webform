@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
+import org.springframework.core.convert.converter.Converter;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
@@ -72,6 +73,15 @@ public class FormConfigDTO implements Serializable, FormConfig {
         Objects.requireNonNull(fid);
         
         return this;
+    }
+    
+    public void apply(Converter<String, String> converter) {
+        this.action(converter.convert(this.action));
+        this.modelname(converter.convert(this.modelname));
+        this.parentfid(converter.convert(this.parentfid));
+        this.fid(converter.convert(this.fid));
+        this.mid(converter.convert(this.mid));
+        this.targetOnCompletion(converter.convert(this.targetOnCompletion));
     }
     
     public FormConfigDTO with(FormConfig arg) {
