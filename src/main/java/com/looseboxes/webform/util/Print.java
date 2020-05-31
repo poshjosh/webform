@@ -91,11 +91,9 @@ public class Print<A extends Appendable> {
     public void trace(String method, Object modelMap, FormConfig formConfig,
             HttpServletRequest request, HttpServletResponse response) {
         if(LOG.isTraceEnabled()) {
-            LOG.trace("==================== " + method + " ====================");
+            LOG.trace("Beginning: " + method);
             if(formConfig != null) {
-                formConfig.toMap().forEach((k, v) -> {
-                    this.add(k, v);
-                });
+                this.add("FormConfig", formConfig.toMap());
             }
             this.add("ModelMap", modelMap)
             .addHttpRequest(request)
