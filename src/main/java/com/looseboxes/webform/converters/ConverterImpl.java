@@ -43,14 +43,19 @@ public class ConverterImpl implements GenericConverter{
 
     @Override
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-        final Class srcType = sourceType.getType();
-        final Class tgtType = targetType.getType();
-        LOG.trace("Converting {} to {}", source, tgtType);
-        if(String.class.equals(srcType)) {
-            return this.idToDomainTypeConverterFactory
-                    .getConverter(tgtType).convert(source.toString());
-        }else{
-            return this.domainTypeToStringConverter.convert(source);
+        try{
+            final Class srcType = sourceType.getType();
+            final Class tgtType = targetType.getType();
+            LOG.trace("Converting {} to {}", source, tgtType);
+            if(String.class.equals(srcType)) {
+                return this.idToDomainTypeConverterFactory
+                        .getConverter(tgtType).convert(source.toString());
+            }else{
+                return this.domainTypeToStringConverter.convert(source);
+            }
+        }catch(RuntimeException e) {
+            LOG.warn("Unexpected exception", e);
+            throw e;
         }
     }
 }
