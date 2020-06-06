@@ -5,7 +5,8 @@ package com.looseboxes.webform;
  */
 public interface HttpSessionAttributes {
     
-    String MODELOBJECT = ModelAttributes.MODELOBJECT;
+    String MODELOBJECT = "modelobject";
+    String FORM = "form";
     
     String UPLOADED_FILES_PENDING = "webform_uploadedFilesPending";
     
