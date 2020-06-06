@@ -1,8 +1,7 @@
 package com.looseboxes.webform.controllers;
 
-import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.HttpSessionAttributes;
-import com.looseboxes.webform.ModelAttributes;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
@@ -13,7 +12,6 @@ import com.looseboxes.webform.services.MessageAttributesService;
 import com.looseboxes.webform.store.StoreDelegate;
 import com.looseboxes.webform.util.Print;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +31,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
  * @author hp
  */
 //@see https://stackoverflow.com/questions/30616051/how-to-post-generic-objects-to-a-spring-controller
-@SessionAttributes({ModelAttributes.MODELOBJECT}) 
+@SessionAttributes({HttpSessionAttributes.MODELOBJECT}) 
 public class FormControllerBase{
     
     private static final Logger LOG = LoggerFactory.getLogger(FormControllerBase.class);
@@ -93,12 +91,7 @@ public class FormControllerBase{
 
         LOG.debug("{}", formConfig);
         
-        final List<Validator> validators = this.formValidatorFactory.get(formConfig);
-
-        for(Validator validator : validators) {
-
-            ValidationUtils.invokeValidator(validator, modelobject, bindingResult);
-        }
+        this.validateModelObject(bindingResult, model, formConfig);
         
         formSvc.checkAll(formConfig);
   
@@ -108,11 +101,7 @@ public class FormControllerBase{
 
         attributeSvc.modelAttributes().putAll(formParams);
         
-        if (bindingResult.hasErrors()) {
-            
-            this.messageAttributesSvc.addErrorsToModel(bindingResult, model);
-            
-        }else{
+        if ( ! bindingResult.hasErrors()) {
             
             if(request instanceof MultipartHttpServletRequest) {
             
@@ -127,6 +116,24 @@ public class FormControllerBase{
 
         return formConfig;
     }    
+    
+    public void validateModelObject(
+            BindingResult bindingResult,
+            ModelMap model,
+            FormConfig formConfig) {
+    
+        final List<Validator> validators = this.formValidatorFactory.get(formConfig);
+
+        for(Validator validator : validators) {
+
+            ValidationUtils.invokeValidator(validator, formConfig.getModelobject(), bindingResult);
+        }
+        
+        if (bindingResult.hasErrors()) {
+            
+            this.messageAttributesSvc.addErrorsToModel(bindingResult, model);
+        }
+    }
 
     public FormConfig onSubmitForm(
             ModelMap model,
@@ -158,7 +165,7 @@ public class FormControllerBase{
 
             this.onFormSubmitSuccessful(model, formConfig, request, response);
             
-            if(CrudAction.create.equals(formConfig.getCrudAction())) {
+            if(CRUDAction.create.equals(formConfig.getCrudAction())) {
                 try{
                     formSvc.updateParentWithNewlyCreated(formConfig);
                 }catch(RuntimeException e) {
@@ -190,8 +197,6 @@ public class FormControllerBase{
                 formReqParams.getCrudAction() + ' ' + formReqParams.getModelname();
         
         this.messageAttributesSvc.addInfoMessage(model, m);
-        
-        request.setAttribute(ModelAttributes.MESSAGES, Collections.singletonList(m));
     }
     
     public void onFormSubmitFailed(

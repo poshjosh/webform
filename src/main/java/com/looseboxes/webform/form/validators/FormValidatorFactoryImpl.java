@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.validation.Validator;
-import static com.looseboxes.webform.CrudAction.create;
+import static com.looseboxes.webform.CRUDAction.create;
 import com.looseboxes.webform.form.FormConfig;
 
 /**

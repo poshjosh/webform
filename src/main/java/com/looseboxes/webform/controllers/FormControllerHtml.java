@@ -1,7 +1,7 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.FormEndpoints;
-import com.looseboxes.webform.ModelAttributes;
+import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.SpringProperties;
 import com.looseboxes.webform.exceptions.RouteException;
@@ -52,7 +52,7 @@ public class FormControllerHtml extends FormControllerBase{
     
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/validate")
     public String validateForm(
-            @Valid @ModelAttribute(ModelAttributes.MODELOBJECT) Object modelobject,
+            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject,
             BindingResult bindingResult,
             ModelMap model,
             FormConfigDTO formConfigDTO,

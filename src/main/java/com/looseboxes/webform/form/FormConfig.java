@@ -17,8 +17,10 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.CrudAction;
-import com.looseboxes.webform.ModelAttributes;
+import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.HttpSessionAttributes;
+import static com.looseboxes.webform.HttpSessionAttributes.FORM;
+import static com.looseboxes.webform.HttpSessionAttributes.MODELOBJECT;
 import com.looseboxes.webform.Params;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,7 @@ import java.util.Map;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:16:30 PM
  */
-public interface FormConfig extends ModelAttributes, Params{
+public interface FormConfig extends HttpSessionAttributes, Params{
     
     static String [] names() {
         return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
@@ -62,7 +64,7 @@ public interface FormConfig extends ModelAttributes, Params{
      */
     String getAction();
     
-    CrudAction getCrudAction();
+    CRUDAction getCrudAction();
 
     List<String> getModelfields();
     

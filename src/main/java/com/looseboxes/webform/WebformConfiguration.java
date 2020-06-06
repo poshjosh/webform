@@ -56,6 +56,10 @@ public class WebformConfiguration {
     
     public WebformConfiguration() { }
     
+    @Bean public MessageAttributes messageAttributes() {
+        return new MessageAttributesImpl();
+    }
+    
     @Bean @Scope("prototype") public FormFactory formFactory(
             @Autowired TypeFromNameResolver typeFromNameResolver,
             @Autowired PropertySearch propertySearch,

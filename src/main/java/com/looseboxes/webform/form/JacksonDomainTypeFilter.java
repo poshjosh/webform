@@ -61,13 +61,8 @@ public class JacksonDomainTypeFilter extends SimpleBeanPropertyFilter{
         
         final boolean ignore = this.isDomainType(value); 
 
-        if(ignore) {
-            LOG.debug("Ignore: {}, parent type: {}, {} = {}", ignore,
-                    parentType.getSimpleName(), name, value);
-        }else{
-            LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
-                    parentType.getSimpleName(), name, value);
-        }
+        LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
+                parentType.getSimpleName(), name, value);
 
         return ignore;
     }

@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.FormUpdateException;
 import java.lang.reflect.Field;
-import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
 
@@ -122,14 +122,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             boolean useExistingModelObject,
             FormConfig formConfig) {
         
-        final CrudAction action = formConfig.getCrudAction();
+        final CRUDAction action = formConfig.getCrudAction();
         final String formid = formConfig.getFormid();
         final String modelname = formConfig.getModelname();
         final String modelid = formConfig.getModelid();
         Object modelobject = formConfig.getModelobject();
         final String parentFormId = formConfig.getParentFormid();
         
-        if(CrudAction.create != action && modelid == null) {
+        if(CRUDAction.create != action && modelid == null) {
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
@@ -137,7 +137,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 this.getFormConfigAttribute(formid, modelname, null) :
                 this.getFormConfigAttributeOrException(formid, modelname);
         
-        LOG.debug("Existing params: {}\nexisting   form: {}", existingFormConfig,
+        LOG.debug("Existing params: {}\nexisting form: {}", existingFormConfig,
                 (existingFormConfig==null?null:existingFormConfig.getForm()));
 
         if(existingForm && existingFormConfig == null) {
@@ -194,7 +194,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     public boolean updateParentWithNewlyCreated(FormConfig formConfig) 
             throws FormUpdateException{
         
-        if(CrudAction.create != formConfig.getCrudAction()) {
+        if(CRUDAction.create != formConfig.getCrudAction()) {
             throw new UnsupportedOperationException(
                     "Only 'create' supported but found: " + formConfig.getCrudAction());
         }
@@ -282,18 +282,18 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         Objects.requireNonNull(formid);
         Objects.requireNonNull(modelname);
         
-        final FormConfig parentFormParams = 
+        final FormConfig formConfig = 
                 getFormConfigAttributeOrException(formid, modelname);
         
-        final Form parentForm = parentFormParams.getForm();
+        final Form form = formConfig.getForm();
         
-        if(parentForm == null) {
+        if(form == null) {
             throw new InvalidRouteException();
         }
     
-        LOG.trace("For id: {}, found form: {}", formid, parentFormParams);
+        LOG.trace("For id: {}, found form: {}", formid, formConfig);
         
-        return parentForm;
+        return form;
     }  
     
     public FormConfig getFormConfigAttributeOrException(

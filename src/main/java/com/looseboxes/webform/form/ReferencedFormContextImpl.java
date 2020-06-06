@@ -7,7 +7,7 @@ import com.bc.webform.functions.TypeTests;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
-import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.CRUDAction;
 
 /**
  * @author hp
@@ -51,7 +51,7 @@ public class ReferencedFormContextImpl implements ReferencedFormContext<Object, 
             Form form, Object formDataSource, Field field) {
         final String name = formInputNameProvider.getName(formDataSource, field);
         final StringBuilder b = new StringBuilder()
-                .append('/').append(CrudAction.create)
+                .append('/').append(CRUDAction.create)
                 .append('/').append(name);
         return Optional.of(b.toString());
     }

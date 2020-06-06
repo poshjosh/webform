@@ -24,17 +24,12 @@ public class JacksonFormMemberFilter extends JacksonDomainTypeFilter{
     public boolean ignore(Class parentType, String name, Object value) {
         
         final boolean ignore = 
-                super.ignore(parentType, name, value) ||
+                super.isDomainType(parentType) ||
                 (FormMember.class.isAssignableFrom(parentType) && 
                     (value instanceof Form || value instanceof Field)); 
         
-        if(ignore) {
-            LOG.debug("Ignore: {}, parent type: {}, {} = {}", ignore,
-                    parentType.getSimpleName(), name, value);
-        }else{
-            LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
-                    parentType.getSimpleName(), name, value);
-        }
+        LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
+                parentType.getSimpleName(), name, value);
 
         return ignore;
     }

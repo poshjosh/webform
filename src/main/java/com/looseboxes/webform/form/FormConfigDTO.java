@@ -17,9 +17,9 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.ModelAttributes;
+import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -99,7 +99,7 @@ public class FormConfigDTO implements Serializable, FormConfig {
         return this;
     }
 
-    public FormConfigDTO action(CrudAction arg) {
+    public FormConfigDTO action(CRUDAction arg) {
         return this.action(arg.name());
     }
 
@@ -183,9 +183,9 @@ public class FormConfigDTO implements Serializable, FormConfig {
         map.put(Params.FORMID, getFormid());
         map.put(Params.MODELID, getModelid());
         map.put(Params.MODELFIELDS, getModelfields());
-        map.put(ModelAttributes.MODELOBJECT, getModelobject());
+        map.put(HttpSessionAttributes.MODELOBJECT, getModelobject());
         map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
-        map.put(ModelAttributes.FORM, getForm());
+        map.put(HttpSessionAttributes.FORM, getForm());
         return Collections.unmodifiableMap(map);
     }
     
@@ -195,15 +195,15 @@ public class FormConfigDTO implements Serializable, FormConfig {
     }
     
     public void setAction(String crudAction) {
-        this.setCrudAction(CrudAction.valueOf(crudAction));
+        this.setCrudAction(CRUDAction.valueOf(crudAction));
     }
 
     @Override
-    public CrudAction getCrudAction() {
-        return CrudAction.valueOf(action);
+    public CRUDAction getCrudAction() {
+        return CRUDAction.valueOf(action);
     }
 
-    public void setCrudAction(CrudAction crudAction) {
+    public void setCrudAction(CRUDAction crudAction) {
         this.action = crudAction.name();
     }
 

@@ -3,7 +3,7 @@ package com.looseboxes.webform.services;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.looseboxes.webform.CrudAction;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
@@ -38,7 +38,7 @@ public class ModelObjectService{
     }
     
     public Object getModel(FormConfig formConfig) {
-        final CrudAction crudAction = formConfig.getCrudAction();
+        final CRUDAction crudAction = formConfig.getCrudAction();
         final String modelname = formConfig.getModelname();
         final String modelid = formConfig.getModelid();
         final Object object;
@@ -51,7 +51,7 @@ public class ModelObjectService{
             case delete: 
                 object = this.getModel(modelname, modelid); 
                 break;
-            default: throw Errors.unexpected(crudAction, (Object[])CrudAction.values());
+            default: throw Errors.unexpected(crudAction, (Object[])CRUDAction.values());
         }
         return object;
     }
