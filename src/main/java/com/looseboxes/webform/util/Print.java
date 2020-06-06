@@ -95,10 +95,16 @@ public class Print<A extends Appendable> {
             if(formConfig != null) {
                 this.add("FormConfig", formConfig.toMap());
             }
-            this.add("ModelMap", modelMap)
-            .addHttpRequest(request)
-            .addHttpSession(request.getSession())
-            .traceAdded();
+            if(modelMap != null) {
+                this.add("ModelMap", modelMap);
+            }
+            
+            if(request != null) {
+                addHttpRequest(request);
+                addHttpSession(request.getSession());
+            }        
+            
+            traceAdded();
         }
     }
     
