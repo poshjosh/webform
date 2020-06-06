@@ -1,5 +1,7 @@
 package com.looseboxes.webform.controllers;
 
+import com.bc.jpa.spring.DomainClasses;
+import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
@@ -30,6 +32,9 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -48,9 +53,45 @@ public class FormControllerRest extends FormControllerBase{
     private static final Logger LOG = LoggerFactory.getLogger(FormControllerRest.class);
     
     @Autowired private EntityRepositoryFactory repoFactory;
+    @Autowired private DomainClasses domainClasses;
+    @Autowired private TypeFromNameResolver typeFromNameResolver;
     
     public FormControllerRest() { }
     
+    @RequestMapping("/modelnames")
+    public ResponseEntity<Object> modelnames(ModelMap model, 
+            HttpServletRequest request, HttpServletResponse response) {
+
+        try{
+            
+            if(LOG.isTraceEnabled()) {
+                new Print().trace(FormStage.dependents, 
+                        model, null, request, response);
+            }
+            
+            final Set modelNames = domainClasses.get().stream()
+                    .filter(this.getModelTypeFilter())
+                    .map((cls) -> typeFromNameResolver.getName(cls))
+                    .filter(this.getModelNameFilter())
+                    .collect(Collectors.toSet());
+
+            return ResponseEntity.ok(
+                    Collections.singletonMap("modelnames", modelNames));
+            
+        }catch(Exception e) {
+            
+            return this.respond(e, model);
+        }
+    }
+    
+    public Predicate<Class> getModelTypeFilter() {
+        return (cls) -> true;
+    }
+    
+    public Predicate<String> getModelNameFilter() {
+        return (name) -> true;
+    }
+
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
