@@ -1,6 +1,6 @@
 package com.looseboxes.webform.controllers;
 
-import com.looseboxes.webform.CrudEvent;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
@@ -165,7 +165,7 @@ public class FormControllerBase{
 
             this.onFormSubmitSuccessful(model, formConfig, request, response);
             
-            if(CrudEvent.create.equals(formConfig.getCrudAction())) {
+            if(CRUDAction.create.equals(formConfig.getCrudAction())) {
                 try{
                     formSvc.updateParentWithNewlyCreated(formConfig);
                 }catch(RuntimeException e) {
