@@ -1,7 +1,7 @@
 package com.looseboxes.webform.controllers;
 
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.CrudEvent;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.form.FormConfig;
@@ -192,7 +192,7 @@ public class FormControllerRest extends FormControllerBase{
             ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
-        final CRUDAction action = formConfigDTO.getCrudAction();
+        final CrudEvent action = formConfigDTO.getCrudAction();
         
         ResponseEntity<Object> result;
         
@@ -219,7 +219,7 @@ public class FormControllerRest extends FormControllerBase{
     } 
     
     public ResponseEntity<Object> buildSuccessResponse(
-            CRUDAction action, FormConfig formConfig) {
+            CrudEvent action, FormConfig formConfig) {
         
         final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
         
@@ -238,7 +238,7 @@ public class FormControllerRest extends FormControllerBase{
                 result = ResponseEntity.noContent().build();
                 break;
             default:
-                throw Errors.unexpected(action, (Object[])CRUDAction.values());
+                throw Errors.unexpected(action, (Object[])CrudEvent.values());
         }
         
         return result;
@@ -257,7 +257,7 @@ public class FormControllerRest extends FormControllerBase{
     }
     
     public String buildPathForRead(FormConfig formConfig) {
-        return "/" + CRUDAction.read + "/" + formConfig.getModelname() + "/{"+Params.MODELID+"}";
+        return "/" + CrudEvent.read + "/" + formConfig.getModelname() + "/{"+Params.MODELID+"}";
     }
     
     protected ResponseEntity<Object> respond(

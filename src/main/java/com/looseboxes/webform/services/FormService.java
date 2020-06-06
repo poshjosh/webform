@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.FormUpdateException;
 import java.lang.reflect.Field;
-import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.CrudEvent;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
 
@@ -122,14 +122,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             boolean useExistingModelObject,
             FormConfig formConfig) {
         
-        final CRUDAction action = formConfig.getCrudAction();
+        final CrudEvent action = formConfig.getCrudAction();
         final String formid = formConfig.getFormid();
         final String modelname = formConfig.getModelname();
         final String modelid = formConfig.getModelid();
         Object modelobject = formConfig.getModelobject();
         final String parentFormId = formConfig.getParentFormid();
         
-        if(CRUDAction.create != action && modelid == null) {
+        if(CrudEvent.create != action && modelid == null) {
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
@@ -194,7 +194,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     public boolean updateParentWithNewlyCreated(FormConfig formConfig) 
             throws FormUpdateException{
         
-        if(CRUDAction.create != formConfig.getCrudAction()) {
+        if(CrudEvent.create != formConfig.getCrudAction()) {
             throw new UnsupportedOperationException(
                     "Only 'create' supported but found: " + formConfig.getCrudAction());
         }

@@ -27,16 +27,16 @@ public interface FormEndpoints {
     
     /**
      * @return The endpoint for display form information initiated by the read
-     * {@link com.looseboxes.webform.CRUDAction CRUDActionName}
+     * {@link com.looseboxes.webform.CrudEvent CRUDActionName}
      */
     String getFormData();
     
     /**
-     * @param crudAction One of {@link com.looseboxes.webform.CRUDAction CRUDActionName}
-     * @return The endpoint for the {@link com.looseboxes.webform.CRUDAction CRUDActionName}
-     * @see com.looseboxes.webform.CRUDAction
+     * @param crudAction One of {@link com.looseboxes.webform.CrudEvent CRUDActionName}
+     * @return The endpoint for the {@link com.looseboxes.webform.CrudEvent CRUDActionName}
+     * @see com.looseboxes.webform.CrudEvent
      */
-    default String forCrudAction(CRUDAction crudAction) {
+    default String forCrudAction(CrudEvent crudAction) {
         final String endpoint;
         switch(crudAction) {
             case create:
@@ -48,7 +48,7 @@ public interface FormEndpoints {
             case delete:
                 endpoint = this.getFormConfirmation(); break;
             default:
-                throw Errors.unexpected(crudAction, (Object[])CRUDAction.values());
+                throw Errors.unexpected(crudAction, (Object[])CrudEvent.values());
         }
         return endpoint;
     }

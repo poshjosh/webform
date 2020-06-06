@@ -17,7 +17,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.CrudEvent;
 import com.looseboxes.webform.HttpSessionAttributes;
 import static com.looseboxes.webform.HttpSessionAttributes.FORM;
 import static com.looseboxes.webform.HttpSessionAttributes.MODELOBJECT;
@@ -64,7 +64,7 @@ public interface FormConfig extends HttpSessionAttributes, Params{
      */
     String getAction();
     
-    CRUDAction getCrudAction();
+    CrudEvent getCrudAction();
 
     List<String> getModelfields();
     

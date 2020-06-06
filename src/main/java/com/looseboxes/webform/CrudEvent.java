@@ -19,7 +19,7 @@ package com.looseboxes.webform;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 20, 2019 2:39:09 PM
  */
-public enum CrudAction {
+public enum CrudEvent {
     
     /**
      * DO NOT CHANGE THESE TO UPPER CASE

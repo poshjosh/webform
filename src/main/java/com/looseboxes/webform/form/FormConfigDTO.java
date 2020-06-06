@@ -17,7 +17,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.CrudEvent;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
@@ -99,7 +99,7 @@ public class FormConfigDTO implements Serializable, FormConfig {
         return this;
     }
 
-    public FormConfigDTO action(CRUDAction arg) {
+    public FormConfigDTO action(CrudEvent arg) {
         return this.action(arg.name());
     }
 
@@ -195,15 +195,15 @@ public class FormConfigDTO implements Serializable, FormConfig {
     }
     
     public void setAction(String crudAction) {
-        this.setCrudAction(CRUDAction.valueOf(crudAction));
+        this.setCrudAction(CrudEvent.valueOf(crudAction));
     }
 
     @Override
-    public CRUDAction getCrudAction() {
-        return CRUDAction.valueOf(action);
+    public CrudEvent getCrudAction() {
+        return CrudEvent.valueOf(action);
     }
 
-    public void setCrudAction(CRUDAction crudAction) {
+    public void setCrudAction(CrudEvent crudAction) {
         this.action = crudAction.name();
     }
 
