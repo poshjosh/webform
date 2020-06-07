@@ -168,7 +168,7 @@ public class Print<A extends Appendable> {
             
             builder.append("<br/>");
             
-            form.getMember(fieldName).ifPresent(ff -> {
+            form.getMemberOptional(fieldName).ifPresent(ff -> {
             
                 builder.append("<br/>").append("Form field name: ").append("<b>").append(fieldName).append("</b>");
                 builder.append("<br/>").append("Advice").append(" = ").append(ff.getAdvice());

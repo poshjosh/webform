@@ -1,44 +1,29 @@
 package com.looseboxes.webform.form;
 
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.bc.webform.functions.FormInputContext;
-import com.bc.webform.functions.MultiChoiceContextForJpaEntity;
+import com.bc.webform.functions.MultiChoiceContextForPojo;
 import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
-import com.looseboxes.webform.util.PropertySearch;
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author hp
  */
-public class MultiChoiceContextImpl extends MultiChoiceContextForJpaEntity{
+public class MultiChoiceContextImpl extends MultiChoiceContextForPojo{
     
-    private static final Logger LOG = LoggerFactory.getLogger(MultiChoiceContextImpl.class);
+//    private static final Logger LOG = LoggerFactory.getLogger(MultiChoiceContextImpl.class);
     
-    private final EntityRepositoryFactory repoFactory;
-    private final PropertySearch propertySearch;
-    private final FormInputContext<Object, Field, Object> formInputContext;
     private final DomainObjectPrinter printer;
     private final Locale locale;
 
     public MultiChoiceContextImpl(
             TypeTests typeTests,
-            EntityRepositoryFactory repoFactory, 
-            PropertySearch propertySearch,
-            FormInputContext<Object, Field, Object> formInputContext,
             DomainObjectPrinter printer, 
             Locale locale) {
-        super(typeTests);
-        this.repoFactory = Objects.requireNonNull(repoFactory);
-        this.propertySearch = Objects.requireNonNull(propertySearch);
-        this.formInputContext = Objects.requireNonNull(formInputContext);
+        super(typeTests);//select * from region where country like 
         this.printer = Objects.requireNonNull(printer);
         this.locale = Objects.requireNonNull(locale);
     }
@@ -56,10 +41,6 @@ public class MultiChoiceContextImpl extends MultiChoiceContextForJpaEntity{
             }
         }
         return Collections.EMPTY_MAP;
-    }
-    
-    public PropertySearch getPropertySearch() {
-        return propertySearch;
     }
 
     public DomainObjectPrinter getDomainObjectPrinter() {

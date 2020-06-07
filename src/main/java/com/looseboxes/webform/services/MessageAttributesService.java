@@ -136,6 +136,7 @@ public class MessageAttributesService {
     public void addCollectionAttribute(Object model, String name, Object value) {
         Objects.requireNonNull(model);
         Objects.requireNonNull(name);
+        Objects.requireNonNull(value);
         final Map m;
         if(model instanceof Model) {
             m = ((Model)model).asMap();
@@ -145,35 +146,24 @@ public class MessageAttributesService {
             throw Errors.modelOrModelMapRequired(model.getClass());
         }
         
-        Collection c = (Collection)m.get(name);
+        Collection collection = (Collection)m.get(name);
         
-        LOG.trace("Existing: {} = {}", name, c);
+        LOG.trace("Existing: {} = {}", name, collection);
         
-        boolean added = false;
-        
-        if(c == null) {
-            if(value instanceof Collection) {
-                c = (Collection)value;
-            }else{
-                c = new ArrayList();
-            }
-            if(model instanceof Model) {
-                ((Model)model).addAttribute(name, c);
-                added = value instanceof Collection;
-            }else if(model instanceof ModelMap){
-                ((ModelMap)model).addAttribute(name, c);
-                added = value instanceof Collection;
-            }    
-            if(added) {
-                LOG.trace("For: {}, added: {}", name, value);
-            }
+        if(collection == null) {
+            collection = new ArrayList();
+            m.put(name, collection);
         }
         
-        if( ! added) {
+        LOG.trace("For: {}, adding: {} to: {}", name, value, collection);
+
+        if(value instanceof Collection) {
             
-            LOG.trace("For: {}, adding value: {} to: {}", name, value, c);
+            collection.addAll((Collection)value);
             
-            c.add(value);
+        }else{
+        
+            collection.add(value);
         }
     }
     

@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ModelMap;
@@ -30,11 +29,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.HttpSessionAttributes;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -52,9 +52,9 @@ public class FormControllerRest extends FormControllerBase{
     
     private static final Logger LOG = LoggerFactory.getLogger(FormControllerRest.class);
     
-    @Autowired private EntityRepositoryFactory repoFactory;
     @Autowired private DomainClasses domainClasses;
     @Autowired private TypeFromNameResolver typeFromNameResolver;
+    @Autowired private EntityRepositoryFactory repoFactory;
     
     public FormControllerRest() { }
     
@@ -94,6 +94,7 @@ public class FormControllerRest extends FormControllerBase{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
+            // Without the @Valid annotation the required value was not set
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
             ModelMap model, FormConfigDTO formConfigDTO,
             @RequestParam(name = "propertyName", required = true) String propertyName, 
@@ -106,37 +107,18 @@ public class FormControllerRest extends FormControllerBase{
                         model, formConfigDTO, request, response);
             }
 
-            formConfigDTO.setModelobject(modelobject);
-
-            final Map dependents = this.getDependents(formConfigDTO, propertyName);
-
-            return ResponseEntity.ok(
-                    Collections.singletonMap(FormStage.dependents, dependents));
+            final Locale locale = request.getLocale();
+            
+            final FormConfig formConfig = this.getFormService(model, request)
+                    .onUpdateDependentChoices(formConfigDTO, modelobject, propertyName, locale);
+            
+            return ResponseEntity.ok(formConfig);
             
         }catch(Exception e) {
             return this.respond(e, model);
         }
     }
     
-    /**
-     * Override this method to provide dependents for a current form input.
-     * 
-     * For example if an Address Form has both country and region inputs, and
-     * the region input is dependent on the country input. Then, when the 
-     * country input is selected, use this method to return the list of regions
-     * for the selected country. The regions returned will immediately be
-     * rendered giving the user an option to select from.
-     * 
-     * @param formConfig
-     * @param propertyName
-     * @return 
-     */
-    public Map<String, List<Object>> getDependents(
-            FormConfigDTO formConfig, String propertyName) {
-
-        return Collections.EMPTY_MAP;
-    }
-
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
     public ResponseEntity<Object> validateSingle(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 

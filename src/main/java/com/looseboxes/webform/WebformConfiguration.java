@@ -24,6 +24,10 @@ import com.bc.webform.functions.TypeTests;
 import com.bc.webform.functions.TypeTestsImpl;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
+import com.looseboxes.webform.form.DependentsProvider;
+import com.looseboxes.webform.form.DependentsProviderImpl;
+import com.looseboxes.webform.form.DependentsUpdater;
+import com.looseboxes.webform.form.DependentsUpdaterImpl;
 import com.looseboxes.webform.form.FormInputContextImpl;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
 import com.looseboxes.webform.form.MultiChoiceContextImpl;
@@ -33,7 +37,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import com.looseboxes.webform.form.FormMemberComparator;
 import com.looseboxes.webform.util.TextExpressionMethodsImpl;
@@ -60,7 +63,7 @@ public class WebformConfiguration {
         return new MessageAttributesImpl();
     }
     
-    @Bean @Scope("prototype") public FormFactory formFactory(
+    @Bean public FormFactory formFactory(
             @Autowired TypeFromNameResolver typeFromNameResolver,
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
@@ -73,7 +76,7 @@ public class WebformConfiguration {
                         temporalToStringConverter, entityToIdConverter));
     }
 
-    @Bean @Scope("prototype") public FormBuilder formBuilder(
+    @Bean public FormBuilder formBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
@@ -89,7 +92,7 @@ public class WebformConfiguration {
                 
     }
     
-    @Bean @Scope("prototype") public FormMemberBuilder<Object, Field, Object> formMemberBuilder(
+    @Bean public FormMemberBuilder<Object, Field, Object> formMemberBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
@@ -107,13 +110,13 @@ public class WebformConfiguration {
         );
     }
 
-    @Bean @Scope("prototype") public ReferencedFormContext<Object, Field> referencedFormContext(
+    @Bean public ReferencedFormContext<Object, Field> referencedFormContext(
             @Autowired FormInputNameProvider<Object, Field> formInputNameProvider) {
         
         return new ReferencedFormContextImpl(typeTests(), formInputNameProvider);
     }
 
-    @Bean @Scope("prototype") public FormInputContext<Object, Field, Object> formInputContext(
+    @Bean public FormInputContext<Object, Field, Object> formInputContext(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
@@ -138,19 +141,28 @@ public class WebformConfiguration {
         return new TextExpressionMethodsImpl();
     }
     
-    @Bean @Scope("prototype") public MultiChoiceContext<Object, Field> multiChoiceContext(
-            @Autowired EntityRepositoryFactory repoFactory,
-            @Autowired TypeFromNameResolver typeFromNameResolver,
-            @Autowired FormInputContext<Object, Field, Object> formInputContext,
+    @Bean public MultiChoiceContext<Object, Field> multiChoiceContext(
             @Autowired DomainObjectPrinter printer) {
         return new MultiChoiceContextImpl(
                 this.typeTests(),
-                repoFactory,
-                this.propertySearch(typeFromNameResolver),
-                formInputContext,
                 printer,
                 WebformDefaults.LOCALE
         );
+    }
+    
+    @Bean public DependentsUpdater dependentsUpdater(
+            @Autowired EntityRepositoryFactory repoFactory,
+            @Autowired DomainObjectPrinter printer) {
+        return new DependentsUpdaterImpl(repoFactory, printer);
+    }
+    
+    @Bean public DependentsProvider dependentsProvider(
+            @Autowired EntityRepositoryFactory repoFactory,
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
+        return new DependentsProviderImpl(
+                this.propertySearch(typeFromNameResolver), 
+                repoFactory, 
+                this.typeTests());
     }
     
     @Bean public FormFieldTest formFieldTest(
@@ -158,16 +170,16 @@ public class WebformConfiguration {
         return new FormFieldTestImpl(propertySearch, this.typeTests());
     }
     
-    @Bean @Scope("prototype") public FormMemberComparator formMemberComparator(
+    @Bean public FormMemberComparator formMemberComparator(
             @Autowired PropertySearch propertySearch) {
         return new FormMemberComparatorImpl(propertySearch);
     }
     
-    @Bean @Scope("prototype") public TypeTests typeTests() {
+    @Bean public TypeTests typeTests() {
         return new TypeTestsImpl();
     }
     
-    @Bean @Scope("prototype") public PropertySearch propertySearch(
+    @Bean public PropertySearch propertySearch(
             @Autowired TypeFromNameResolver typeFromNameResolver) {
         return new PropertySearchImpl(environmentStore(), typeFromNameResolver);
     }

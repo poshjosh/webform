@@ -23,8 +23,13 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.FormUpdateException;
 import java.lang.reflect.Field;
 import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.form.DependentsProvider;
+import com.looseboxes.webform.form.DependentsUpdater;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author hp
@@ -42,6 +47,8 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     private final AttributeService attributeService;
     private final FormFactory formFactory;
     private final FormInputContext<Object, Field, Object> formInputContext;
+    private final DependentsProvider dependentsProvider;
+    private final DependentsUpdater dependentsUpdater;
 
     @Autowired
     public FormService(
@@ -50,13 +57,17 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             TypeFromNameResolver typeFromNameResolver,
             AttributeService attributeService,
             FormFactory formFactory,
-            FormInputContext<Object, Field, Object> formInputContext) {
+            FormInputContext<Object, Field, Object> formInputContext,
+            DependentsProvider dependentsProvider,
+            DependentsUpdater dependentsUpdater) {
         this.modelObjectService = Objects.requireNonNull(modelObjectService);
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
         this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
         this.attributeService = Objects.requireNonNull(attributeService);
         this.formFactory = Objects.requireNonNull(formFactory);
         this.formInputContext = Objects.requireNonNull(formInputContext);
+        this.dependentsProvider = Objects.requireNonNull(dependentsProvider);
+        this.dependentsUpdater = Objects.requireNonNull(dependentsUpdater);
     }
 
     @Override
@@ -67,7 +78,9 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 this.typeFromNameResolver,
                 this.attributeService.wrap(delegate),
                 this.formFactory,
-                this.formInputContext
+                this.formInputContext,
+                this.dependentsProvider,
+                this.dependentsUpdater
         );
     }
 
@@ -94,6 +107,34 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
 
+    public FormConfig onUpdateDependentChoices(
+            FormConfigDTO formConfig, Object modelobject, String propertyName, Locale locale) {
+        
+        Objects.requireNonNull(modelobject);
+        Objects.requireNonNull(propertyName);
+        Objects.requireNonNull(locale);
+
+        formConfig.setModelobject(modelobject);
+        
+        formConfig = (FormConfigDTO)this.update(true, true, formConfig);
+        
+        Form form = Objects.requireNonNull(formConfig.getForm());
+        
+        final Map<Class, List> dependents = this.dependentsProvider
+                .getDependents(modelobject, propertyName);
+        
+        for(Class memberType : dependents.keySet()) {
+        
+            final List dependentEntities = dependents.get(memberType);
+            
+            form = this.dependentsUpdater.update(form, memberType, dependentEntities, locale);
+        }        
+        
+        formConfig.setForm(form);
+        
+        return formConfig;
+    }
+    
     public FormConfig onShowform(FormConfigDTO formConfigDTO) {
         
         formConfigDTO.setModelobject(modelObjectService.getModel(formConfigDTO));
@@ -117,7 +158,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return this.update(true, true, formConfigDTO);
     }
     
-    private FormConfig update(
+    public FormConfig update(
             boolean existingForm, 
             boolean useExistingModelObject,
             FormConfig formConfig) {
@@ -207,17 +248,17 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
         
         final String memberName = form.getName();
-        final FormMember member = parent.getMember(memberName).orElse(null);
+        final FormMember member = parent.getMemberOptional(memberName).orElse(null);
         if(member == null) {
             throw parentUpdateException(FormConfig.class, "name: "+memberName);
         }
         
-        this.updateForm(form, memberName, formConfig.getModelobject());
+        this.updateFormMember(form, memberName, formConfig.getModelobject());
         
         return true;
     }
     
-    public void updateForm(Form form, String name, Object value) 
+    public void updateFormMember(Form form, String name, Object value) 
             throws FormUpdateException{
         
         final String formid = form.getId();
@@ -246,7 +287,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         
         final Form updateForm = newForm(form.getParent(), formid, modelname, modelobject);
         
-        final FormConfig update = FormService.this.update(formReqParams, updateForm, modelobject);
+        final FormConfig update = this.update(formReqParams, updateForm, modelobject);
         
         this.setSessionAttribute(update);
     }
