@@ -1,5 +1,6 @@
 package com.looseboxes.webform.form;
 
+import java.beans.PropertyDescriptor;
 import java.util.List;
 import java.util.Map;
 
@@ -49,10 +50,12 @@ public interface DependentsProvider {
      * the name of the country field of (e.g "country") will be the second
      * argument.
      * </p>
-     * The return value will include an entry with key equal to "region" and
-     * value equal to the list of regions for the selected country.
+     * The returned value will include an entry with key equal to a 
+     * PropertyDescriptor (whose name is "region", and propertyType is Region.class) 
+     * and value equal to the list of regions for the selected country.
      * <p>
-     * A value for country (representing the selected country) must have been
+     * <b>Note:</b><br/>
+     * A value for country (representing the selected country) must have been 
      * set in the Address model object, or this method returns an empty list
      * for region.
      * </p>
@@ -60,5 +63,5 @@ public interface DependentsProvider {
      * @param propertyName
      * @return
      */
-    Map<Class, List> getDependents(Object modelobject, String propertyName);
+    Map<PropertyDescriptor, List> getDependents(Object modelobject, String propertyName);
 }

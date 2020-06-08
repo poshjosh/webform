@@ -27,6 +27,7 @@ import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsUpdater;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigDTO;
+import java.beans.PropertyDescriptor;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -107,6 +108,21 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
 
+    /**
+     * Do not update dependents for the Form in FormConfig directly via this method.
+     * 
+     * Rather than update dependents for the Form in FormConfig, use 
+     * {@link com.looseboxes.webform.form.DependentsProvider#getDependents(java.lang.Object, java.lang.String)}
+     * and return the result of that method to the front end to update the
+     * form being currently viewed.
+     * @param formConfig
+     * @param modelobject
+     * @param propertyName
+     * @param locale
+     * @return
+     * @deprecated
+     */
+    @Deprecated
     public FormConfig onUpdateDependentChoices(
             FormConfigDTO formConfig, Object modelobject, String propertyName, Locale locale) {
         
@@ -120,12 +136,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         
         Form form = Objects.requireNonNull(formConfig.getForm());
         
-        final Map<Class, List> dependents = this.dependentsProvider
+        final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
                 .getDependents(modelobject, propertyName);
         
-        for(Class memberType : dependents.keySet()) {
+        for(PropertyDescriptor propertyDescriptor : dependents.keySet()) {
         
-            final List dependentEntities = dependents.get(memberType);
+            final List dependentEntities = dependents.get(propertyDescriptor);
+            
+            final Class memberType = propertyDescriptor.getPropertyType();
             
             form = this.dependentsUpdater.update(form, memberType, dependentEntities, locale);
         }        

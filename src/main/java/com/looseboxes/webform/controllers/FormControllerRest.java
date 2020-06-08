@@ -2,6 +2,7 @@ package com.looseboxes.webform.controllers;
 
 import com.bc.jpa.spring.DomainClasses;
 import com.bc.jpa.spring.TypeFromNameResolver;
+import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
@@ -28,7 +29,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.HttpSessionAttributes;
+import com.looseboxes.webform.converters.DomainObjectPrinter;
+import com.looseboxes.webform.form.DependentsProvider;
+import java.beans.PropertyDescriptor;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +61,8 @@ public class FormControllerRest extends FormControllerBase{
     @Autowired private DomainClasses domainClasses;
     @Autowired private TypeFromNameResolver typeFromNameResolver;
     @Autowired private EntityRepositoryFactory repoFactory;
+    @Autowired private DependentsProvider dependentsProvider;
+    @Autowired private DomainObjectPrinter domainObjectPrinter;
     
     public FormControllerRest() { }
     
@@ -109,10 +117,30 @@ public class FormControllerRest extends FormControllerBase{
 
             final Locale locale = request.getLocale();
             
-            final FormConfig formConfig = this.getFormService(model, request)
-                    .onUpdateDependentChoices(formConfigDTO, modelobject, propertyName, locale);
+            final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
+                    .getDependents(modelobject, propertyName);
             
-            return ResponseEntity.ok(formConfig);
+            final Map<String, Map> result = new HashMap(dependents.size(), 1.0f);
+            
+            dependents.forEach((propertyDescriptor, entityList) -> {
+                final Map choices = new HashMap(entityList.size(), 1.0f);
+                final Class entityType = propertyDescriptor.getPropertyType();
+                final EntityRepository repo = repoFactory.forEntity(entityType);
+                for(Object entity : entityList) {
+                    final Object key = repo.getIdOptional(entity).orElse(null);
+                    Objects.requireNonNull(key);
+                    final Object val = this.domainObjectPrinter.print(entity, locale);
+                    Objects.requireNonNull(val);
+                    choices.put(key, val);
+                }
+                final String name = propertyDescriptor.getName();
+                result.put(name, choices);
+            });
+            
+            LOG.debug("{}#{} {} = {}", formConfigDTO.getModelname(), 
+                    propertyName, FormStage.dependents, result);
+            
+            return ResponseEntity.ok(result);
             
         }catch(Exception e) {
             return this.respond(e, model);

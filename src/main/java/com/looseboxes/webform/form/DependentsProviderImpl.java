@@ -81,9 +81,11 @@ public class DependentsProviderImpl implements DependentsProvider {
      * the name of the country field of (e.g "country") will be the second 
      * argument.
      * </p>
-     * The return value will include an entry with key equal to "region" and 
-     * value equal to the list of regions for the selected country.
+     * The returned value will include an entry with key equal to a 
+     * PropertyDescriptor (whose name is "region", and propertyType is Region.class) 
+     * and value equal to the list of regions for the selected country.
      * <p>
+     * <b>Note:</b><br/>
      * A value for country (representing the selected country) must have been 
      * set in the Address model object, or this method returns an empty list
      * for region.
@@ -93,29 +95,37 @@ public class DependentsProviderImpl implements DependentsProvider {
      * @return 
      */
     @Override
-    public Map<Class, List> getDependents(
+    public Map<PropertyDescriptor, List> getDependents(
             Object modelobject, String propertyName) {
         
         Objects.requireNonNull(modelobject);
         Objects.requireNonNull(propertyName);
         
-        Map<Class, List> result = null;
+        Map<PropertyDescriptor, List> result = null;
         
         final BeanWrapper beanWrapper = PropertyAccessorFactory
                 .forBeanPropertyAccess(modelobject);
         
-        final Set<Class> dependentTypes = this.getDependentTypes(beanWrapper, propertyName);
+        final Set<PropertyDescriptor> dependentTypes = 
+                this.getDependentProperties(beanWrapper, propertyName);
         
         final Object propertyValue = beanWrapper.getPropertyValue(propertyName);
 
         final int limit = this.getMaxItemsInMultiChoice();
         
-        for(Class dependentType : dependentTypes) {
+        for(PropertyDescriptor dependentProperty : dependentTypes) {
+            
+            final Class dependentType = dependentProperty.getPropertyType();
             
             final EntityRepository repo = this.repoFactory.forEntity(dependentType);
-        
+            
+            final int offset = 0;
+            
+            LOG.debug("SELECT ALL FROM {} WHERE {} = {}, RETURN RECORDS {} - {}", 
+                    dependentType, propertyName, propertyValue, offset, limit);
+            
             final List dependentEntities = repo.findAllBy(
-                    propertyName, propertyValue, 0, limit);
+                    propertyName, propertyValue, offset, limit);
             
             LOG.trace("Type: {}, values: {}", dependentType.getName(), dependentEntities);
             
@@ -127,29 +137,41 @@ public class DependentsProviderImpl implements DependentsProvider {
                 result = new HashMap(dependentTypes.size(), 1.0f);
             }
             
-            result.put(dependentType, dependentEntities);
+            result.put(dependentProperty, dependentEntities);
         }
         
         return this.ensureUnmodifiableMap(result);
     }
     
-    public Set<Class> getDependentTypes(BeanWrapper beanWrapper, String propertyName) {
+    public Set<PropertyDescriptor> getDependentProperties(BeanWrapper beanWrapper, String propertyName) {
         
         final PropertyDescriptor [] pds = beanWrapper.getPropertyDescriptors();
         
         final Class propertyType = beanWrapper.getPropertyType(propertyName);
         
-        Set<Class> result = null;
+        LOG.debug("Property name: {}, type: {}", propertyName, propertyType);
+        
+        Set<PropertyDescriptor> result = null;
         
         for(PropertyDescriptor pd : pds) {
         
+            final String name = pd.getName();
             final Class type = pd.getPropertyType();
             
-            if(propertyName.equalsIgnoreCase(pd.getName())) {
+            final boolean rejectedSelf = (propertyName.equalsIgnoreCase(name) ||
+                    propertyType.equals(type));
+            
+            LOG.trace("Rejected self: {}, name: {}, type: {}", rejectedSelf, name, type);
+            
+            if(rejectedSelf) {
                 continue;
             }
             
-            if( ! typeTests.isDomainType(type) || typeTests.isEnumType(type)) {
+            final boolean rejected = ( ! typeTests.isDomainType(type) || typeTests.isEnumType(type));
+            
+            LOG.trace("Rejected: {}, name: {}, type: {}", rejected, name, type);
+            
+            if(rejected) {
                 continue;
             }
             
@@ -160,7 +182,7 @@ public class DependentsProviderImpl implements DependentsProvider {
                     result = new HashSet();
                 }
                 
-                result.add(type);
+                result.add(pd);
             }
         }
         
@@ -179,7 +201,7 @@ public class DependentsProviderImpl implements DependentsProvider {
                 break;
             }
         }
-        LOG.trace("Has field of type: {}, object type: {}, field type: {}",
+        LOG.debug("Has field of type: {}, object type: {}, field type: {}",
                 result, objectType.getName(), fieldType.getName());
         return result;
     }
