@@ -108,51 +108,6 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
 
-    /**
-     * Do not update dependents for the Form in FormConfig directly via this method.
-     * 
-     * Rather than update dependents for the Form in FormConfig, use 
-     * {@link com.looseboxes.webform.form.DependentsProvider#getDependents(java.lang.Object, java.lang.String)}
-     * and return the result of that method to the front end to update the
-     * form being currently viewed.
-     * @param formConfig
-     * @param modelobject
-     * @param propertyName
-     * @param locale
-     * @return
-     * @deprecated
-     */
-    @Deprecated
-    public FormConfig onUpdateDependentChoices(
-            FormConfigDTO formConfig, Object modelobject, String propertyName, Locale locale) {
-        
-        Objects.requireNonNull(modelobject);
-        Objects.requireNonNull(propertyName);
-        Objects.requireNonNull(locale);
-
-        formConfig.setModelobject(modelobject);
-        
-        formConfig = (FormConfigDTO)this.update(true, true, formConfig);
-        
-        Form form = Objects.requireNonNull(formConfig.getForm());
-        
-        final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
-                .getDependents(modelobject, propertyName);
-        
-        for(PropertyDescriptor propertyDescriptor : dependents.keySet()) {
-        
-            final List dependentEntities = dependents.get(propertyDescriptor);
-            
-            final Class memberType = propertyDescriptor.getPropertyType();
-            
-            form = this.dependentsUpdater.update(form, memberType, dependentEntities, locale);
-        }        
-        
-        formConfig.setForm(form);
-        
-        return formConfig;
-    }
-    
     public FormConfig onShowform(FormConfigDTO formConfigDTO) {
         
         formConfigDTO.setModelobject(modelObjectService.getModel(formConfigDTO));
@@ -429,5 +384,50 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         Objects.requireNonNull(name);
         Objects.requireNonNull(object);
         return formFactory.newForm(parentForm, id, name, object);
+    }
+
+    /**
+     * Do not update dependents for the Form in FormConfig directly via this method.
+     * 
+     * Rather than update dependents for the Form in FormConfig, use 
+     * {@link com.looseboxes.webform.form.DependentsProvider#getDependents(java.lang.Object, java.lang.String)}
+     * and return the result of that method to the front end to update the
+     * form being currently viewed.
+     * @param formConfig
+     * @param modelobject
+     * @param propertyName
+     * @param locale
+     * @return
+     * @deprecated
+     */
+    @Deprecated
+    public FormConfig onUpdateDependentChoices(
+            FormConfigDTO formConfig, Object modelobject, String propertyName, Locale locale) {
+        
+        Objects.requireNonNull(modelobject);
+        Objects.requireNonNull(propertyName);
+        Objects.requireNonNull(locale);
+
+        formConfig.setModelobject(modelobject);
+        
+        formConfig = (FormConfigDTO)this.update(true, true, formConfig);
+        
+        Form form = Objects.requireNonNull(formConfig.getForm());
+        
+        final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
+                .getDependents(modelobject, propertyName);
+        
+        for(PropertyDescriptor propertyDescriptor : dependents.keySet()) {
+        
+            final List dependentEntities = dependents.get(propertyDescriptor);
+            
+            final Class memberType = propertyDescriptor.getPropertyType();
+            
+            form = this.dependentsUpdater.update(form, memberType, dependentEntities, locale);
+        }        
+        
+        formConfig.setForm(form);
+        
+        return formConfig;
     }
 }

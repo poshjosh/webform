@@ -1,7 +1,5 @@
 package com.looseboxes.webform.controllers;
 
-import com.bc.jpa.spring.DomainClasses;
-import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepository;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.CRUDAction;
@@ -12,7 +10,6 @@ import com.looseboxes.webform.form.FormConfigDTO;
 import com.looseboxes.webform.util.Print;
 import java.io.FileNotFoundException;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,9 +34,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -58,48 +52,12 @@ public class FormControllerRest extends FormControllerBase{
     
     private static final Logger LOG = LoggerFactory.getLogger(FormControllerRest.class);
     
-    @Autowired private DomainClasses domainClasses;
-    @Autowired private TypeFromNameResolver typeFromNameResolver;
     @Autowired private EntityRepositoryFactory repoFactory;
     @Autowired private DependentsProvider dependentsProvider;
     @Autowired private DomainObjectPrinter domainObjectPrinter;
     
     public FormControllerRest() { }
     
-    @RequestMapping("/modelnames")
-    public ResponseEntity<Object> modelnames(ModelMap model, 
-            HttpServletRequest request, HttpServletResponse response) {
-
-        try{
-            
-            if(LOG.isTraceEnabled()) {
-                new Print().trace(FormStage.dependents, 
-                        model, null, request, response);
-            }
-            
-            final Set modelNames = domainClasses.get().stream()
-                    .filter(this.getModelTypeFilter())
-                    .map((cls) -> typeFromNameResolver.getName(cls))
-                    .filter(this.getModelNameFilter())
-                    .collect(Collectors.toSet());
-
-            return ResponseEntity.ok(
-                    Collections.singletonMap("modelnames", modelNames));
-            
-        }catch(Exception e) {
-            
-            return this.respond(e, model);
-        }
-    }
-    
-    public Predicate<Class> getModelTypeFilter() {
-        return (cls) -> true;
-    }
-    
-    public Predicate<String> getModelNameFilter() {
-        return (name) -> true;
-    }
-
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
             // Without the @Valid annotation the required value was not set
@@ -115,27 +73,12 @@ public class FormControllerRest extends FormControllerBase{
                         model, formConfigDTO, request, response);
             }
 
-            final Locale locale = request.getLocale();
-            
             final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
                     .getDependents(modelobject, propertyName);
             
-            final Map<String, Map> result = new HashMap(dependents.size(), 1.0f);
+            final Locale locale = request.getLocale();
             
-            dependents.forEach((propertyDescriptor, entityList) -> {
-                final Map choices = new HashMap(entityList.size(), 1.0f);
-                final Class entityType = propertyDescriptor.getPropertyType();
-                final EntityRepository repo = repoFactory.forEntity(entityType);
-                for(Object entity : entityList) {
-                    final Object key = repo.getIdOptional(entity).orElse(null);
-                    Objects.requireNonNull(key);
-                    final Object val = this.domainObjectPrinter.print(entity, locale);
-                    Objects.requireNonNull(val);
-                    choices.put(key, val);
-                }
-                final String name = propertyDescriptor.getName();
-                result.put(name, choices);
-            });
+            final Map<String, Map> result = this.getChoicesForDependents(dependents, locale);
             
             LOG.debug("{}#{} {} = {}", formConfigDTO.getModelname(), 
                     propertyName, FormStage.dependents, result);
@@ -268,8 +211,31 @@ public class FormControllerRest extends FormControllerBase{
         
         return result;
     } 
+
+    protected Map<String, Map> getChoicesForDependents(
+            Map<PropertyDescriptor, List> dependents, Locale locale) {
     
-    public ResponseEntity<Object> buildSuccessResponse(
+        final Map<String, Map> result = new HashMap(dependents.size(), 1.0f);
+
+        dependents.forEach((propertyDescriptor, entityList) -> {
+            final Map choices = new HashMap(entityList.size(), 1.0f);
+            final Class entityType = propertyDescriptor.getPropertyType();
+            final EntityRepository repo = repoFactory.forEntity(entityType);
+            for(Object entity : entityList) {
+                final Object key = repo.getIdOptional(entity).orElse(null);
+                Objects.requireNonNull(key);
+                final Object val = this.domainObjectPrinter.print(entity, locale);
+                Objects.requireNonNull(val);
+                choices.put(key, val);
+            }
+            final String name = propertyDescriptor.getName();
+            result.put(name, choices);
+        });
+        
+        return result;
+    }
+    
+    protected ResponseEntity<Object> buildSuccessResponse(
             CRUDAction action, FormConfig formConfig) {
         
         final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
@@ -295,7 +261,7 @@ public class FormControllerRest extends FormControllerBase{
         return result;
     }
     
-    public URI buildURIForRead(FormConfig formConfig) {
+    protected URI buildURIForRead(FormConfig formConfig) {
         final Object modelobject = formConfig.getModelobject();
         final Object id = repoFactory.forEntity(modelobject.getClass())
                 .getIdOptional(modelobject).orElse(null);
@@ -307,7 +273,7 @@ public class FormControllerRest extends FormControllerBase{
         return uri;
     }
     
-    public String buildPathForRead(FormConfig formConfig) {
+    protected String buildPathForRead(FormConfig formConfig) {
         return "/" + CRUDAction.read + "/" + formConfig.getModelname() + "/{"+Params.MODELID+"}";
     }
     
@@ -375,3 +341,53 @@ public class FormControllerRest extends FormControllerBase{
         return collectInto;
     }
 }
+/**
+ * 
+            final Map choices = new HashMap();
+            choices.put(0, "Abia");
+            choices.put(1, "Abuja");
+            choices.put(2, "United States of America");
+            choices.put(3, "United Kingdom");
+            choices.put(4, "Candada");
+            choices.put(5, "Germany");
+            result.put("region", choices);
+
+
+    @Autowired private DomainClasses domainClasses;
+    @Autowired private TypeFromNameResolver typeFromNameResolver;
+
+    @RequestMapping("/modelnames")
+    public ResponseEntity<Object> modelnames(ModelMap model, 
+            HttpServletRequest request, HttpServletResponse response) {
+
+        try{
+            
+            if(LOG.isTraceEnabled()) {
+                new Print().trace(FormStage.dependents, 
+                        model, null, request, response);
+            }
+            
+            final Set modelNames = domainClasses.get().stream()
+                    .filter(this.getModelTypeFilter())
+                    .map((cls) -> typeFromNameResolver.getName(cls))
+                    .filter(this.getModelNameFilter())
+                    .collect(Collectors.toSet());
+
+            return ResponseEntity.ok(
+                    Collections.singletonMap("modelnames", modelNames));
+            
+        }catch(Exception e) {
+            
+            return this.respond(e, model);
+        }
+    }
+    
+    public Predicate<Class> getModelTypeFilter() {
+        return (cls) -> true;
+    }
+    
+    public Predicate<String> getModelNameFilter() {
+        return (name) -> true;
+    }
+ * 
+ */
