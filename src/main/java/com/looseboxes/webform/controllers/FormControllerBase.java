@@ -53,9 +53,7 @@ public class FormControllerBase{
     public FormConfig onBeginForm(ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response){
         
-        if(LOG.isTraceEnabled()) {
-            new Print().trace("showForm", model, formConfigDTO, request, response);
-        }
+        this.log("showForm", model, formConfigDTO, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
@@ -80,9 +78,7 @@ public class FormControllerBase{
             FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
-        if(LOG.isTraceEnabled()) {
-            new Print().trace("validateForm", model, formConfigDTO, request, response);
-        }
+        this.log("validateForm", model, formConfigDTO, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
@@ -140,9 +136,7 @@ public class FormControllerBase{
             FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
-        if(LOG.isTraceEnabled()) {
-            new Print().trace("submitForm", model, formConfigDTO, request, response);
-        }
+        this.log("submitForm", model, formConfigDTO, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
@@ -232,6 +226,13 @@ public class FormControllerBase{
         
         return formSvc;
     } 
+    
+    protected void log(String id, ModelMap model, FormConfigDTO formConfigDTO,
+            HttpServletRequest request, HttpServletResponse response){
+        if(LOG.isTraceEnabled()) {
+            new Print().trace(id, model, formConfigDTO, request, response);
+        }
+    }
     
     protected FormService getGenericFormSvc() {
         return genericFormSvc;

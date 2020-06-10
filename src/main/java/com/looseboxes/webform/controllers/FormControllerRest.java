@@ -68,10 +68,7 @@ public class FormControllerRest extends FormControllerBase{
 
         try{
             
-            if(LOG.isTraceEnabled()) {
-                new Print().trace(FormStage.dependents, 
-                        model, formConfigDTO, request, response);
-            }
+            this.log(FormStage.dependents, model, formConfigDTO, request, response);
 
             final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
                     .getDependents(modelobject, propertyName);
@@ -100,10 +97,7 @@ public class FormControllerRest extends FormControllerBase{
         
         try{
             
-            if(LOG.isTraceEnabled()) {
-                new Print().trace(FormStage.validateSingle, 
-                        model, formConfigDTO, request, response);
-            }
+            this.log(FormStage.validateSingle, model, formConfigDTO, request, response);
             
             if(bindingResult.hasFieldErrors(propertyName)) {
             
