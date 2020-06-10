@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
@@ -57,23 +58,39 @@ public class EntityUniqueColumnsValidator implements Validator {
 
         final Class entityType = object.getClass();
         
+        final String nameFromAnnotation = getTableNameFromAnnotation(entityType, null);
+
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
-        
-        final String tableName = repo.getTableName();
+
+        final String tableName;
+        if(nameFromAnnotation != null) {
+            tableName = nameFromAnnotation;
+        }else{
+            tableName = repo.getTableName();
+        }
 
         final Collection<String> uniqueColumns = getUniqueColumns(tableName);
-        
+
         for(String uniqueCol : uniqueColumns) {
 
             final Object columnValue = errors.getFieldValue(uniqueCol);
 
             if(columnValue != null && !columnValue.toString().isEmpty() && 
                     repo.existsBy(uniqueCol, columnValue)) {
-                
+
                 //@todo provide messages.properties or validation_messages.properties
                 errors.rejectValue(uniqueCol, "Duplicate." + uniqueCol, "`" + uniqueCol + "` already exists");
             }
         }
+    }
+    
+    public String getTableNameFromAnnotation(Class entityType, String resultIfNone) {
+        
+        final Table table = (Table)entityType.getAnnotation(Table.class);
+        
+        final String nameFromAnnotation = table == null ? null : table.name();
+        
+        return nameFromAnnotation == null ? resultIfNone : nameFromAnnotation;
     }
     
     public Collection<String> getUniqueColumns(String tableName) {
