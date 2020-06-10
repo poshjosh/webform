@@ -17,7 +17,6 @@ import com.looseboxes.webform.form.FormMemberComparatorImpl;
 import com.looseboxes.webform.form.FormFieldTest;
 import com.looseboxes.webform.form.FormFieldTestImpl;
 import com.bc.webform.functions.FormInputContext;
-import com.bc.webform.functions.FormInputNameProvider;
 import com.bc.webform.functions.MultiChoiceContext;
 import com.bc.webform.functions.ReferencedFormContext;
 import com.bc.webform.functions.TypeTests;
@@ -73,21 +72,24 @@ public class WebformConfiguration {
         return new FormFactoryImpl(
                 typeFromNameResolver, 
                 this.formBuilder(propertySearch, dateToStringConverter, 
-                        temporalToStringConverter, entityToIdConverter));
+                        temporalToStringConverter, entityToIdConverter,
+                        typeFromNameResolver));
     }
 
     @Bean public FormBuilder formBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter entityToIdConverter,
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
         return new FormBuilderForJpaEntity()
                 .sourceFieldsProvider(this.formFieldTest(propertySearch))
                 .formMemberComparator(this.formMemberComparator(propertySearch))
                 .formMemberBuilder(
                         this.formMemberBuilder(
                                 propertySearch, dateToStringConverter, 
-                                temporalToStringConverter, entityToIdConverter)
+                                temporalToStringConverter, entityToIdConverter,
+                                typeFromNameResolver)
                 );
                 
     }
@@ -96,7 +98,8 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter) {
+            @Autowired DomainTypeToIdConverter entityToIdConverter,
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
         
         final FormInputContext<Object, Field, Object> formInputContext = 
                 formInputContext(propertySearch, dateToStringConverter, 
@@ -105,15 +108,15 @@ public class WebformConfiguration {
         return new FormMemberBuilderImpl(
                 propertySearch, 
                 formInputContext, 
-                this.referencedFormContext(formInputContext)
+                this.referencedFormContext(typeFromNameResolver)
                 
         );
     }
 
     @Bean public ReferencedFormContext<Object, Field> referencedFormContext(
-            @Autowired FormInputNameProvider<Object, Field> formInputNameProvider) {
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
         
-        return new ReferencedFormContextImpl(typeTests(), formInputNameProvider);
+        return new ReferencedFormContextImpl(typeTests(), typeFromNameResolver);
     }
 
     @Bean public FormInputContext<Object, Field, Object> formInputContext(

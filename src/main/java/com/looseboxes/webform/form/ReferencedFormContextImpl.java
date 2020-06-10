@@ -1,7 +1,7 @@
 package com.looseboxes.webform.form;
 
+import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.Form;
-import com.bc.webform.functions.FormInputNameProvider;
 import com.bc.webform.functions.ReferencedFormContext;
 import com.bc.webform.functions.TypeTests;
 import java.lang.reflect.Field;
@@ -15,13 +15,13 @@ import com.looseboxes.webform.CRUDAction;
 public class ReferencedFormContextImpl implements ReferencedFormContext<Object, Field>{
     
     private final TypeTests typeTests;
-    private final FormInputNameProvider<Object, Field> formInputNameProvider;
+    private final TypeFromNameResolver typeFromNameResolver;
 
     public ReferencedFormContextImpl(
             TypeTests typeTests, 
-            FormInputNameProvider<Object, Field> formInputNameProvider) {
+            TypeFromNameResolver typeFromNameResolver) {
         this.typeTests = Objects.requireNonNull(typeTests);
-        this.formInputNameProvider = Objects.requireNonNull(formInputNameProvider);
+        this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ReferencedFormContextImpl implements ReferencedFormContext<Object, 
     @Override
     public Optional<String> getReferencedFormHref(
             Form form, Object formDataSource, Field field) {
-        final String name = formInputNameProvider.getName(formDataSource, field);
+        final String name = this.typeFromNameResolver.getName(field.getType());
         final StringBuilder b = new StringBuilder()
                 .append('/').append(CRUDAction.create)
                 .append('/').append(name);
