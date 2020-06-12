@@ -34,7 +34,7 @@ public class IdToDomainTypeConverterFactoryImpl
 
     private static final Logger LOG = LoggerFactory.getLogger(IdToDomainTypeConverterFactoryImpl.class);
  
-    private final EntityRepositoryFactory entityRepositoryFactory;
+    private final EntityRepositoryFactory repoFactory;
     private final EnumType enumType;
 
     public IdToDomainTypeConverterFactoryImpl(
@@ -47,14 +47,14 @@ public class IdToDomainTypeConverterFactoryImpl
 
     public IdToDomainTypeConverterFactoryImpl(
             EntityRepositoryFactory entityRepositoryFactory, EnumType enumType) {
-        this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
+        this.repoFactory = Objects.requireNonNull(entityRepositoryFactory);
         this.enumType = Objects.requireNonNull(enumType);
     }
     
     @Override
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
         final Class type = targetType.getType();
-        final boolean supported = this.entityRepositoryFactory.isSupported(type);
+        final boolean supported = this.repoFactory.isSupported(type);
         LOG.trace("Supports converting to: {} = {}", type.getName(), supported);
         return supported;
     }
@@ -63,14 +63,9 @@ public class IdToDomainTypeConverterFactoryImpl
     public Converter<String, Object> getConverter(Class targetType) {
         final Converter output;
         if(targetType.isEnum()) {
-            switch(enumType) {
-                case ORDINAL: output = new ConvertOrdinalToEnum(targetType); break;
-                case STRING: output = new ConvertStringToEnum(targetType); break; 
-                default: throw new IllegalArgumentException();
-            }
+            output = new ConvertStringToEnum(targetType); 
         }else{
-            output = new ConvertIdToEntity(
-                    entityRepositoryFactory.forEntity(targetType));
+            output = new ConvertIdToEntity(repoFactory.forEntity(targetType));
         }
         return output;
     }
