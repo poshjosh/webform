@@ -238,15 +238,15 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         
         final String modelname = form.getName();
         
-        final FormConfig formReqParams = getFormConfigAttribute(
+        final FormConfig formConfig = getFormConfigAttribute(
                 formid, modelname, null);
         
-        if(formReqParams == null) {
+        if(formConfig == null) {
             throw parentUpdateException(FormConfig.class, 
                     String.format("formid: %1s, modelname: %2s", formid, modelname));
         }
         
-        final Object modelobject = formReqParams.getModelobject();
+        final Object modelobject = formConfig.getModelobject();
         
         Objects.requireNonNull(modelobject);
 
@@ -258,9 +258,10 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             throw new RuntimeException(e);
         }
         
-        final Form updateForm = newForm(form.getParent(), formid, modelname, modelobject);
+        final Form updateForm = form.writableCopy().dataSource(modelobject);
+//        final Form updateForm = newForm(form.getParent(), formid, modelname, modelobject);
         
-        final FormConfig update = this.update(formReqParams, updateForm, modelobject);
+        final FormConfig update = this.update(formConfig, updateForm, modelobject);
         
         this.setSessionAttribute(update);
     }

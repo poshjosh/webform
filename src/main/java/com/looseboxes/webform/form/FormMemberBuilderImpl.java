@@ -39,20 +39,18 @@ public class FormMemberBuilderImpl extends FormMemberBuilderForJpaEntity{
             this.formInputContext(formInputContext);
         }
         
-        return super.build();
-    }
-
-    @Override
-    protected FormMemberBean building(FormMemberBean builder) {
+        final FormMember<Field, Object> forUpdate = super.build();
         
-        final Field field = this.getDataSource();
+        final FormMemberBean<Field, Object> update = forUpdate.writableCopy();
 
+        final Field field = this.getDataSource();
+        
         this.propertySearch.find(WebformProperties.LABEL, field)
-                .ifPresent((label) -> builder.label(label));
+                .ifPresent((label) -> update.setLabel(label));
 
         this.propertySearch.find(WebformProperties.ADVICE, field)
-                .ifPresent((advice) -> builder.advice(advice));
-        
-        return builder;
+                .ifPresent((advice) -> update.setAdvice(advice));
+                
+        return update;
     }
 }
