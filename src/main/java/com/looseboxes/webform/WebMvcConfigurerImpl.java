@@ -42,7 +42,7 @@ import com.looseboxes.webform.converters.StringToTemporalConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverterImpl;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverterImpl;
-import com.looseboxes.webform.form.JacksonDomainTypeFilter;
+import com.looseboxes.webform.form.JacksonFormFilter;
 import com.looseboxes.webform.form.JacksonFormMemberFilter;
 import com.looseboxes.webform.form.JacksonFormMemberMixIn;
 import com.looseboxes.webform.form.JacksonFormMixIn;
@@ -87,6 +87,7 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         registry.addConverter(this.genericConverter());
 
         registry.addPrinter(this.domainObjectPrinter());
+//        registry.addConverterFactory(this.idToDomainTypeConverterFactory());
     }
     
     @Override
@@ -142,8 +143,8 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         final FilterProvider filters = new SimpleFilterProvider()
                 .addFilter(JacksonFormMemberFilter.FILTER_ID, 
                         this.jacksonFormMemberFilter())
-                .addFilter(JacksonDomainTypeFilter.FILTER_ID, 
-                        this.jacksonDomainTypeFilter());
+                .addFilter(JacksonFormFilter.FILTER_ID, 
+                        this.jacksonFormFilter());
         
         final ObjectMapper objectMapper = Jackson2ObjectMapperBuilder
                 .json()
@@ -158,8 +159,8 @@ public class WebMvcConfigurerImpl implements WebMvcConfigurer {
         return new JacksonFormMemberFilter(this.typeTests);
     }
     
-    @Bean public JacksonDomainTypeFilter jacksonDomainTypeFilter() {
-        return new JacksonDomainTypeFilter(this.typeTests);
+    @Bean public JacksonFormFilter jacksonFormFilter() {
+        return new JacksonFormFilter(this.typeTests);
     }
 
     @Bean public GenericConverter genericConverter() {

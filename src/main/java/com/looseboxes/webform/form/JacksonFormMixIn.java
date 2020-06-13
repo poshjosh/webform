@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 /**
  * @author hp
  */
-@JsonFilter(JacksonDomainTypeFilter.FILTER_ID)
+@JsonFilter(JacksonFormFilter.FILTER_ID)
 public class JacksonFormMixIn {
     
 }

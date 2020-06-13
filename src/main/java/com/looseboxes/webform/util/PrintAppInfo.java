@@ -154,4 +154,8 @@ public class PrintAppInfo extends Print implements CommandLineRunner{
             return b.toString();
         }
     }
+
+    public ApplicationContext getContext() {
+        return context;
+    }
 }

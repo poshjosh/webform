@@ -1,22 +1,20 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
-import com.bc.webform.FormMember;
 import com.bc.webform.functions.TypeTests;
-import java.lang.reflect.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author hp
  */
-public class JacksonFormMemberFilter extends JacksonDomainTypeFilter{
+public class JacksonFormFilter extends JacksonDomainTypeFilter{
     
-    private static final Logger LOG = LoggerFactory.getLogger(JacksonFormMemberFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JacksonFormFilter.class);
     
-    public static final String FILTER_ID = "JacksonFormMemberFilter";
+    public static final String FILTER_ID = "JacksonFormFilter";
     
-    public JacksonFormMemberFilter(TypeTests typeTests) { 
+    public JacksonFormFilter(TypeTests typeTests) { 
         super(typeTests);
     }
 
@@ -25,8 +23,8 @@ public class JacksonFormMemberFilter extends JacksonDomainTypeFilter{
         
         final boolean ignore = 
 //                super.isDomainType(parentType) ||
-                (FormMember.class.isAssignableFrom(parentType) && 
-                    (value instanceof Form || value instanceof Field)); 
+                (Form.class.isAssignableFrom(parentType) && 
+                    (value != null && super.isDomainType(value.getClass()))); 
         
         LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
                 parentType.getSimpleName(), name, value);
