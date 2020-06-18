@@ -29,12 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
-import org.springframework.core.convert.converter.Converter;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
  */
-public class FormConfigDTO implements Serializable, FormConfig {
+public class FormConfigBean implements Serializable, FormConfig {
 
     @NotNull
     private String action;
@@ -48,8 +47,6 @@ public class FormConfigDTO implements Serializable, FormConfig {
 
     private String mid;
 
-    private Object modelobject;
-    
     private List<String> modelfields = Collections.EMPTY_LIST;
     
     private String targetOnCompletion;
@@ -58,8 +55,25 @@ public class FormConfigDTO implements Serializable, FormConfig {
     
     private boolean buildAttempted;
 
-    public FormConfigDTO() { }
+    public FormConfigBean() { }
     
+    public FormConfigBean(FormConfig form) { 
+        this.init(form);
+    }
+    
+    private void init(FormConfig arg) {
+        this.action(arg.getCrudAction());
+        this.form(arg.getForm());
+        this.formid(arg.getFormid());
+        this.modelfields(arg.getModelfields() == null ? null :
+                arg.getModelfields().isEmpty() ? Collections.EMPTY_LIST :
+                Collections.unmodifiableList(arg.getModelfields()));
+        this.modelid(arg.getModelid());
+        this.modelname(arg.getModelname());
+        this.parentFormid(arg.getParentFormid());
+        this.targetOnCompletion(arg.getTargetOnCompletion());
+    }
+
     public FormConfig build() {
 
         if(buildAttempted) {
@@ -74,82 +88,68 @@ public class FormConfigDTO implements Serializable, FormConfig {
         
         return this;
     }
-    
-    public void apply(Converter<String, String> converter) {
-        this.action(converter.convert(this.action));
-        this.modelname(converter.convert(this.modelname));
-        this.parentfid(converter.convert(this.parentfid));
-        this.fid(converter.convert(this.fid));
-        this.mid(converter.convert(this.mid));
-        this.targetOnCompletion(converter.convert(this.targetOnCompletion));
+
+    @Override
+    public FormConfig copy() {
+        return this.writableCopy();
+    }
+
+    @Override
+    public FormConfigBean writableCopy() {
+        return new FormConfigBean(this);
     }
     
-    public FormConfigDTO with(FormConfig arg) {
-        this.action(arg.getCrudAction());
-        this.form(arg.getForm());
-        this.formid(arg.getFormid());
-        this.modelfields(arg.getModelfields() == null ? null :
-                arg.getModelfields().isEmpty() ? Collections.EMPTY_LIST :
-                Collections.unmodifiableList(arg.getModelfields()));
-        this.modelid(arg.getModelid());
-        this.modelname(arg.getModelname());
-        this.modelobject(arg.getModelobject());
-        this.parentFormid(arg.getParentFormid());
-        this.targetOnCompletion(arg.getTargetOnCompletion());
+    public FormConfigBean with(FormConfig arg) {
+        this.init(arg);
         return this;
     }
 
-    public FormConfigDTO action(CRUDAction arg) {
+    public FormConfigBean action(CRUDAction arg) {
         return this.action(arg.name());
     }
 
-    public FormConfigDTO action(String arg) {
+    public FormConfigBean action(String arg) {
         this.action = arg;
         return this;
     }
     
-    public FormConfigDTO modelname(String arg) {
+    public FormConfigBean modelname(String arg) {
         this.modelname = arg;
         return this;
     }
 
-    public FormConfigDTO parentFormid(String arg) {
+    public FormConfigBean parentFormid(String arg) {
         return this.parentfid(arg);
     }
 
-    public FormConfigDTO parentfid(String arg) {
+    public FormConfigBean parentfid(String arg) {
         this.parentfid = arg;
         return this;
     }
 
-    public FormConfigDTO formid(String arg) {
+    public FormConfigBean formid(String arg) {
         return this.fid(arg);
     }
     
-    public FormConfigDTO fid(String arg) {
+    public FormConfigBean fid(String arg) {
         this.fid = arg;
         return this;
     }
     
-    public FormConfigDTO modelid(String arg) {
+    public FormConfigBean modelid(String arg) {
         return this.mid(arg);
     }
 
-    public FormConfigDTO mid(String arg) {
+    public FormConfigBean mid(String arg) {
         this.mid = arg;
         return this;
     }
 
-    public FormConfigDTO modelobject(Object arg) {
-        this.modelobject = arg;
-        return this;
-    }
-
-    public FormConfigDTO modelfields(String arg) {
+    public FormConfigBean modelfields(String arg) {
         return modelfields(Collections.singletonList(Objects.requireNonNull(arg)));
     }
     
-    public FormConfigDTO modelfields(String... arg) {
+    public FormConfigBean modelfields(String... arg) {
         if(arg == null) {
             return modelfields(Collections.EMPTY_LIST);
         }else if(arg.length == 0) {
@@ -158,17 +158,17 @@ public class FormConfigDTO implements Serializable, FormConfig {
             return modelfields(Arrays.asList(arg));
         }
     }
-    public FormConfigDTO modelfields(List<String> arg) {
+    public FormConfigBean modelfields(List<String> arg) {
         this.modelfields = arg == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(arg);
         return this;
     }
 
-    public FormConfigDTO targetOnCompletion(String target) {
+    public FormConfigBean targetOnCompletion(String target) {
         this.targetOnCompletion = target;
         return this;
     }
     
-    public FormConfigDTO form(Form form) {
+    public FormConfigBean form(Form form) {
         this.form = form;
         return this;
     }
@@ -271,15 +271,6 @@ public class FormConfigDTO implements Serializable, FormConfig {
     }
 
     @Override
-    public Object getModelobject() {
-        return modelobject;
-    }
-
-    public void setModelobject(Object modelobject) {
-        this.modelobject = modelobject;
-    }
-
-    @Override
     public List<String> getModelfields() {
         return modelfields;
     }
@@ -314,7 +305,6 @@ public class FormConfigDTO implements Serializable, FormConfig {
         hash = 41 * hash + Objects.hash(this.parentfid);
         hash = 41 * hash + Objects.hash(this.fid);
         hash = 41 * hash + Objects.hashCode(this.mid);
-        hash = 41 * hash + Objects.hashCode(this.modelobject);
         hash = 41 * hash + Objects.hashCode(this.modelfields);
         hash = 41 * hash + Objects.hash(this.targetOnCompletion);
         hash = 41 * hash + Objects.hashCode(this.form);
@@ -332,7 +322,7 @@ public class FormConfigDTO implements Serializable, FormConfig {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final FormConfigDTO other = (FormConfigDTO) obj;
+        final FormConfigBean other = (FormConfigBean) obj;
         if (!Objects.equals(this.action, other.action)) {
             return false;
         }
@@ -346,9 +336,6 @@ public class FormConfigDTO implements Serializable, FormConfig {
             return false;
         }
         if (!Objects.equals(this.mid, other.mid)) {
-            return false;
-        }
-        if (!Objects.equals(this.modelobject, other.modelobject)) {
             return false;
         }
         if (!Objects.equals(this.modelfields, other.modelfields)) {
@@ -368,7 +355,6 @@ public class FormConfigDTO implements Serializable, FormConfig {
         return "FormConfigDTO{" + "action=" + action +
                 ", parentFormid=" + parentfid +
                 ", modelname=" + modelname + ", formid=" + fid + 
-                ", modelid=" + mid + ", modelobject=" + modelobject + 
                 ", modelfields=" + modelfields + ", targetOnCompletion=" +
                 targetOnCompletion + ", form=" + 
                 (form == null ? null : form.getName()) + '}';

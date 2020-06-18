@@ -3,7 +3,8 @@ package com.looseboxes.webform.controllers;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.form.FormConfig;
-import com.looseboxes.webform.form.FormConfigDTO;
+import com.looseboxes.webform.form.FormConfigBean;
+import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
 import com.looseboxes.webform.services.AttributeService;
 import com.looseboxes.webform.services.FileUploadService;
@@ -14,6 +15,7 @@ import com.looseboxes.webform.util.Print;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,18 +49,19 @@ public class FormControllerBase{
     @Autowired private MessageAttributesService messageAttributesSvc;
     @Autowired private FileUploadService fileUploadSvc;
     @Autowired private OnFormSubmitted onFormSubmitted;
+    @Autowired private UpdateParentFormWithNewlyCreatedModel updateParentFormWithNewlyCreatedModel;
 
     public FormControllerBase() { }
 
-    public FormConfig onBeginForm(ModelMap model, FormConfigDTO formConfigDTO,
+    public FormConfig onBeginForm(ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response){
         
-        this.log("showForm", model, formConfigDTO, request, response);
+        this.log("showForm", model, formConfigBean, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
-        final FormConfig formConfig = formSvc.onShowform(formConfigDTO);
-        formConfigDTO = null; // Prevent usage
+        final FormConfig formConfig = formSvc.onShowform(formConfigBean);
+        formConfigBean = null; // Prevent usage
         
         log.debug("{}", formConfig);
         
@@ -66,7 +69,7 @@ public class FormControllerBase{
         
         attributeSvc.modelAttributes().putAll(formConfig.toMap());
         
-        formSvc.setSessionAttribute(formConfig);
+        formSvc.attributeService().setSessionAttribute(formConfig);
         
         return formConfig;
     }
@@ -75,15 +78,15 @@ public class FormControllerBase{
             Object modelobject,
             BindingResult bindingResult,
             ModelMap model,
-            FormConfigDTO formConfigDTO,
+            FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         
-        this.log("validateForm", model, formConfigDTO, request, response);
+        this.log("validateForm", model, formConfigBean, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
-        final FormConfig formConfig = formSvc.onValidateForm(formConfigDTO, modelobject);
-        formConfigDTO = null; // Prevent usage
+        final FormConfig formConfig = formSvc.onValidateForm(formConfigBean, modelobject);
+        formConfigBean = null; // Prevent usage
 
         log.debug("{}", formConfig);
         
@@ -114,15 +117,27 @@ public class FormControllerBase{
     }    
     
     public void validateModelObject(
-            BindingResult bindingResult,
-            ModelMap model,
-            FormConfig formConfig) {
+            BindingResult bindingResult, ModelMap model, FormConfig formConfig) {
+        
+        final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
+        
+        this.validateModelObject(bindingResult, model, formConfig, modelobject);
+    }
+
+    public void validateModelObject(
+            BindingResult bindingResult, ModelMap model,
+            FormConfig formConfig, Object modelobject) {
+        
+        Objects.requireNonNull(bindingResult);
+        Objects.requireNonNull(model);
+        Objects.requireNonNull(formConfig);
+        Objects.requireNonNull(modelobject);
     
         final List<Validator> validators = this.formValidatorFactory.get(formConfig);
 
         for(Validator validator : validators) {
 
-            ValidationUtils.invokeValidator(validator, formConfig.getModelobject(), bindingResult);
+            ValidationUtils.invokeValidator(validator, modelobject, bindingResult);
         }
         
         if (bindingResult.hasErrors()) {
@@ -133,15 +148,15 @@ public class FormControllerBase{
 
     public FormConfig onSubmitForm(
             ModelMap model,
-            FormConfigDTO formConfigDTO,
+            FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         
-        this.log("submitForm", model, formConfigDTO, request, response);
+        this.log("submitForm", model, formConfigBean, request, response);
         
         final FormService formSvc = getFormService(model, request);
         
-        final FormConfig formConfig = formSvc.onSubmitForm(formConfigDTO);
-        formConfigDTO = null; // Prevent usage
+        final FormConfig formConfig = formSvc.onSubmitForm(formConfigBean);
+        formConfigBean = null; // Prevent usage
         
         log.debug("{}", formConfig);
 
@@ -161,7 +176,7 @@ public class FormControllerBase{
             
             if(CRUDAction.create.equals(formConfig.getCrudAction())) {
                 try{
-                    formSvc.updateParentWithNewlyCreated(formConfig);
+                    updateParentFormWithNewlyCreatedModel.updateParent(formConfig);
                 }catch(RuntimeException e) {
                     log.warn("Failed to update parent with this form's value", e);
                 }
@@ -174,7 +189,7 @@ public class FormControllerBase{
             
         }finally{
             
-            formSvc.removeSessionAttribute(formConfig.getFormid());
+            formSvc.attributeService().removeSessionAttribute(formConfig.getFormid());
             attributeSvc.sessionAttributes().remove(HttpSessionAttributes.MODELOBJECT);
         }
         
@@ -182,13 +197,13 @@ public class FormControllerBase{
     } 
 
     public void onFormSubmitSuccessful(
-            ModelMap model, FormConfig formReqParams,
+            ModelMap model, FormConfig formConfig,
             HttpServletRequest request, HttpServletResponse response) {
 
-        log.debug("SUCCESS: {}", formReqParams);
+        log.debug("SUCCESS: {}", formConfig);
             
         final Object m = "Successfully completed action: " + 
-                formReqParams.getCrudAction() + ' ' + formReqParams.getModelname();
+                formConfig.getCrudAction() + ' ' + formConfig.getModelname();
         
         this.messageAttributesSvc.addInfoMessage(model, m);
     }
@@ -227,7 +242,7 @@ public class FormControllerBase{
         return formSvc;
     } 
     
-    protected void log(String id, ModelMap model, FormConfigDTO formConfigDTO,
+    protected void log(String id, ModelMap model, FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response){
         if(log.isTraceEnabled()) {
             new Print().trace(id, model, formConfigDTO, request, response);

@@ -6,8 +6,7 @@ import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.form.FormConfig;
-import com.looseboxes.webform.form.FormConfigDTO;
-import com.looseboxes.webform.util.Print;
+import com.looseboxes.webform.form.FormConfigBean;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.Objects;
@@ -62,13 +61,13 @@ public class FormControllerRest extends FormControllerBase{
     public ResponseEntity<Object> dependents(
             // Without the @Valid annotation the required value was not set
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            ModelMap model, FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigBean formConfigBean,
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             HttpServletRequest request, HttpServletResponse response) {
 
         try{
             
-            this.log(FormStage.dependents, model, formConfigDTO, request, response);
+            this.log(FormStage.dependents, model, formConfigBean, request, response);
 
             final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
                     .getDependents(modelobject, propertyName);
@@ -77,7 +76,7 @@ public class FormControllerRest extends FormControllerBase{
             
             final Map<String, Map> result = this.getChoicesForDependents(dependents, locale);
             
-            log.debug("{}#{} {} = {}", formConfigDTO.getModelname(), 
+            log.debug("{}#{} {} = {}", formConfigBean.getModelname(), 
                     propertyName, FormStage.dependents, result);
             
             return ResponseEntity.ok(result);
@@ -91,13 +90,13 @@ public class FormControllerRest extends FormControllerBase{
     public ResponseEntity<Object> validateSingle(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
             BindingResult bindingResult,
-            ModelMap model, FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigBean formConfigBean,
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             HttpServletRequest request, HttpServletResponse response) {
         
         try{
             
-            this.log(FormStage.validateSingle, model, formConfigDTO, request, response);
+            this.log(FormStage.validateSingle, model, formConfigBean, request, response);
             
             if(bindingResult.hasFieldErrors(propertyName)) {
             
@@ -106,12 +105,11 @@ public class FormControllerRest extends FormControllerBase{
                 
             }else{
             
-                formConfigDTO.setModelobject(modelobject);
-
-                this.validateModelObject(bindingResult, model, formConfigDTO);
+                this.validateModelObject(
+                        bindingResult, model, formConfigBean, modelobject);
             }
             
-            return this.respond(bindingResult, propertyName, model, formConfigDTO);
+            return this.respond(bindingResult, propertyName, model, formConfigBean);
             
         }catch(Exception e) {
             return this.respond(e, model);
@@ -120,7 +118,7 @@ public class FormControllerRest extends FormControllerBase{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
     public ResponseEntity<Object> begin(
-            ModelMap model, FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) 
             throws FileNotFoundException{
 
@@ -131,7 +129,7 @@ public class FormControllerRest extends FormControllerBase{
         try{
             
             formConfig = super.onBeginForm(
-                    model, formConfigDTO, request, response);
+                    model, formConfigBean, request, response);
 
             if(formConfig == null) {
             
@@ -153,7 +151,7 @@ public class FormControllerRest extends FormControllerBase{
     public ResponseEntity<Object> validate(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject,
             BindingResult bindingResult,
-            ModelMap model, FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         
         ResponseEntity<Object> result;
@@ -163,7 +161,7 @@ public class FormControllerRest extends FormControllerBase{
         try{
             
             formConfig = super.onValidateForm(
-                    modelobject, bindingResult, model, formConfigDTO, request, response);
+                    modelobject, bindingResult, model, formConfigBean, request, response);
 
             result = this.respond(bindingResult, model, formConfig);
             
@@ -177,10 +175,10 @@ public class FormControllerRest extends FormControllerBase{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.submit)
     public ResponseEntity<Object> submit(
-            ModelMap model, FormConfigDTO formConfigDTO,
+            ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         
-        final CRUDAction action = formConfigDTO.getCrudAction();
+        final CRUDAction action = formConfigBean.getCrudAction();
         
         ResponseEntity<Object> result;
         
@@ -188,7 +186,7 @@ public class FormControllerRest extends FormControllerBase{
         
         try{
         
-            formConfig = super.onSubmitForm(model, formConfigDTO, request, response);
+            formConfig = super.onSubmitForm(model, formConfigBean, request, response);
             
             if(formConfig == null) {
             
@@ -335,53 +333,3 @@ public class FormControllerRest extends FormControllerBase{
         return collectInto;
     }
 }
-/**
- * 
-            final Map choices = new HashMap();
-            choices.put(0, "Abia");
-            choices.put(1, "Abuja");
-            choices.put(2, "United States of America");
-            choices.put(3, "United Kingdom");
-            choices.put(4, "Candada");
-            choices.put(5, "Germany");
-            result.put("region", choices);
-
-
-    @Autowired private DomainClasses domainClasses;
-    @Autowired private TypeFromNameResolver typeFromNameResolver;
-
-    @RequestMapping("/modelnames")
-    public ResponseEntity<Object> modelnames(ModelMap model, 
-            HttpServletRequest request, HttpServletResponse response) {
-
-        try{
-            
-            if(LOG.isTraceEnabled()) {
-                new Print().trace(FormStage.dependents, 
-                        model, null, request, response);
-            }
-            
-            final Set modelNames = domainClasses.get().stream()
-                    .filter(this.getModelTypeFilter())
-                    .map((cls) -> typeFromNameResolver.getName(cls))
-                    .filter(this.getModelNameFilter())
-                    .collect(Collectors.toSet());
-
-            return ResponseEntity.ok(
-                    Collections.singletonMap("modelnames", modelNames));
-            
-        }catch(Exception e) {
-            
-            return this.respond(e, model);
-        }
-    }
-    
-    public Predicate<Class> getModelTypeFilter() {
-        return (cls) -> true;
-    }
-    
-    public Predicate<String> getModelNameFilter() {
-        return (name) -> true;
-    }
- * 
- */

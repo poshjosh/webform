@@ -35,7 +35,11 @@ public interface FormConfig extends HttpSessionAttributes, Params{
             MODELOBJECT, PARENT_FORMID, TARGET_ON_COMPLETION, FORM};
     }
 
-    class Builder extends FormConfigDTO{}
+    class Builder extends FormConfigBean{}
+    
+    FormConfig copy();
+    
+    FormConfigBean writableCopy();
     
     /**
      * Synonymous to {@link #getFormid()}
@@ -76,7 +80,9 @@ public interface FormConfig extends HttpSessionAttributes, Params{
 
     String getModelname();
 
-    Object getModelobject();
+    default Object getModelobject() {
+        return this.getForm().getDataSource();
+    }
     
     String getTargetOnCompletion();
     

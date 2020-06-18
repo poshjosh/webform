@@ -26,7 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
-import com.looseboxes.webform.form.FormConfigDTO;
+import com.looseboxes.webform.form.FormConfigBean;
 
 /**
  * @author hp
@@ -41,7 +41,7 @@ public class FormControllerHtml extends FormControllerBase{
     public FormControllerHtml() { }
 
     @GetMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
-    public String showForm(ModelMap model, FormConfigDTO formConfigDTO,
+    public String showForm(ModelMap model, FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) 
             throws FileNotFoundException{
 
@@ -55,7 +55,7 @@ public class FormControllerHtml extends FormControllerBase{
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject,
             BindingResult bindingResult,
             ModelMap model,
-            FormConfigDTO formConfigDTO,
+            FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
         super.onValidateForm(
@@ -80,7 +80,7 @@ public class FormControllerHtml extends FormControllerBase{
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/submit")
     public String submitForm(
             ModelMap model,
-            FormConfigDTO formConfigDTO,
+            FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
         String target;
