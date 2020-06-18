@@ -1,4 +1,4 @@
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.json;
 
 import com.bc.webform.functions.TypeTests;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -13,15 +13,15 @@ import org.slf4j.LoggerFactory;
 /**
  * @author hp
  */
-public class JacksonDomainTypeFilter extends SimpleBeanPropertyFilter{
+public class JacksonDomainTypeRejectionFilter extends SimpleBeanPropertyFilter{
     
-    private static final Logger LOG = LoggerFactory.getLogger(JacksonDomainTypeFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JacksonDomainTypeRejectionFilter.class);
     
-    public static final String FILTER_ID = "JacksonDomainTypeFilter";
+    public static final String FILTER_ID = "JacksonDomainTypeRejectionFilter";
     
     private final TypeTests typeTests;
 
-    public JacksonDomainTypeFilter(TypeTests typeTests) { 
+    public JacksonDomainTypeRejectionFilter(TypeTests typeTests) { 
         this.typeTests = Objects.requireNonNull(typeTests);
     }
     

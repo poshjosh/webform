@@ -1,4 +1,4 @@
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.json;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 
