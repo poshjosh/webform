@@ -34,7 +34,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 @SessionAttributes({HttpSessionAttributes.MODELOBJECT}) 
 public class FormControllerBase{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormControllerBase.class);
+    private final Logger log = LoggerFactory.getLogger(FormControllerBase.class);
     
     @FunctionalInterface
     public static interface OnFormSubmitted{
@@ -60,7 +60,7 @@ public class FormControllerBase{
         final FormConfig formConfig = formSvc.onShowform(formConfigDTO);
         formConfigDTO = null; // Prevent usage
         
-        LOG.debug("{}", formConfig);
+        log.debug("{}", formConfig);
         
         final AttributeService attributeSvc = this.getAttributeService(model, request);
         
@@ -85,7 +85,7 @@ public class FormControllerBase{
         final FormConfig formConfig = formSvc.onValidateForm(formConfigDTO, modelobject);
         formConfigDTO = null; // Prevent usage
 
-        LOG.debug("{}", formConfig);
+        log.debug("{}", formConfig);
         
         this.validateModelObject(bindingResult, model, formConfig);
         
@@ -143,7 +143,7 @@ public class FormControllerBase{
         final FormConfig formConfig = formSvc.onSubmitForm(formConfigDTO);
         formConfigDTO = null; // Prevent usage
         
-        LOG.debug("{}", formConfig);
+        log.debug("{}", formConfig);
 
         formSvc.checkAll(formConfig);
 
@@ -163,7 +163,7 @@ public class FormControllerBase{
                 try{
                     formSvc.updateParentWithNewlyCreated(formConfig);
                 }catch(RuntimeException e) {
-                    LOG.warn("Failed to update parent with this form's value", e);
+                    log.warn("Failed to update parent with this form's value", e);
                 }
             }
         }catch(RuntimeException e) {
@@ -185,7 +185,7 @@ public class FormControllerBase{
             ModelMap model, FormConfig formReqParams,
             HttpServletRequest request, HttpServletResponse response) {
 
-        LOG.debug("SUCCESS: {}", formReqParams);
+        log.debug("SUCCESS: {}", formReqParams);
             
         final Object m = "Successfully completed action: " + 
                 formReqParams.getCrudAction() + ' ' + formReqParams.getModelname();
@@ -197,7 +197,7 @@ public class FormControllerBase{
             ModelMap model, FormConfig formConfig, Exception exception,
             HttpServletRequest request, HttpServletResponse response) {
     
-        LOG.warn("Failed to process: " + formConfig, exception);
+        log.warn("Failed to process: " + formConfig, exception);
 
         this.messageAttributesSvc.addErrorMessages(model, 
                 "Unexpected error occured while processing action: " + 
@@ -229,7 +229,7 @@ public class FormControllerBase{
     
     protected void log(String id, ModelMap model, FormConfigDTO formConfigDTO,
             HttpServletRequest request, HttpServletResponse response){
-        if(LOG.isTraceEnabled()) {
+        if(log.isTraceEnabled()) {
             new Print().trace(id, model, formConfigDTO, request, response);
         }
     }

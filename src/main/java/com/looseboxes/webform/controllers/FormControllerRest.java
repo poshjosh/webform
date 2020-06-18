@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 public class FormControllerRest extends FormControllerBase{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormControllerRest.class);
+    private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
     
     @Autowired private EntityRepositoryFactory repoFactory;
     @Autowired private DependentsProvider dependentsProvider;
@@ -77,7 +77,7 @@ public class FormControllerRest extends FormControllerBase{
             
             final Map<String, Map> result = this.getChoicesForDependents(dependents, locale);
             
-            LOG.debug("{}#{} {} = {}", formConfigDTO.getModelname(), 
+            log.debug("{}#{} {} = {}", formConfigDTO.getModelname(), 
                     propertyName, FormStage.dependents, result);
             
             return ResponseEntity.ok(result);
@@ -299,7 +299,7 @@ public class FormControllerRest extends FormControllerBase{
     }
     
     protected ResponseEntity<Object> respond(Exception e, ModelMap model) {
-        LOG.warn("Unexpected exception", e);
+        log.warn("Unexpected exception", e);
         getMessageAttributesSvc().addErrorMessage(model, "An unexpected error occured");
         final Map body = this.collectMessages(model);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);

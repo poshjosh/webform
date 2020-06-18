@@ -33,7 +33,7 @@ import com.looseboxes.webform.form.FormConfigDTO;
  */
 public class FormControllerHtml extends FormControllerBase{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormControllerHtml.class);
+    private final Logger log = LoggerFactory.getLogger(FormControllerHtml.class);
     
     @Autowired private Environment environment;
     @Autowired private FormEndpoints formEndpoints;
@@ -95,7 +95,7 @@ public class FormControllerHtml extends FormControllerBase{
             target = this.getErrorEndpoint();
         }
         
-        LOG.debug("Target: {}", target);
+        log.debug("Target: {}", target);
         
         return target;
     } 
@@ -128,7 +128,7 @@ public class FormControllerHtml extends FormControllerBase{
         
         this.getMessageAttributesSvc().addErrorMessage(modelAndView.getModel(), error);
         
-        LOG.warn(error, exception);
+        log.warn(error, exception);
         
         return modelAndView;
     }
@@ -156,7 +156,7 @@ public class FormControllerHtml extends FormControllerBase{
 
         modelAndView.setStatus(HttpStatus.NOT_FOUND);
         
-        LOG.warn(errors.toString(), exception);
+        log.warn(errors.toString(), exception);
 
         return modelAndView;
     }
@@ -182,7 +182,7 @@ public class FormControllerHtml extends FormControllerBase{
 
         modelAndView.setStatus(HttpStatus.NOT_FOUND);
         
-        LOG.warn(errors.toString(), exception);
+        log.warn(errors.toString(), exception);
 
         return modelAndView;
     }
