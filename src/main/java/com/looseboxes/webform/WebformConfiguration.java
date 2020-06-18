@@ -25,8 +25,6 @@ import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
-import com.looseboxes.webform.form.DependentsUpdater;
-import com.looseboxes.webform.form.DependentsUpdaterImpl;
 import com.looseboxes.webform.form.FormInputContextImpl;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
 import com.looseboxes.webform.form.MultiChoiceContextImpl;
@@ -151,12 +149,6 @@ public class WebformConfiguration {
                 printer,
                 WebformDefaults.LOCALE
         );
-    }
-    
-    @Bean public DependentsUpdater dependentsUpdater(
-            @Autowired EntityRepositoryFactory repoFactory,
-            @Autowired DomainObjectPrinter printer) {
-        return new DependentsUpdaterImpl(repoFactory, printer);
     }
     
     @Bean public DependentsProvider dependentsProvider(
