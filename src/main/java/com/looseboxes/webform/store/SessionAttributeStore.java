@@ -2,6 +2,8 @@ package com.looseboxes.webform.store;
 
 import java.util.Objects;
 import javax.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link com.looseboxes.webform.store.Store Store} implementation based on 
@@ -9,19 +11,8 @@ import javax.servlet.http.HttpSession;
  * @author hp
  */
 public class SessionAttributeStore implements AttributeStore<HttpSession> {
-    
-    public static class StoreNotBackedBySessionException extends UnbackedStoreException{
-        public StoreNotBackedBySessionException() { }
-        public StoreNotBackedBySessionException(Class expectedBackingType) { 
-            super("You attempted to use a store that was not backed by any " + 
-                    expectedBackingType.getName() + 
-                    ". Rather, call method AttributesStore.wrap(" + expectedBackingType.getSimpleName() + 
-                    ") and use the returned instance");
-        }
-        public StoreNotBackedBySessionException(String string) {
-            super(string);
-        }
-    }
+
+    private static final Logger LOG = LoggerFactory.getLogger(SessionAttributeStore.class);
     
     private final HttpSession store;
 
@@ -44,9 +35,10 @@ public class SessionAttributeStore implements AttributeStore<HttpSession> {
     }
 
     @Override
-    public Object put(String name, Object Objectalue) {
+    public Object put(String name, Object value) {
         final Object got = getOrDefault(name, null);
-        requireStore().setAttribute(name, Objectalue);
+        requireStore().setAttribute(name, value);
+        LOG.trace("Put. {} = {}", name, value);
         return got;
     }
 
@@ -54,18 +46,20 @@ public class SessionAttributeStore implements AttributeStore<HttpSession> {
     public Object remove(String name) {
         final Object got = getOrDefault(name, null);
         requireStore().removeAttribute(name);
+        LOG.trace("Removed. {} = {}", name, got);
         return got;
     }
 
     @Override
     public Object getOrDefault(String name, Object resultIfNone) {
         final Object got = (Object)requireStore().getAttribute(name);
+        LOG.trace("Got. {} = {}", name, got);
         return got == null ? resultIfNone : got;
     }
 
     private HttpSession requireStore() {
         if(store == null) {
-            throw new StoreNotBackedBySessionException(HttpSession.class);
+            throw new UnbackedStoreException(HttpSession.class);
         }
         return store;
     }

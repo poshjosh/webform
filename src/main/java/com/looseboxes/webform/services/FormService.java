@@ -77,12 +77,12 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return this.formAttributeService.unwrap();
     }
     
-    public void checkAll(FormConfig params){
+    public void checkAll(FormConfig formConfig){
 
-        Objects.requireNonNull(params.getCrudAction());
-        Objects.requireNonNull(params.getFormid());
-        final String modelname = Objects.requireNonNull(params.getModelname());
-        final Object modelobject = Objects.requireNonNull(params.getModelobject());
+        Objects.requireNonNull(formConfig.getCrudAction());
+        Objects.requireNonNull(formConfig.getFormid());
+        final String modelname = Objects.requireNonNull(formConfig.getModelname());
+        final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
         
         final String foundname = this.typeFromNameResolver.getName(modelobject.getClass());
         
@@ -95,26 +95,36 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         }
     }
 
-    public FormConfig onShowform(FormConfigBean formConfig) {
+    public FormConfigBean onShowform(FormConfigBean formConfig) {
         
-        final Object modelobject = modelObjectService.getModel(formConfig);
+        final Object modelobject;
         
-        formConfig.setFormid(this.generateFormId());
+        // Form id is often passed to a form at the first stage.
+        // This happens when the form is being returned to after some tangential
+        // action, usually the tangential action is carried out via another form
+        //
+        final boolean newForm = formConfig.getFormid() == null;
+        if(newForm) {
+            modelobject = modelObjectService.getModel(formConfig);
+            formConfig.setFormid(this.generateFormId());
+        }else{
+            modelobject = null;
+        }
         
-        return this.update(formConfig, false, modelobject);
+        return this.update(formConfig, ! newForm, modelobject);
     }
 
-    public FormConfig onValidateForm(FormConfigBean formConfig, Object modelobject) {
+    public FormConfigBean onValidateForm(FormConfigBean formConfig, Object modelobject) {
         
         return this.update(formConfig, true, modelobject);
     }
     
-    public FormConfig onSubmitForm(FormConfigBean formConfig) {
+    public FormConfigBean onSubmitForm(FormConfigBean formConfig) {
         
         return this.update(formConfig, true, null);
     }
     
-    private FormConfig update(
+    private FormConfigBean update(
             FormConfigBean formConfig,
             boolean existingForm, 
             @Nullable Object modelobject) {
@@ -162,25 +172,27 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }   
     
     public void validate(FormConfig existing, FormConfig fromHttpRequest) {
-    
         this.validate(Params.ACTION, existing.getCrudAction(), fromHttpRequest.getCrudAction());
         this.validate(Params.FORMID, existing.getFormid(), fromHttpRequest.getFormid());
         this.validate(Params.MODELNAME, existing.getModelname(), fromHttpRequest.getModelname());
         this.validate(Params.MODELID, existing.getModelid(), fromHttpRequest.getModelid());
-        // This is changed with each stage of the form
+        // This is changes with each request
 //        this.validate(existing.getModelobject(), fromHttpRequest.getModelobject());
-        //@TODO null and empty arrays/lists are equal
-//        this.validate(Params.MODELFIELDS, existing.getModelfields(), fromHttpRequest.getModelfields());
+        this.validate(Params.MODELFIELDS, existing.getModelfields(), fromHttpRequest.getModelfields());
         this.validate(Params.PARENT_FORMID, existing.getParentFormid(), fromHttpRequest.getParentFormid());
         this.validate(Params.TARGET_ON_COMPLETION, existing.getTargetOnCompletion(), fromHttpRequest.getTargetOnCompletion());
     }
     
     public void validate(String name, Object expected, Object found) {
         if( ! Objects.equals(expected, found)) {
-            throw new InvalidRouteException(
-                    "For: " + name + "\nExpected: " + 
-                    expected + "\n   Found: " + found);
+            throw this.invalidRouteException(name, expected, found);
         }
+    }
+    
+    private InvalidRouteException invalidRouteException(
+            String name, Object expected, Object found) {
+        throw new InvalidRouteException(
+                "For: " + name + "\nExpected: " + expected + "\n   Found: " + found);
     }
     
     /**
@@ -222,3 +234,14 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return formAttributeService;
     }
 }
+/**
+ * 
+    public void validateType(String name, Object lhs, Object rhs) {
+        if(lhs == null && rhs != null || lhs != null && rhs == null) {
+            throw this.invalidRouteException(name, lhs, rhs);
+        }else if(lhs != null && rhs != null) {
+            this.validate(name, lhs.getClass(), rhs.getClass());
+        }
+    }
+ * 
+ */

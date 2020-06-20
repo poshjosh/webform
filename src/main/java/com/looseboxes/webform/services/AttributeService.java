@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.HttpSessionAttributes;
+import com.looseboxes.webform.store.UnbackedStoreException;
 
 /**
  * @author hp
@@ -119,14 +120,23 @@ public class AttributeService
     }
 
     public AttributeStore<ModelMap> modelAttributes() {
+        if(delegate == null) {
+            throw new UnbackedStoreException(ModelMap.class);
+        }
         return provider.forModel(delegate.getModelMap());
     }
 
     public AttributeStore<HttpServletRequest> requestAttributes() {
+        if(delegate == null) {
+            throw new UnbackedStoreException(HttpServletRequest.class);
+        }
         return provider.forRequest(delegate.getRequest());
     }
 
     public AttributeStore<HttpSession> sessionAttributes() {
+        if(delegate == null) {
+            throw new UnbackedStoreException(HttpSession.class);
+        }
         return provider.forSession(delegate.getRequest().getSession());
     }
 

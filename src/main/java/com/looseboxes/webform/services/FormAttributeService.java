@@ -63,7 +63,7 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
         final FormConfig formConfig = getSessionAttribute(formid, null);
         
         if(formConfig == null) {
-            throw new InvalidRouteException();
+            throw new InvalidRouteException("FormConfig not found for: " + formid);
         }
         
         return formConfig;

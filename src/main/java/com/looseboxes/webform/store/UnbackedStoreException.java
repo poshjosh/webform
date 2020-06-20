@@ -7,9 +7,15 @@ package com.looseboxes.webform.store;
  */
 public class UnbackedStoreException extends RuntimeException{
 
-    public UnbackedStoreException() {
-    }
+    public UnbackedStoreException() { }
 
+    public UnbackedStoreException(Class expectedBackingType) { 
+        super("You attempted to use a store that was not backed by any " + 
+                expectedBackingType.getName() + 
+                ". To create a backed store, call method AttributesStore.wrap(" + expectedBackingType.getSimpleName() + 
+                ") and use the returned instance");
+    }
+    
     public UnbackedStoreException(String string) {
         super(string);
     }

@@ -1,8 +1,9 @@
 package com.looseboxes.webform.store;
 
-import com.looseboxes.webform.store.SessionAttributeStore.StoreNotBackedBySessionException;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link com.looseboxes.webform.store.Store Store} implementation based on 
@@ -10,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
  * @author hp
  */
 public class RequestAttributeStore implements AttributeStore<HttpServletRequest> {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ModelAttributeStore.class);
     
     private final HttpServletRequest store;
 
@@ -35,6 +38,7 @@ public class RequestAttributeStore implements AttributeStore<HttpServletRequest>
     public Object put(String name, Object value) {
         final Object got = getOrDefault(name, null);
         requireStore().setAttribute(name, value);
+        LOG.trace("Put. {} = {}", name, value);
         return got;
     }
 
@@ -42,18 +46,20 @@ public class RequestAttributeStore implements AttributeStore<HttpServletRequest>
     public Object remove(String name) {
         final Object got = getOrDefault(name, null);
         requireStore().removeAttribute(name);
+        LOG.trace("Removed. {} = {}", name, got);
         return got;
     }
 
     @Override
     public Object getOrDefault(String name, Object resultIfNone) {
         final Object got = (Object)requireStore().getAttribute(name);
+        LOG.trace("Got. {} = {}", name, got);
         return got == null ? resultIfNone : got;
     }
     
     private HttpServletRequest requireStore() {
         if(store == null) {
-            throw new StoreNotBackedBySessionException(HttpServletRequest.class);
+            throw new UnbackedStoreException(HttpServletRequest.class);
         }
         return store;
     }
