@@ -101,6 +101,8 @@ public class DependentsProviderImpl implements DependentsProvider {
         Objects.requireNonNull(modelobject);
         Objects.requireNonNull(propertyName);
         
+        LOG.debug("Property: {}, modelobject: {}", propertyName, modelobject);
+        
         Map<PropertyDescriptor, List> result = null;
         
         final BeanWrapper beanWrapper = PropertyAccessorFactory
@@ -151,6 +153,10 @@ public class DependentsProviderImpl implements DependentsProvider {
         
         LOG.debug("Property name: {}, type: {}", propertyName, propertyType);
         
+        if(propertyType == null) {
+            return Collections.EMPTY_SET;
+        }
+
         Set<PropertyDescriptor> result = null;
         
         for(PropertyDescriptor pd : pds) {
@@ -158,8 +164,15 @@ public class DependentsProviderImpl implements DependentsProvider {
             final String name = pd.getName();
             final Class type = pd.getPropertyType();
             
+            LOG.debug("Checking name: {}, type: {}", name, type);
+            
+            if(propertyType == null && type == null) {
+                LOG.trace("Rejected name: {}, both types are null", name);
+                continue;
+            }
+            
             final boolean rejectedSelf = (propertyName.equalsIgnoreCase(name) ||
-                    propertyType.equals(type));
+                    Objects.equals(propertyType, type));
             
             LOG.trace("Rejected self: {}, name: {}, type: {}", rejectedSelf, name, type);
             
@@ -202,7 +215,7 @@ public class DependentsProviderImpl implements DependentsProvider {
             }
         }
         LOG.debug("Has field of type: {}, object type: {}, field type: {}",
-                result, objectType.getName(), fieldType.getName());
+                result, objectType, fieldType);
         return result;
     }
     
