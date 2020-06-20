@@ -20,6 +20,7 @@ package com.looseboxes.webform;
  * @author Chinomso Bassey Ikwuagwu on Apr 17, 2019 9:39:03 PM
  */
 public interface Params {
+    
     String ACTION = "action";
     String MODELNAME = "modelname";
     String FORMID = "fid";
@@ -27,4 +28,13 @@ public interface Params {
     String MODELFIELDS = "modelfields";
     String PARENT_FORMID = "parentfid";
     String TARGET_ON_COMPLETION = "targetOnCompletion";
+    
+    static boolean isMultiValue(String name) {
+        return MODELFIELDS.equals(name);
+    }
+    
+    static String [] names() {
+        return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, 
+            MODELNAME, PARENT_FORMID, TARGET_ON_COMPLETION};
+    }
 }
