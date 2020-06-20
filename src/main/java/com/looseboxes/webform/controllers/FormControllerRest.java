@@ -56,18 +56,22 @@ public class FormControllerRest extends FormControllerBase{
     @Autowired private DomainObjectPrinter domainObjectPrinter;
     
     public FormControllerRest() { }
-    
+    // spring InvocableHandlerMethod BindingResult errors
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
-            // Without the @Valid annotation the required value was not set
+            // Without the @Valid annotation the modelobject properties were not set
+            // With the @Valid annotation the property values must be valid or error:
+            // InvocableHandlerMethod: Could not resolve parameter [0] in {METHOD_SIGNATURE}: org.springframework.validation.BeanPropertyBindingResult: 3 errors
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            ModelMap model, FormConfigBean formConfigBean,
+            ModelMap model, FormConfigBean formConfig,
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             HttpServletRequest request, HttpServletResponse response) {
 
         try{
             
-            this.log(FormStage.dependents, model, formConfigBean, request, response);
+            this.updateFormConfigWithRequestParameters(formConfig, request);
+            
+            this.log(FormStage.dependents, model, formConfig, request, response);
 
             final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
                     .getDependents(modelobject, propertyName);
@@ -76,7 +80,7 @@ public class FormControllerRest extends FormControllerBase{
             
             final Map<String, Map> result = this.getChoicesForDependents(dependents, locale);
             
-            log.debug("{}#{} {} = {}", formConfigBean.getModelname(), 
+            log.debug("{}#{} {} = {}", formConfig.getModelname(), 
                     propertyName, FormStage.dependents, result);
             
             return ResponseEntity.ok(result);
@@ -90,13 +94,15 @@ public class FormControllerRest extends FormControllerBase{
     public ResponseEntity<Object> validateSingle(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
             BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfigBean,
+            ModelMap model, FormConfigBean formConfig,
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             HttpServletRequest request, HttpServletResponse response) {
         
         try{
             
-            this.log(FormStage.validateSingle, model, formConfigBean, request, response);
+            this.updateFormConfigWithRequestParameters(formConfig, request);
+            
+            this.log(FormStage.validateSingle, model, formConfig, request, response);
             
             if(bindingResult.hasFieldErrors(propertyName)) {
             
@@ -106,10 +112,10 @@ public class FormControllerRest extends FormControllerBase{
             }else{
             
                 this.validateModelObject(
-                        bindingResult, model, formConfigBean, modelobject);
+                        bindingResult, model, formConfig, modelobject);
             }
             
-            return this.respond(bindingResult, propertyName, model, formConfigBean);
+            return this.respond(bindingResult, propertyName, model, formConfig);
             
         }catch(Exception e) {
             return this.respond(e, model);

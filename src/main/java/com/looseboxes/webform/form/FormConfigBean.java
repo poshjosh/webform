@@ -23,6 +23,7 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,7 @@ public class FormConfigBean implements Serializable, FormConfig {
 
     private String mid;
 
-    private List<String> modelfields = Collections.EMPTY_LIST;
+    private List<String> modelfields;
     
     private String targetOnCompletion;
     
@@ -145,21 +146,27 @@ public class FormConfigBean implements Serializable, FormConfig {
         return this;
     }
 
-    public FormConfigBean modelfields(String arg) {
-        return modelfields(Collections.singletonList(Objects.requireNonNull(arg)));
-    }
-    
-    public FormConfigBean modelfields(String... arg) {
-        if(arg == null) {
+    public FormConfigBean modelfields(String... args) {
+        if(args == null) {
+            return modelfields((Collection)null);
+        }else if(args.length == 0) {
             return modelfields(Collections.EMPTY_LIST);
-        }else if(arg.length == 0) {
-            return modelfields(Collections.EMPTY_LIST);
+        }else if(args.length == 1) {
+            return modelfields(Collections.singletonList(args[0]));
         }else{
-            return modelfields(Arrays.asList(arg));
+            return modelfields(Arrays.asList(args));
         }
     }
-    public FormConfigBean modelfields(List<String> arg) {
-        this.modelfields = arg == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(arg);
+    public FormConfigBean modelfields(Collection<String> arg) {
+        if(arg == null) {
+            this.modelfields = null;
+        }else if(arg.isEmpty()){    
+            this.modelfields = Collections.EMPTY_LIST;
+        }else if(arg.size() == 1) {
+            this.modelfields = Collections.singletonList(arg.iterator().next());
+        }else{
+            this.modelfields = Arrays.asList(arg.toArray(new String[0]));
+        }
         return this;
     }
 
@@ -172,10 +179,81 @@ public class FormConfigBean implements Serializable, FormConfig {
         this.form = form;
         return this;
     }
+    
+    public FormConfig setAllIfAbsent(Map<String, Object> map) {
+        map.forEach((k, v) -> {
+            this.setObject(k, v, false);
+        });
+        return this;
+    }
+    
+    public FormConfig setAll(Map<String, Object> map) {
+        map.forEach((k, v) -> {
+            this.setObject(k, v, true);
+        });
+        return this;
+    }
+
+    public FormConfig setIfAbsent(String name, Object value) {
+        return this.setObject(name, value, false);
+    }
+
+    public FormConfig set(String name, Object value) {
+        return this.setObject(name, value, true);
+    }
+    
+    private FormConfig setObject(String name, Object value, boolean overwrite) {
+        switch(name) {
+            case MODELFIELDS: 
+                if(value instanceof Collection) {
+                    return this.modelfields((Collection<String>)value);
+                }else if(value instanceof String[]){
+                    return this.modelfields((String[])value);
+                }else{
+                    if(value == null){
+                        return this.modelfields((String[])value);
+                    }else{
+                        return this.modelfields(value.toString());
+                    }
+                }
+            case HttpSessionAttributes.FORM: 
+                return this.form(form == null || overwrite ? (Form)value : form);
+            default: 
+                return setString(name, value == null ? (String)value : value.toString(), overwrite);
+        }
+    }
+
+    public FormConfig setIfAbsent(String name, String value) {
+        return this.setString(name, value, false);
+    }
+    
+    public FormConfig set(String name, String value) {
+        return this.setString(name, value, true);
+    }
+
+    private FormConfig setString(String name, String value, boolean overwrite) {
+        switch(name) {
+            case ACTION: 
+                return this.action((action == null || overwrite) ? value : action);
+            case MODELNAME: 
+                return this.modelname((modelname == null || overwrite) ? value : modelname);
+            case PARENT_FORMID: 
+                return this.parentfid((parentfid == null || overwrite) ? value : parentfid);
+            case FORMID: 
+                return this.fid((fid == null || overwrite) ? value : fid);
+            case MODELID: 
+                return this.mid((mid == null || overwrite) ? value : mid);
+            case TARGET_ON_COMPLETION: 
+                return this.targetOnCompletion(
+                        (targetOnCompletion == null || overwrite) ? value : targetOnCompletion);
+            default: throw new IllegalArgumentException(
+                    "Parameter named: " + name + ", not found for: " + this);
+        }
+    }
 
     @Override
     public Map<String, Object> toMap() {
-        final Map<String, Object> map = new HashMap<>(16, 0.75f);
+        final Map<String, Object> map = new HashMap<>(8, 1.0f);
         // We add action NOT crudAction
         map.put(Params.ACTION, getAction());
         map.put(Params.MODELNAME, getModelname());
@@ -183,7 +261,6 @@ public class FormConfigBean implements Serializable, FormConfig {
         map.put(Params.FORMID, getFormid());
         map.put(Params.MODELID, getModelid());
         map.put(Params.MODELFIELDS, getModelfields());
-        map.put(HttpSessionAttributes.MODELOBJECT, getModelobject());
         map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
         map.put(HttpSessionAttributes.FORM, getForm());
         return Collections.unmodifiableMap(map);
@@ -352,7 +429,7 @@ public class FormConfigBean implements Serializable, FormConfig {
 
     @Override
     public String toString() {
-        return "FormConfigDTO{" + "action=" + action +
+        return "FormConfigBean{" + "action=" + action +
                 ", parentFormid=" + parentfid +
                 ", modelname=" + modelname + ", formid=" + fid + 
                 ", modelfields=" + modelfields + ", targetOnCompletion=" +

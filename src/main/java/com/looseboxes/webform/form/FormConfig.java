@@ -20,7 +20,6 @@ import com.bc.webform.Form;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.HttpSessionAttributes;
 import static com.looseboxes.webform.HttpSessionAttributes.FORM;
-import static com.looseboxes.webform.HttpSessionAttributes.MODELOBJECT;
 import com.looseboxes.webform.Params;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +30,11 @@ import java.util.Map;
 public interface FormConfig extends HttpSessionAttributes, Params{
     
     static String [] names() {
-        return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
-            MODELOBJECT, PARENT_FORMID, TARGET_ON_COMPLETION, FORM};
+        final String [] paramNames = Params.names();
+        final String [] names = new String[paramNames.length + 1];
+        System.arraycopy(paramNames, 0, names, 0, paramNames.length);
+        names[paramNames.length] = FORM;
+        return names;
     }
 
     class Builder extends FormConfigBean{}
@@ -81,7 +83,8 @@ public interface FormConfig extends HttpSessionAttributes, Params{
     String getModelname();
 
     default Object getModelobject() {
-        return this.getForm().getDataSource();
+        final Form form = this.getForm();
+        return form == null ? null : form.getDataSource();
     }
     
     String getTargetOnCompletion();
