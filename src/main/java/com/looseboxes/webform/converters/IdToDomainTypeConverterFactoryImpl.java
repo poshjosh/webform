@@ -17,10 +17,7 @@
 package com.looseboxes.webform.converters;
 
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
-import com.looseboxes.webform.WebformProperties;
-import com.looseboxes.webform.util.PropertySearch;
 import java.util.Objects;
-import javax.persistence.EnumType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.TypeDescriptor;
@@ -35,20 +32,10 @@ public class IdToDomainTypeConverterFactoryImpl
     private static final Logger LOG = LoggerFactory.getLogger(IdToDomainTypeConverterFactoryImpl.class);
  
     private final EntityRepositoryFactory repoFactory;
-    private final EnumType enumType;
 
     public IdToDomainTypeConverterFactoryImpl(
-            EntityRepositoryFactory entityRepositoryFactory,
-            PropertySearch propertySearch) {
-        this(entityRepositoryFactory,
-                EnumType.valueOf(propertySearch.findOrDefault(
-                        WebformProperties.FIELD_ENUM_TYPE, EnumType.ORDINAL.name())));
-    }
-
-    public IdToDomainTypeConverterFactoryImpl(
-            EntityRepositoryFactory entityRepositoryFactory, EnumType enumType) {
+            EntityRepositoryFactory entityRepositoryFactory) {
         this.repoFactory = Objects.requireNonNull(entityRepositoryFactory);
-        this.enumType = Objects.requireNonNull(enumType);
     }
     
     @Override

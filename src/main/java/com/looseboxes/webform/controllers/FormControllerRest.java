@@ -26,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
+import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.form.DependentsProvider;
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
@@ -56,25 +57,31 @@ public class FormControllerRest extends FormControllerBase{
     @Autowired private DomainObjectPrinter domainObjectPrinter;
     
     public FormControllerRest() { }
-    // spring InvocableHandlerMethod BindingResult errors
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
             // Without the @Valid annotation the modelobject properties were not set
             // With the @Valid annotation the property values must be valid or error:
             // InvocableHandlerMethod: Could not resolve parameter [0] in {METHOD_SIGNATURE}: org.springframework.validation.BeanPropertyBindingResult: 3 errors
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            ModelMap model, FormConfigBean formConfig,
+//            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
+            ModelMap model, 
+            @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 
+            @RequestParam(name = "propertyValue", required = true) String propertyValue,
             HttpServletRequest request, HttpServletResponse response) {
 
         try{
             
-            this.updateFormConfigWithRequestParameters(formConfig, request);
+            log.debug("#dependents {} = {}, session: {}", 
+                    propertyName, propertyValue, request.getSession().getId());
+            
+            final FormConfigBean formConfig = findFormConfig(request, formid);
             
             this.log(FormStage.dependents, model, formConfig, request, response);
+            
+            final Object modelobject = formConfig.getModelobject();
 
             final Map<PropertyDescriptor, List> dependents = this.dependentsProvider
-                    .getDependents(modelobject, propertyName);
+                    .getDependents(modelobject, propertyName, propertyValue);
             
             final Locale locale = request.getLocale();
             
@@ -93,17 +100,27 @@ public class FormControllerRest extends FormControllerBase{
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
     public ResponseEntity<Object> validateSingle(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfig,
+            BindingResult bindingResult, 
+            ModelMap model, 
+            @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 
+            @RequestParam(name = "propertyValue", required = true) String propertyValue,
             HttpServletRequest request, HttpServletResponse response) {
         
         try{
             
-            this.updateFormConfigWithRequestParameters(formConfig, request);
+            log.debug("#validateSingle {} = {}, session: {}", 
+                    propertyName, propertyValue, request.getSession().getId());
+
+            final FormConfigBean formConfig = findFormConfig(request, formid);
             
             this.log(FormStage.validateSingle, model, formConfig, request, response);
             
+//            final Object modelobject = formConfig.getModelobject();
+            
+//            final BindingResult bindingResult = 
+//                    this.validateSingle(modelobject, propertyName, propertyValue);
+                    
             if(bindingResult.hasFieldErrors(propertyName)) {
             
                 this.getMessageAttributesSvc()
@@ -120,6 +137,29 @@ public class FormControllerRest extends FormControllerBase{
         }catch(Exception e) {
             return this.respond(e, model);
         }
+    }
+    
+    /**
+     * Return a valid {@link com.looseboxes.webform.form.FormConfigBean} for
+     * the formid argument.
+     * 
+     * The formConfig passed via the request is not initialized with a 
+     * form i.e FormConfig.getForm as well as FormConfig.getModelobject 
+     * will return null. To check that the FormConig refers to a valid
+     * instance, we use FormConfig.getFid() to search for a corresponding
+     * session attribute; which should return an initialized instance
+     * @param request
+     * @param formid
+     * @return 
+     */
+    private FormConfigBean findFormConfig(HttpServletRequest request, String formid) {
+        final FormConfigBean formConfig = 
+                (FormConfigBean)request.getSession().getAttribute(formid);
+        if(formConfig == null) {
+            throw new InvalidRouteException();
+        }
+        log.trace("Found: {}", formConfig);
+        return formConfig;
     }
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
@@ -298,6 +338,7 @@ public class FormControllerRest extends FormControllerBase{
             final Object body = this.collectMessages(model);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
         }else{
+            log.trace("Response body: {}", payload);
             return payload == null ? ResponseEntity.ok().build() : ResponseEntity.ok(payload);
         }
     }

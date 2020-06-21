@@ -9,8 +9,4 @@ public interface HttpSessionAttributes {
     String FORM = "form";
     
     String UPLOADED_FILES_PENDING = "webform_uploadedFilesPending";
-    
-    static String formReqParams(String formId) {
-        return "params." + formId;
-    }
 }

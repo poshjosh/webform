@@ -7,8 +7,6 @@ public interface WebformProperties {
 
     String _PREFIX = "webform.";
     
-    String FIELD_ENUM_TYPE = "webform.field.enumType";
-    
     String FIELDS_TO_IGNORE = _PREFIX + "field.ignores";
     
     String FIELD_DEFAULT_VALUE = _PREFIX + "field.value.default";

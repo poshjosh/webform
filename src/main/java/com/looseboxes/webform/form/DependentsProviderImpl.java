@@ -5,6 +5,7 @@ import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
+import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.util.PropertySearch;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.core.convert.TypeDescriptor;
 
 /**
  * @author hp
@@ -30,14 +32,17 @@ public class DependentsProviderImpl implements DependentsProvider {
     private final PropertySearch propertySearch;
     private final EntityRepositoryFactory repoFactory;
     private final TypeTests typeTests;
+    private final DomainTypeConverter domainTypeConverter;
 
     public DependentsProviderImpl(
             PropertySearch propertySearch, 
             EntityRepositoryFactory repoFactory, 
-            TypeTests typeTests) {
+            TypeTests typeTests,
+            DomainTypeConverter domainTypeConverter) {
         this.propertySearch = Objects.requireNonNull(propertySearch);
         this.repoFactory = Objects.requireNonNull(repoFactory);
         this.typeTests = Objects.requireNonNull(typeTests);
+        this.domainTypeConverter = Objects.requireNonNull(domainTypeConverter);
     }
 
     /**
@@ -96,111 +101,121 @@ public class DependentsProviderImpl implements DependentsProvider {
      */
     @Override
     public Map<PropertyDescriptor, List> getDependents(
-            Object modelobject, String propertyName) {
+            Object modelobject, String propertyName, String propertyValue) {
         
         Objects.requireNonNull(modelobject);
         Objects.requireNonNull(propertyName);
+        Objects.requireNonNull(propertyValue);
         
-        LOG.debug("Property: {}, modelobject: {}", propertyName, modelobject);
+        LOG.debug("Property: {} = {}, modelobject: {}", propertyName, propertyValue, modelobject);
         
         Map<PropertyDescriptor, List> result = null;
         
         final BeanWrapper beanWrapper = PropertyAccessorFactory
                 .forBeanPropertyAccess(modelobject);
         
-        final Set<PropertyDescriptor> dependentTypes = 
-                this.getDependentProperties(beanWrapper, propertyName);
+        final PropertyDescriptor [] beanProperties = beanWrapper.getPropertyDescriptors();
         
-        final Object propertyValue = beanWrapper.getPropertyValue(propertyName);
+        final TypeDescriptor propertyType = beanWrapper.getPropertyTypeDescriptor(propertyName);
+        
+        final Set<PropertyDescriptor> dependentTypes = this.getDependentProperties(
+                modelobject.getClass(), beanProperties, propertyType, propertyName);
+        
+        if( ! dependentTypes.isEmpty()) {
+        
+            final int limit = this.getMaxItemsInMultiChoice();
 
-        final int limit = this.getMaxItemsInMultiChoice();
-        
-        for(PropertyDescriptor dependentProperty : dependentTypes) {
-            
-            final Class dependentType = dependentProperty.getPropertyType();
-            
-            final EntityRepository repo = this.repoFactory.forEntity(dependentType);
-            
+            final String name = propertyName;
+            final Object value = this.domainTypeConverter.convert(
+                    propertyValue, TypeDescriptor.valueOf(String.class), propertyType);
+
             final int offset = 0;
-            
-            LOG.debug("SELECT ALL FROM {} WHERE {} = {}, RETURN RECORDS {} - {}", 
-                    dependentType, propertyName, propertyValue, offset, limit);
-            
-            final List dependentEntities = repo.findAllBy(
-                    propertyName, propertyValue, offset, limit);
-            
-            LOG.trace("Type: {}, values: {}", dependentType.getName(), dependentEntities);
-            
-            if(dependentEntities.isEmpty()) {
-                continue;
+
+            for(PropertyDescriptor dependentProperty : dependentTypes) {
+
+                final Class dependentType = dependentProperty.getPropertyType();
+
+                final EntityRepository repo = this.repoFactory.forEntity(dependentType);
+
+                LOG.debug("SELECT ALL FROM {} WHERE {} = {}, RETURN RECORDS {} - {}", 
+                        dependentType, name, value, offset, limit);
+
+                final List dependentEntities = repo.findAllBy(
+                        name, value, offset, limit);
+
+                LOG.trace("Type: {}, values: {}", dependentType.getName(), dependentEntities);
+
+                if(dependentEntities.isEmpty()) {
+                    continue;
+                }
+
+                if(result == null) {
+                    result = new HashMap(dependentTypes.size(), 1.0f);
+                }
+
+                result.put(dependentProperty, dependentEntities);
             }
-            
-            if(result == null) {
-                result = new HashMap(dependentTypes.size(), 1.0f);
-            }
-            
-            result.put(dependentProperty, dependentEntities);
         }
         
         return this.ensureUnmodifiableMap(result);
     }
     
-    public Set<PropertyDescriptor> getDependentProperties(BeanWrapper beanWrapper, String propertyName) {
+    public Set<PropertyDescriptor> getDependentProperties(
+            Class beanType, PropertyDescriptor [] beanProperties, 
+            TypeDescriptor selectedType, String selectedName) {
         
-        final PropertyDescriptor [] pds = beanWrapper.getPropertyDescriptors();
+        final Class propertyType = selectedType == null ? null : selectedType.getType();
         
-        final Class propertyType = beanWrapper.getPropertyType(propertyName);
-        
-        LOG.debug("Property name: {}, type: {}", propertyName, propertyType);
-        
-        if(propertyType == null) {
-            return Collections.EMPTY_SET;
-        }
+        LOG.debug("Property name: {}, type: {}, type descriptor: {}", 
+                selectedName, propertyType, selectedType);
 
         Set<PropertyDescriptor> result = null;
         
-        for(PropertyDescriptor pd : pds) {
+        if(propertyType != null) {
         
-            final String name = pd.getName();
-            final Class type = pd.getPropertyType();
-            
-            LOG.debug("Checking name: {}, type: {}", name, type);
-            
-            if(propertyType == null && type == null) {
-                LOG.trace("Rejected name: {}, both types are null", name);
-                continue;
-            }
-            
-            final boolean rejectedSelf = (propertyName.equalsIgnoreCase(name) ||
-                    Objects.equals(propertyType, type));
-            
-            LOG.trace("Rejected self: {}, name: {}, type: {}", rejectedSelf, name, type);
-            
-            if(rejectedSelf) {
-                continue;
-            }
-            
-            final boolean rejected = ( ! typeTests.isDomainType(type) || typeTests.isEnumType(type));
-            
-            LOG.trace("Rejected: {}, name: {}, type: {}", rejected, name, type);
-            
-            if(rejected) {
-                continue;
-            }
-            
-            if(this.hasFieldOfType(type, propertyType)) {
-            
-                if(result == null) {
-                
-                    result = new HashSet();
+            for(PropertyDescriptor beanProperty : beanProperties) {
+
+                final String name = beanProperty.getName();
+                final Class type = beanProperty.getPropertyType();
+
+                LOG.trace("Checking name: {}, type: {}", name, type);
+
+                if(propertyType == null && type == null) {
+                    LOG.trace("Rejected name: {}, both types are null", name);
+                    continue;
                 }
-                
-                result.add(pd);
+
+                final boolean rejectedSelf = (selectedName.equalsIgnoreCase(name) ||
+                        Objects.equals(propertyType, type));
+
+                LOG.trace("Rejected self: {}, name: {}, type: {}", rejectedSelf, name, type);
+
+                if(rejectedSelf) {
+                    continue;
+                }
+
+                final boolean rejected = ( ! typeTests.isDomainType(type) || typeTests.isEnumType(type));
+
+                LOG.trace("Rejected: {}, name: {}, type: {}", rejected, name, type);
+
+                if(rejected) {
+                    continue;
+                }
+
+                if(this.hasFieldOfType(type, propertyType)) {
+
+                    if(result == null) {
+
+                        result = new HashSet();
+                    }
+
+                    result.add(beanProperty);
+                }
             }
         }
         
         LOG.debug("{}#{} has dependent types: {}", 
-                beanWrapper.getWrappedClass().getName(), propertyName, result);
+                beanType.getName(), selectedName, result);
         
         return result == null ? Collections.EMPTY_SET : Collections.unmodifiableSet(result);
     }

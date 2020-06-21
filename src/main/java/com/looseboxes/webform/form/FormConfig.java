@@ -17,8 +17,8 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.Form;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
-import com.looseboxes.webform.HttpSessionAttributes;
 import static com.looseboxes.webform.HttpSessionAttributes.FORM;
 import com.looseboxes.webform.Params;
 import java.util.List;
@@ -27,14 +27,14 @@ import java.util.Map;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:16:30 PM
  */
-public interface FormConfig extends HttpSessionAttributes, Params{
+public interface FormConfig{
     
     static String [] names() {
         final String [] paramNames = Params.names();
-        final String [] names = new String[paramNames.length + 1];
-        System.arraycopy(paramNames, 0, names, 0, paramNames.length);
-        names[paramNames.length] = FORM;
-        return names;
+        final String [] allNames = new String[paramNames.length + 1];
+        System.arraycopy(paramNames, 0, allNames, 0, paramNames.length);
+        allNames[paramNames.length] = FORM;
+        return allNames;
     }
 
     class Builder extends FormConfigBean{}
@@ -44,21 +44,21 @@ public interface FormConfig extends HttpSessionAttributes, Params{
     FormConfigBean writableCopy();
     
     /**
-     * Synonymous to {@link #getFormid()}
+     * Alias for {@link #getFormid()}
      * @return String. The id of the respective form for this config
      * @see #getFormid() 
      */
     String getFid();
 
     /**
-     * Synonymous to {@link #getParentFormid()}
+     * Alias for {@link #getParentFormid()}
      * @return String. The id of the respective parent form of the form for this config
      * @see #getParentFormid() 
      */
     String getParentfid();
 
     /**
-     * Synonymous to {@link #getModelid()}
+     * Alias for {@link #getModelid()}
      * @return String. The id of the model which the form of this config relates to
      * @see #getModelid() 
      */
@@ -70,18 +70,38 @@ public interface FormConfig extends HttpSessionAttributes, Params{
      */
     String getAction();
     
+    @JsonIgnore
     CRUDAction getCrudAction();
 
     List<String> getModelfields();
     
+    /**
+     * Alias for {@link #getParentfid()}
+     * @return the id of the parent form of this formConfig's form
+     * @see #getParentfid() 
+     */
+    @JsonIgnore
     String getParentFormid();
     
+    /**
+     * Alias for {@link #getFid()}
+     * @return the id of this formConfig's form
+     * @see #getFid() 
+     */
+    @JsonIgnore
     String getFormid();
 
+    /**
+     * Alias for {@link #getMid()}
+     * @return the id of the model object for which a form will be displayed
+     * @see #getMid() 
+     */
+    @JsonIgnore
     String getModelid();
 
     String getModelname();
 
+    @JsonIgnore
     default Object getModelobject() {
         final Form form = this.getForm();
         return form == null ? null : form.getDataSource();

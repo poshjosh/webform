@@ -54,14 +54,16 @@ public interface DependentsProvider {
      * PropertyDescriptor (whose name is "region", and propertyType is Region.class) 
      * and value equal to the list of regions for the selected country.
      * <p>
-     * <b>Note:</b><br/>
+     * <b>Note:</b>
+     * </p>
      * A value for country (representing the selected country) must have been 
      * set in the Address model object, or this method returns an empty list
      * for region.
-     * </p>
      * @param modelobject
      * @param propertyName
+     * @param propertyValue
      * @return
      */
-    Map<PropertyDescriptor, List> getDependents(Object modelobject, String propertyName);
+    Map<PropertyDescriptor, List> getDependents(
+            Object modelobject, String propertyName, String propertyValue);
 }

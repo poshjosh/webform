@@ -34,7 +34,7 @@ import javax.validation.constraints.NotNull;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
  */
-public class FormConfigBean implements Serializable, FormConfig {
+public class FormConfigBean implements Serializable, FormConfig, Params {
 
     @NotNull
     private String action;

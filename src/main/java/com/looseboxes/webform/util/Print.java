@@ -76,7 +76,15 @@ public class Print<A extends Appendable> {
         }
         return this;
     }
+    
+    public Print printHttpSession(HttpSession session) {
+        return this.addHttpSession(session).traceAdded();
+    }
 
+    public Print print(Object k, Object v) {
+        return this.add(k, v).traceAdded();
+    }
+    
     public Print addHttpSession(HttpSession session) {
         buffer.append(separator).append(" - - - - - - - HttpSession - - - - - - - ");
         this.add("session.id", session.getId());

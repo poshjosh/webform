@@ -25,5 +25,5 @@ import com.looseboxes.webform.form.FormConfig;
  */
 public interface FormValidatorFactory {
 
-    List<Validator> get(FormConfig formRequestParams);
+    List<Validator> getValidators(FormConfig formConfig, Class domainType);
 }

@@ -13,32 +13,40 @@ import org.springframework.core.convert.converter.GenericConverter;
 /**
  * @author hp
  */
-public class ConverterImpl implements GenericConverter{
+public class DomainTypeConverter implements GenericConverter{
     
-    private static final Logger LOG = LoggerFactory.getLogger(ConverterImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DomainTypeConverter.class);
     
-    private final Set<ConvertiblePair> supportedTypes;
+    private final Set<Class> supportedTypes;
+    
+    private final Set<ConvertiblePair> convertibleTypes;
     
     private final Converter<Object, String> domainTypeToStringConverter;
     
     private final IdToDomainTypeConverterFactory idToDomainTypeConverterFactory;
     
-    public ConverterImpl(Set<Class> classes,
+    public DomainTypeConverter(Set<Class> supportedTypes,
             Converter<Object, String> domainTypeToStringConverter,
             IdToDomainTypeConverterFactory idToDomainTypeConverterFactory) {
-        final Set<ConvertiblePair> result = new HashSet<>(classes.size() * 2, 1.0f);
-        for(Class cls : classes) {
+        this.supportedTypes = Collections.unmodifiableSet(supportedTypes);
+        this.convertibleTypes = Collections
+                .unmodifiableSet(this.toConvertiblePairs(supportedTypes));
+        this.domainTypeToStringConverter = Objects.requireNonNull(domainTypeToStringConverter);
+        this.idToDomainTypeConverterFactory = Objects.requireNonNull(idToDomainTypeConverterFactory);
+    }
+    
+    private Set<ConvertiblePair> toConvertiblePairs(Set<Class> supportedTypes) {
+        final Set<ConvertiblePair> result = new HashSet<>(supportedTypes.size() * 2, 1.0f);
+        for(Class cls : supportedTypes) {
             result.add(new ConvertiblePair(String.class, cls));
             result.add(new ConvertiblePair(cls, String.class));
         }
-        this.supportedTypes = Collections.unmodifiableSet(result);
-        this.domainTypeToStringConverter = Objects.requireNonNull(domainTypeToStringConverter);
-        this.idToDomainTypeConverterFactory = Objects.requireNonNull(idToDomainTypeConverterFactory);
+        return result;
     }
 
     @Override
     public Set<ConvertiblePair> getConvertibleTypes() {
-        return supportedTypes;
+        return convertibleTypes;
     }
 
     @Override
@@ -47,11 +55,11 @@ public class ConverterImpl implements GenericConverter{
             final Class srcType = sourceType.getType();
             final Class tgtType = targetType.getType();
             LOG.trace("Converting {} to {}", source, tgtType);
-            if(String.class.equals(srcType)) {
+            if(this.supportedTypes.contains(srcType)) {
+                return this.domainTypeToStringConverter.convert(source);
+            }else{
                 return this.idToDomainTypeConverterFactory
                         .getConverter(tgtType).convert(source.toString());
-            }else{
-                return this.domainTypeToStringConverter.convert(source);
             }
         }catch(RuntimeException e) {
             LOG.warn("Unexpected exception", e);

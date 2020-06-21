@@ -31,7 +31,7 @@ import com.looseboxes.webform.converters.StringToDateConverter;
 import com.looseboxes.webform.converters.DomainObjectPrinterImpl;
 import com.looseboxes.webform.converters.DomainTypeToStringConverter;
 import com.bc.webform.functions.TypeTests;
-import com.looseboxes.webform.converters.ConverterImpl;
+import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverterImpl;
@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -70,14 +69,14 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
         registry.addConverter(this.dateToStringConverter());
         registry.addConverter(this.stringToTemporalConverter());
         registry.addConverter(this.temporalToStringConverter());
-        registry.addConverter(this.genericConverter());
+        registry.addConverter(this.domainTypeConverter());
 
         registry.addPrinter(this.domainObjectPrinter());
 //        registry.addConverterFactory(this.idToDomainTypeConverterFactory());
     }
     
-    @Bean public GenericConverter genericConverter() {
-        final GenericConverter genericConverter = new ConverterImpl(
+    @Bean public DomainTypeConverter domainTypeConverter() {
+        final DomainTypeConverter genericConverter = new DomainTypeConverter(
                 domainClasses.get(), 
                 this.domainTypeToStringConverter(), 
                 this.idToDomainTypeConverterFactory());
@@ -121,8 +120,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     }
 
     @Bean public IdToDomainTypeConverterFactoryImpl idToDomainTypeConverterFactory() {
-        return new IdToDomainTypeConverterFactoryImpl(
-                this.repoFactory, this.propertySearch);
+        return new IdToDomainTypeConverterFactoryImpl(this.repoFactory);
     }
     
     @Bean public DateAndTimePatternsSupplier dateAndTimePatternsSupplier() {

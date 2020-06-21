@@ -21,6 +21,7 @@ import com.bc.webform.functions.MultiChoiceContext;
 import com.bc.webform.functions.ReferencedFormContext;
 import com.bc.webform.functions.TypeTests;
 import com.bc.webform.functions.TypeTestsImpl;
+import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.form.DependentsProvider;
@@ -153,11 +154,13 @@ public class WebformConfiguration {
     
     @Bean public DependentsProvider dependentsProvider(
             @Autowired EntityRepositoryFactory repoFactory,
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
+            @Autowired TypeFromNameResolver typeFromNameResolver,
+            @Autowired DomainTypeConverter domainTypeConverter) {
         return new DependentsProviderImpl(
                 this.propertySearch(typeFromNameResolver), 
                 repoFactory, 
-                this.typeTests());
+                this.typeTests(),
+                domainTypeConverter);
     }
     
     @Bean public FormFieldTest formFieldTest(

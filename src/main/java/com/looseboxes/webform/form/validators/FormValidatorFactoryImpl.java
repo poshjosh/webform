@@ -36,15 +36,13 @@ public class FormValidatorFactoryImpl implements FormValidatorFactory {
     }
     
     @Override
-    public List<Validator> get(FormConfig formReqParams) {
+    public List<Validator> getValidators(FormConfig formConfig, Class domainType) {
         
         final List<Validator> output = new ArrayList<>(2);
         
-        if(create.equals(formReqParams.getCrudAction())) {
+        if(create.equals(formConfig.getCrudAction())) {
             
-            final Object modelobject = formReqParams.getModelobject();
-            
-            if(this.uniqueColumnsValidator.supports(modelobject.getClass())) {
+            if(this.uniqueColumnsValidator.supports(domainType)) {
 
                 output.add(uniqueColumnsValidator);
             }

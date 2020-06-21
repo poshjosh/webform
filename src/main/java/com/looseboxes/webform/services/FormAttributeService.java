@@ -1,7 +1,6 @@
 package com.looseboxes.webform.services;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Wrapper;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.form.FormConfig;
@@ -71,7 +70,7 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
 
     public FormConfig getSessionAttribute(
             String formid, FormConfig resultIfNone) {
-        final String attributeName = this.getAttributeName(formid);
+        final String attributeName = formid;
         Objects.requireNonNull(attributeName);
         final Object value = this.sessionAttributes()
                 .getOrDefault(attributeName, null);
@@ -81,27 +80,18 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
 
     public void removeSessionAttribute(String formid) {
         Objects.requireNonNull(formid);
-        final String name = getAttributeName(formid);
+        final String name = formid;
         final Object removed = sessionAttributes().remove(name);  
         LOG.trace("Removed {} = {}", name, removed);
     }
     
     public void setSessionAttribute(FormConfig formConfig){
-        final String attributeName = this.getAttributeName(formConfig);
+        final String attributeName = formConfig.getFid();
         Objects.requireNonNull(attributeName);
         this.sessionAttributes().put(attributeName, formConfig);
         LOG.trace("Set {} = {}", attributeName, formConfig);
     }
 
-    public String getAttributeName(FormConfig formConfig) {
-        return this.getAttributeName(formConfig.getFormid());
-    }
-    
-    public String getAttributeName(String formid) {
-        Objects.requireNonNull(formid);
-        return HttpSessionAttributes.formReqParams(formid);
-    }
-    
     public AttributeStore<HttpSession> sessionAttributes() {
         return this.attributeService.sessionAttributes();
     }

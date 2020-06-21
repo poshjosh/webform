@@ -81,6 +81,10 @@ public class FormControllerBase{
         formSvc.attributeService().setSessionAttribute(formConfig);
         request.getSession().setAttribute(
                 HttpSessionAttributes.MODELOBJECT, formConfig.getModelobject());
+        if(log.isTraceEnabled()) {
+            new Print().printHttpSession(request.getSession())
+                    .print("FormConfig", formConfig);
+        }
         
         return formConfig;
     }
@@ -145,7 +149,8 @@ public class FormControllerBase{
         Objects.requireNonNull(formConfig);
         Objects.requireNonNull(modelobject);
     
-        final List<Validator> validators = this.formValidatorFactory.get(formConfig);
+        final List<Validator> validators = this.formValidatorFactory
+                .getValidators(formConfig, modelobject.getClass());
 
         for(Validator validator : validators) {
 
