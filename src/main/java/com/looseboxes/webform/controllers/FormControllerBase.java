@@ -57,7 +57,7 @@ public class FormControllerBase{
     public FormConfig onBeginForm(ModelMap model, FormConfigBean formConfig,
             HttpServletRequest request, HttpServletResponse response){
         
-        this.updateFormConfigWithRequestParameters(formConfig, request);
+        this.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
         this.log("showForm", model, formConfig, request, response);
         
@@ -96,7 +96,7 @@ public class FormControllerBase{
             FormConfigBean formConfig,
             HttpServletRequest request, HttpServletResponse response) {
         
-        this.updateFormConfigWithRequestParameters(formConfig, request);
+        this.updateFormConfigWithFormParamsFromRequest(formConfig, request);
 
         this.log("validateForm", model, formConfig, request, response);
         
@@ -168,7 +168,7 @@ public class FormControllerBase{
             FormConfigBean formConfig,
             HttpServletRequest request, HttpServletResponse response) {
         
-        this.updateFormConfigWithRequestParameters(formConfig, request);
+        this.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
         this.log("submitForm", model, formConfig, request, response);
         
@@ -255,7 +255,7 @@ public class FormControllerBase{
      * @param formConfig
      * @param request 
      */
-    public void updateFormConfigWithRequestParameters(
+    public void updateFormConfigWithFormParamsFromRequest(
             FormConfigBean formConfig, HttpServletRequest request) {
         log.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
                 formConfig, request.getQueryString());
@@ -275,7 +275,7 @@ public class FormControllerBase{
      * @param model
      * @param request 
      */
-    public void updateModelMapWithRequestParameters(
+    public void updateModelMapWithFormParamsFromRequest(
             ModelMap model, HttpServletRequest request) {
         log.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
                 model, request.getQueryString());
