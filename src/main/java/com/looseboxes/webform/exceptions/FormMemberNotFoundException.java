@@ -3,7 +3,7 @@ package com.looseboxes.webform.exceptions;
 /**
  * @author hp
  */
-public class FormMemberNotFoundException extends RuntimeException {
+public class FormMemberNotFoundException extends MalformedRouteException {
 
     /**
      * Creates a new instance of <code>FormUpdateException</code> without detail
