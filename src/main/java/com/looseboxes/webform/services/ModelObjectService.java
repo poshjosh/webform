@@ -8,7 +8,7 @@ import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
 import com.looseboxes.webform.exceptions.MalformedRouteException;
-import com.looseboxes.webform.exceptions.TargetNotFoundException;
+import com.looseboxes.webform.exceptions.ResourceNotFoundException;
 import com.looseboxes.webform.form.FormConfig;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -66,10 +66,10 @@ public class ModelObjectService{
             found = this.fetchModelFromDatabase(modelname, modelid);
         }catch(javax.persistence.EntityNotFoundException e){
             LOG.debug(errMsg, e);
-            throw new TargetNotFoundException(errMsg, e);
+            throw new ResourceNotFoundException(errMsg, e);
         }
         if(found == null) {
-            throw new TargetNotFoundException(errMsg);
+            throw new ResourceNotFoundException(errMsg);
         }
         return found;
     }
