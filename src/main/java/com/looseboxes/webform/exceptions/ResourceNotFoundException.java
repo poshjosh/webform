@@ -3,13 +3,13 @@ package com.looseboxes.webform.exceptions;
 /**
  * @author hp
  */
-public class TargetNotFoundException extends RouteException {
+public class ResourceNotFoundException extends RouteException {
 
     /**
      * Creates a new instance of <code>InvalidRouteException</code> without
      * detail message.
      */
-    public TargetNotFoundException() {
+    public ResourceNotFoundException() {
     }
 
     /**
@@ -18,15 +18,15 @@ public class TargetNotFoundException extends RouteException {
      *
      * @param msg the detail message.
      */
-    public TargetNotFoundException(String msg) {
+    public ResourceNotFoundException(String msg) {
         super(msg);
     }
 
-    public TargetNotFoundException(String string, Throwable thrwbl) {
+    public ResourceNotFoundException(String string, Throwable thrwbl) {
         super(string, thrwbl);
     }
 
-    public TargetNotFoundException(Throwable thrwbl) {
+    public ResourceNotFoundException(Throwable thrwbl) {
         super(thrwbl);
     }
 }
