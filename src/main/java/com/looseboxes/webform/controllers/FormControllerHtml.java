@@ -5,7 +5,7 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.SpringProperties;
 import com.looseboxes.webform.exceptions.RouteException;
-import com.looseboxes.webform.exceptions.TargetNotFoundException;
+import com.looseboxes.webform.exceptions.ResourceNotFoundException;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
 import com.looseboxes.webform.form.FormConfigBean;
+import java.util.Collections;
 
 /**
  * @author hp
@@ -103,45 +103,27 @@ public class FormControllerHtml extends FormControllerBase{
     //////////////////////////////////////////////////////////////////////////
     // Exception handling
     // @see https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc
+    // 
+    // We do not annotate these methods with @ExceptionHandler annotation so as
+    // not to box in the user of this controller. Implementations of this class
+    // are thus more flexible in deciding how to handle exceptions.
     //////////////////////////////////////////////////////////////////////////
 
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ModelAndView handleMaxSizeExceeded(
-        MaxUploadSizeExceededException exception, 
-        HttpServletRequest request,  
-        HttpServletResponse response) {
-
-// when form value entered, referer format:  http://.../create/blog     
-// RequestURI for above referer:             http://.../create/blog/validate
-//        final String referer = request.getHeader("referer");
-
-        final String endpoint = this.getErrorEndpoint();
-
-        final ModelAndView modelAndView = new ModelAndView(endpoint);
+        MaxUploadSizeExceededException exception, HttpServletRequest request) {
 
         // 1MB is the default, if none is set in properties file
         final String max = environment.getProperty(
                 SpringProperties.MULTIPART_MAX_FILE_SIZE, "1MB");
         
-        final String error = 
-                "One or more files, you tried to upload exceeds the max of " + max;
+        final List<String> errors = Collections.singletonList(
+                "One or more files, you tried to upload exceeds the max of " + max);
         
-        this.getMessageAttributesSvc().addErrorMessage(modelAndView.getModel(), error);
-        
-        log.warn(error, exception);
-        
-        return modelAndView;
+        return this.handleException(exception, HttpStatus.PAYLOAD_TOO_LARGE, errors);
     }
 
-    @ExceptionHandler(TargetNotFoundException.class)
-    public ModelAndView handleFileNotFound(
-        TargetNotFoundException exception, 
-        HttpServletRequest request,  
-        HttpServletResponse response) {
-  
-        final String endpoint = this.getErrorEndpoint();
-        
-        final ModelAndView modelAndView = new ModelAndView(endpoint);
+    public ModelAndView handleResourceNotFound(
+        ResourceNotFoundException exception, HttpServletRequest request) {
   
         final List<String> errors = Arrays.asList(
                 "The page you request was not found",
@@ -152,25 +134,24 @@ public class FormControllerHtml extends FormControllerBase{
                 "",
                 "Meanwhile, keep calm, keep browsing");
         
-        this.getMessageAttributesSvc().addErrorMessage(modelAndView.getModel(), errors);
-
-        modelAndView.setStatus(HttpStatus.NOT_FOUND);
-        
-        log.warn(errors.toString(), exception);
-
-        return modelAndView;
+        return this.handleException(exception, HttpStatus.NOT_FOUND, errors);
     }
 
-    @ExceptionHandler(RouteException.class)
-    public ModelAndView handleFileNotFound(
-        RouteException exception, 
-        HttpServletRequest request,  
-        HttpServletResponse response) {
+    public ModelAndView handleRouteProblem(
+            RouteException exception, HttpServletRequest request) {
   
-        final String endpoint = this.getErrorEndpoint();
-        
-        final ModelAndView modelAndView = new ModelAndView(endpoint);
-  
+        final List<String> errors = Arrays.asList(
+                "Seems you took a wrong turn. The route you requested leads no where:",
+                "",
+                request.getRequestURI(),
+                "",
+                "Meanwhile, keep calm, keep browsing");
+
+        return this.handleException(exception, HttpStatus.BAD_REQUEST, errors);
+    }
+    
+    public ModelAndView handleException(Exception exception, HttpServletRequest request) {
+    
         final List<String> errors = Arrays.asList(
                 "We are unable to fullfill your request at this time.",
                 "",
@@ -178,15 +159,25 @@ public class FormControllerHtml extends FormControllerBase{
                 "",
                 "Meanwhile, keep calm, keep browsing");
         
+        return this.handleException(exception, HttpStatus.INTERNAL_SERVER_ERROR, errors);
+    }
+            
+    protected ModelAndView handleException(
+            Exception exception, HttpStatus status, List<String> errors) {
+    
+        final String endpoint = this.getErrorEndpoint();
+        
+        final ModelAndView modelAndView = new ModelAndView(endpoint);
+        
         this.getMessageAttributesSvc().addErrorMessage(modelAndView.getModel(), errors);
 
-        modelAndView.setStatus(HttpStatus.NOT_FOUND);
+        modelAndView.setStatus(status);
         
         log.warn(errors.toString(), exception);
 
         return modelAndView;
     }
-    
+
     private String getErrorEndpoint() {
         final String endpoint = this.formEndpoints.getError();
         return endpoint;
