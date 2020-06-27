@@ -51,7 +51,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebformMvcConfigurer implements WebMvcConfigurer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebformMvcConfigurer.class);
+    private final Logger log = LoggerFactory.getLogger(WebformMvcConfigurer.class);
     
     @Autowired private EntityRepositoryFactory repoFactory;
     @Autowired private PropertySearch propertySearch;
@@ -61,7 +61,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         
-        LOG.debug("Adding formatters");
+        log.debug("Adding formatters");
 
         registry.addConverter(this.stringEmptyToNullConverter());
         registry.addConverter(this.multipartFileToStringConverter());

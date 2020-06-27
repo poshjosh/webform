@@ -80,9 +80,9 @@ public class ModelObjectService{
         final Class modeltype = this.typeFromNameResolver.getTypeOptional(
                 modelname).orElseThrow(() -> new MalformedRouteException(errMsg));
         
-        final EntityRepository entityService = this.entityRepositoryFactory.forEntity(modeltype);
+        final EntityRepository jpaRepo = entityRepositoryFactory.forEntity(modeltype);
 
-        final Object modelobject = entityService.find(modelid);
+        final Object modelobject = jpaRepo.find(modelid);
 
         LOG.debug("{} {} = {};", modeltype.getName(), modelname, modelobject);
 

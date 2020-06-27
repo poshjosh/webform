@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.ModelObjectConfigurer;
+import com.looseboxes.webform.ModelObjectConfigurerService;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigBean;
@@ -39,6 +41,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     private final FormAttributeService formAttributeService;
     private final FormFactory formFactory;
     private final FormInputContext<Object, Field, Object> formInputContext;
+    private final ModelObjectConfigurerService modelObjectConfigurerService;
     private final DependentsProvider dependentsProvider;
 
     @Autowired
@@ -49,6 +52,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             FormAttributeService formAttributeService,
             FormFactory formFactory,
             FormInputContext<Object, Field, Object> formInputContext,
+            ModelObjectConfigurerService modelObjectConfigurerService,
             DependentsProvider dependentsProvider) {
         this.modelObjectService = Objects.requireNonNull(modelObjectService);
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
@@ -56,6 +60,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         this.formAttributeService = Objects.requireNonNull(formAttributeService);
         this.formFactory = Objects.requireNonNull(formFactory);
         this.formInputContext = Objects.requireNonNull(formInputContext);
+        this.modelObjectConfigurerService = Objects.requireNonNull(modelObjectConfigurerService);
         this.dependentsProvider = Objects.requireNonNull(dependentsProvider);
     }
 
@@ -68,6 +73,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
                 this.formAttributeService.wrap(delegate),
                 this.formFactory,
                 this.formInputContext,
+                this.modelObjectConfigurerService,
                 this.dependentsProvider
         );
     }
@@ -105,15 +111,39 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         //
         final boolean newForm = formConfig.getFormid() == null;
         if(newForm) {
-            modelobject = modelObjectService.getModel(formConfig);
+            
+            modelobject = this.configureModelObject(
+                    modelObjectService.getModel(formConfig));
+            
             formConfig.setFormid(this.generateFormId());
+            
         }else{
             modelobject = null;
         }
         
         return this.update(formConfig, ! newForm, modelobject);
     }
+    
+    /**
+     * Apply custom configurations to the modelobject.
+     * @param modelobject 
+     */
+    public Object configureModelObject(Object modelobject) {
+        
+        Objects.requireNonNull(modelobject);
 
+        // Custom configuration for the newly created model object
+        //
+        final ModelObjectConfigurer configurer = 
+                modelObjectConfigurerService.getConfigurer(
+                        modelobject.getClass()).orElse(null);
+        if(configurer != null) {
+            return configurer.configure(modelobject);
+        }
+        
+        return modelobject;
+    }
+    
     public FormConfigBean onValidateForm(FormConfigBean formConfig, Object modelobject) {
         
         return this.update(formConfig, true, modelobject);

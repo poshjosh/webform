@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Scope;
  * @author hp
  */
 public abstract class JpaConfiguration extends AbstractJpaConfiguration{
-
+    
     @Bean @Scope("prototype") public FormControllerHtml.OnFormSubmitted onFormSubmitted() {
         return new OnFormSubmittedImpl(
                 this.typeFromNameResolver(),

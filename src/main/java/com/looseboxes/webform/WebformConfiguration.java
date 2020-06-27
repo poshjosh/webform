@@ -42,6 +42,9 @@ import com.looseboxes.webform.form.ReferencedFormContextImpl;
 import com.looseboxes.webform.util.TextExpressionResolverImpl;
 import com.looseboxes.webform.util.TextExpressionMethods;
 import com.looseboxes.webform.util.TextExpressionResolver;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 
 /**
  * @author hp
@@ -51,11 +54,21 @@ import com.looseboxes.webform.util.TextExpressionResolver;
 @PropertySource("classpath:webform.properties")
 public class WebformConfiguration {
     
-//    private static final Logger LOG = LoggerFactory.getLogger(WebformConfiguration.class);
+//    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
     
     @Autowired private Environment environment;
     
     public WebformConfiguration() { }
+    
+    @Bean @Scope("singleton") protected ModelObjectConfigurerService 
+        modelObjectConfigurerService(ApplicationContext applicationContext) {
+        ModelObjectConfigurerService service = new ModelObjectConfigurerServiceImpl();
+        try{
+            WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
+            configurer.addModelObjectConfigurers(service);
+        }catch(NoSuchBeanDefinitionException ignored) { }
+        return service;
+    }
     
     @Bean public MessageAttributes messageAttributes() {
         return new MessageAttributesImpl();

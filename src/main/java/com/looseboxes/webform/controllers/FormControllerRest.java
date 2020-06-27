@@ -249,7 +249,7 @@ public class FormControllerRest extends FormControllerBase{
         
         return result;
     } 
-
+    
     protected Map<String, Map> getChoicesForDependents(
             Map<PropertyDescriptor, List> dependents, Locale locale) {
     
