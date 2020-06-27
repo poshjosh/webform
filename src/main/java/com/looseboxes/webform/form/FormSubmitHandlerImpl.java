@@ -56,10 +56,10 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
         }   
     }
     
-    public Class getType(FormConfig formReqParams) {
-        final Object modelobject = formReqParams.getModelobject();
+    public Class getType(FormConfig formConfig) {
+        final Object modelobject = formConfig.getModelobject();
         final Class entityType = modelobject != null ? modelobject.getClass() : 
-                entityTypeResolver.getType(formReqParams.getModelname());
+                entityTypeResolver.getType(formConfig.getModelname());
         return entityType;
     }
     
