@@ -3,7 +3,6 @@ package com.looseboxes.webform.form;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.Form;
 import com.bc.webform.FormBuilder;
-import com.looseboxes.webform.exceptions.InvalidRouteException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -28,13 +27,6 @@ public class FormFactoryImpl implements FormFactory{
             TypeFromNameResolver typeFromNameResolver, FormBuilder formBuilder) {
         this.formBuilder = Objects.requireNonNull(formBuilder);
         this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
-    }
-    
-    @Override
-    public Form newForm(Form parent, String id, String name) {
-        return this.newForm(parent, id, name, typeFromNameResolver
-                .newInstanceOptional(name).orElseThrow(
-                        () -> new InvalidRouteException("Not found")));
     }
     
     @Override
@@ -74,3 +66,14 @@ public class FormFactoryImpl implements FormFactory{
         }
     }
 }
+/**
+ * 
+    
+    @Override
+    public Form newForm(Form parent, String id, String name) {
+        return this.newForm(parent, id, name, typeFromNameResolver
+                .newInstanceOptional(name).orElseThrow(
+                        () -> new InvalidRouteException("Not found")));
+    }
+ * 
+ */

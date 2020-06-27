@@ -7,7 +7,5 @@ import com.bc.webform.Form;
  */
 public interface FormFactory {
     
-    Form newForm(Form parent, String id, String name);
-    
     Form newForm(Form parent, String id, String name, Object object);
 }

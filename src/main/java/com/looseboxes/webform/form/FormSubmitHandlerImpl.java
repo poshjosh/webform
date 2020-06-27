@@ -27,15 +27,15 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
     }
     
     @Override
-    public void process(FormConfig formReqParams) {
+    public void process(FormConfig formConfig) {
                     
-        final Class entityType = this.getType(formReqParams);
+        final Class entityType = this.getType(formConfig);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
         
-        final CRUDAction crudAction = formReqParams.getCrudAction();
+        final CRUDAction crudAction = formConfig.getCrudAction();
         switch(crudAction) {
             case create:
-                final Object modelobject = formReqParams.getModelobject();
+                final Object modelobject = formConfig.getModelobject();
                 repo.create(modelobject);
                 if(LOG.isDebugEnabled()) {
                     final Object id = repo.getIdOptional(modelobject);
@@ -45,10 +45,10 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
             case read:
                 break;
             case update:
-                repo.update(findModelObject(formReqParams, repo));
+                repo.update(findModelObject(formConfig, repo));
                 break;
             case delete:
-                final Object id = formReqParams.getModelid();
+                final Object id = formConfig.getModelid();
                 repo.deleteById(id);
                 break;
             default:

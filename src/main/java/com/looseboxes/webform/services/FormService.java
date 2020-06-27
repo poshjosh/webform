@@ -234,13 +234,6 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     }
 
     @Override
-    public Form newForm(Form parentForm, String id, String name){
-        Objects.requireNonNull(id);
-        Objects.requireNonNull(name);
-        return formFactory.newForm(parentForm, id, name);
-    }
-
-    @Override
     public Form newForm(Form parentForm, String id, String name, Object object) {
         Objects.requireNonNull(id);
         Objects.requireNonNull(name);
