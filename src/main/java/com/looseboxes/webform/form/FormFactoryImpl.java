@@ -57,17 +57,20 @@ public class FormFactoryImpl implements FormFactory{
     
     private void logFormFields(Form form) {
         
-        final Function<FormMember, String> mapper = (ff) -> {
-            final Object value = ff.getValue();
-            final Map choices = ff.getChoices();
-            return ff.getName() + '=' + 
-                    (choices==null||choices.isEmpty() ? value : 
-                    (String.valueOf(value) + ", " + choices.size() + " choice(s)"));
-        };
+        if(LOG.isDebugEnabled()) {
+            
+            final Function<FormMember, String> mapper = (ff) -> {
+                final Object value = ff.getValue();
+                final Map choices = ff.getChoices();
+                return ff.getName() + '=' + 
+                        (choices==null||choices.isEmpty() ? value : 
+                        (String.valueOf(value) + ", " + choices.size() + " choice(s)"));
+            };
 
-        LOG.debug("Form fields:\n{}", 
-                form.getMembers().stream()
-                        .map(mapper)
-                        .collect(Collectors.joining("\n")));
+            LOG.debug("Form fields:\n{}", 
+                    form.getMembers().stream()
+                            .map(mapper)
+                            .collect(Collectors.joining("\n")));
+        }
     }
 }
