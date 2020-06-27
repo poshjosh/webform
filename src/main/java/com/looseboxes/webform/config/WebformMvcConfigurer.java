@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform;
+package com.looseboxes.webform.config;
 
 import com.bc.jpa.spring.DomainClasses;
 import com.looseboxes.webform.util.PropertySearch;
@@ -31,6 +31,7 @@ import com.looseboxes.webform.converters.StringToDateConverter;
 import com.looseboxes.webform.converters.DomainObjectPrinterImpl;
 import com.looseboxes.webform.converters.DomainTypeToStringConverter;
 import com.bc.webform.functions.TypeTests;
+import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverter;

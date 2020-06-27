@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.config;
 
 import com.looseboxes.webform.entity.EntityConfigurerService;
 

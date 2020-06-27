@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.config;
 
 import com.looseboxes.webform.form.OnFormSubmittedImpl;
 import com.looseboxes.webform.controllers.FormControllerHtml;

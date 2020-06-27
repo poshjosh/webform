@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.config;
 
 import com.looseboxes.webform.entity.EntityConfigurerService;
 import com.looseboxes.webform.entity.EntityConfigurerServiceImpl;
@@ -23,6 +23,9 @@ import com.bc.webform.functions.MultiChoiceContext;
 import com.bc.webform.functions.ReferencedFormContext;
 import com.bc.webform.functions.TypeTests;
 import com.bc.webform.functions.TypeTestsImpl;
+import com.looseboxes.webform.MessageAttributes;
+import com.looseboxes.webform.MessageAttributesImpl;
+import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
