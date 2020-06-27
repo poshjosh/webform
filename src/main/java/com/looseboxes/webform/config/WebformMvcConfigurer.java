@@ -18,7 +18,6 @@ package com.looseboxes.webform.config;
 
 import com.bc.jpa.spring.DomainClasses;
 import com.looseboxes.webform.util.PropertySearch;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplier;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplierImpl;
 import com.looseboxes.webform.converters.DateToStringConverter;
@@ -45,6 +44,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:26:12 AM
@@ -54,7 +54,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
 
     private final Logger log = LoggerFactory.getLogger(WebformMvcConfigurer.class);
     
-    @Autowired private EntityRepositoryFactory repoFactory;
+    @Autowired private EntityRepositoryProvider repoFactory;
     @Autowired private PropertySearch propertySearch;
     @Autowired private TypeTests typeTests;
     @Autowired private DomainClasses domainClasses;

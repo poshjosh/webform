@@ -5,6 +5,7 @@ import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigBean;
+import com.looseboxes.webform.form.FormSubmitHandler;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
 import com.looseboxes.webform.services.AttributeService;
@@ -39,17 +40,12 @@ public class FormControllerBase{
     
     private final Logger log = LoggerFactory.getLogger(FormControllerBase.class);
     
-    @FunctionalInterface
-    public static interface OnFormSubmitted{
-        void onFormSubmitted(FormConfig formReqParams);
-    }
-    
     @Autowired private FormService _genericFormSvc;
     @Autowired private FormValidatorFactory formValidatorFactory;
     @Autowired private AttributeService _genericAttributeSvc;
     @Autowired private MessageAttributesService messageAttributesSvc;
     @Autowired private FileUploadService fileUploadSvc;
-    @Autowired private OnFormSubmitted onFormSubmitted;
+    @Autowired private FormSubmitHandler formSubmitHandler;
     @Autowired private UpdateParentFormWithNewlyCreatedModel _genericFormUpdaterPostCreate;
 
     public FormControllerBase() { }
@@ -184,7 +180,7 @@ public class FormControllerBase{
         
         try{
         
-            this.onFormSubmitted.onFormSubmitted(formConfig);
+            this.formSubmitHandler.process(formConfig);
             
             attributeSvc.removeUploadedFiles(null);
             
@@ -355,7 +351,7 @@ public class FormControllerBase{
         return fileUploadSvc;
     }
 
-    public OnFormSubmitted getOnFormSubmitted() {
-        return onFormSubmitted;
+    public FormSubmitHandler getFormSubmitHandler() {
+        return formSubmitHandler;
     }
 }

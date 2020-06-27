@@ -1,8 +1,7 @@
 package com.looseboxes.webform.services;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.bc.jpa.spring.repository.EntityRepository;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
+import com.looseboxes.webform.entity.EntityRepository;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -26,12 +26,12 @@ public class ModelObjectService{
 
     public static final String FORM_ID_PREFIX = "form";
     
-    private final EntityRepositoryFactory entityRepositoryFactory;
+    private final EntityRepositoryProvider entityRepositoryFactory;
     private final TypeFromNameResolver typeFromNameResolver;
 
     @Autowired
     public ModelObjectService(
-            EntityRepositoryFactory entityRepositoryFactory, 
+            EntityRepositoryProvider entityRepositoryFactory, 
             TypeFromNameResolver typeFromNameResolver) {
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
         this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);

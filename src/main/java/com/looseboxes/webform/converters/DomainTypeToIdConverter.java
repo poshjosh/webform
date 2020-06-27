@@ -1,10 +1,10 @@
 package com.looseboxes.webform.converters;
 
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -13,9 +13,9 @@ public class DomainTypeToIdConverter implements Converter<Object, Object>{
 
     private static final Logger LOG = LoggerFactory.getLogger(DomainTypeToIdConverter.class);
     
-    private final EntityRepositoryFactory repoFactory;
+    private final EntityRepositoryProvider repoFactory;
 
-    public DomainTypeToIdConverter(EntityRepositoryFactory repoFactory) {
+    public DomainTypeToIdConverter(EntityRepositoryProvider repoFactory) {
         this.repoFactory = Objects.requireNonNull(repoFactory);
     }
 

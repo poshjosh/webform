@@ -16,12 +16,12 @@
 
 package com.looseboxes.webform.converters;
 
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:47:27 AM
@@ -31,10 +31,10 @@ public class IdToDomainTypeConverterFactoryImpl
 
     private static final Logger LOG = LoggerFactory.getLogger(IdToDomainTypeConverterFactoryImpl.class);
  
-    private final EntityRepositoryFactory repoFactory;
+    private final EntityRepositoryProvider repoFactory;
 
     public IdToDomainTypeConverterFactoryImpl(
-            EntityRepositoryFactory entityRepositoryFactory) {
+            EntityRepositoryProvider entityRepositoryFactory) {
         this.repoFactory = Objects.requireNonNull(entityRepositoryFactory);
     }
     

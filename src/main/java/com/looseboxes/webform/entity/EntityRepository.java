@@ -16,18 +16,32 @@
 
 package com.looseboxes.webform.entity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.metamodel.Attribute;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 6, 2019 2:01:23 PM
  */
 public interface EntityRepository<E> {
 
+    Collection<String> getUniqueColumns();
+    
+    Optional getIdOptional(Object entity);
+
+    List<E> findAllBy(String key, Object value, int offset, int limit);
+
+    E find(Object id) throws EntityNotFoundException;
+    
+    void create(E entity);
+
+    void deleteById(Object id);
+    
+    void update(E entity);
+}
+/**
+ * 
     Class getEntityType();
     
     String getTableName();
@@ -88,4 +102,33 @@ public interface EntityRepository<E> {
     void update(E entity);
 
     List<E> search(String query);
-}
+     
+    
+    
+    public String getTableNameFromAnnotation(Class entityType, String resultIfNone) {
+        
+        final Table table = (Table)entityType.getAnnotation(Table.class);
+        
+        final String nameFromAnnotation = table == null ? null : table.name();
+        
+        return nameFromAnnotation == null ? resultIfNone : nameFromAnnotation;
+    }
+    
+    public Collection<String> getUniqueColumns(String tableName) {
+
+        final Set<String> uniqueColumns;
+
+        final List<String> indexNames = metaDataAccess.fetchStringIndexInfo(tableName, true, MetaDataAccess.INDEX_NAME);
+        if(indexNames == null || indexNames.isEmpty()) {
+            uniqueColumns = Collections.EMPTY_SET;
+        }else{
+            final List<String> columnNames = metaDataAccess.fetchStringMetaData(tableName, MetaDataAccess.COLUMN_NAME);
+            uniqueColumns = indexNames.stream().filter((name) -> columnNames.contains(name)).collect(Collectors.toSet());
+        }
+
+        LOG.trace("Table: {}, unique columns: {}", tableName, uniqueColumns);
+
+        return uniqueColumns;
+    }
+ * 
+ */

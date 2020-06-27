@@ -1,6 +1,5 @@
 package com.looseboxes.webform.converters;
 
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.util.StringArrayUtils;
 import com.looseboxes.webform.WebformProperties;
 import java.util.Locale;
@@ -10,6 +9,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import com.looseboxes.webform.util.PropertySearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -20,11 +20,11 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
     
     private final PropertySearch propertyAccess;
     
-    private final EntityRepositoryFactory repoFactory;
+    private final EntityRepositoryProvider repoFactory;
 
     public DomainObjectPrinterImpl(
             PropertySearch propertyAccess,
-            EntityRepositoryFactory repoFactory) {
+            EntityRepositoryProvider repoFactory) {
         this.propertyAccess = Objects.requireNonNull(propertyAccess);
         this.repoFactory = Objects.requireNonNull(repoFactory);
     }

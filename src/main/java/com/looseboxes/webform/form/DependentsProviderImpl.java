@@ -1,7 +1,6 @@
 package com.looseboxes.webform.form;
 
-import com.bc.jpa.spring.repository.EntityRepository;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
+import com.looseboxes.webform.entity.EntityRepository;
 import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
@@ -21,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.convert.TypeDescriptor;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -30,13 +30,13 @@ public class DependentsProviderImpl implements DependentsProvider {
     private static final Logger LOG = LoggerFactory.getLogger(DependentsProviderImpl.class);
     
     private final PropertySearch propertySearch;
-    private final EntityRepositoryFactory repoFactory;
+    private final EntityRepositoryProvider repoFactory;
     private final TypeTests typeTests;
     private final DomainTypeConverter domainTypeConverter;
 
     public DependentsProviderImpl(
             PropertySearch propertySearch, 
-            EntityRepositoryFactory repoFactory, 
+            EntityRepositoryProvider repoFactory, 
             TypeTests typeTests,
             DomainTypeConverter domainTypeConverter) {
         this.propertySearch = Objects.requireNonNull(propertySearch);

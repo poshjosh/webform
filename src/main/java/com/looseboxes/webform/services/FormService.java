@@ -1,7 +1,6 @@
 package com.looseboxes.webform.services;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.bc.webform.Form;
 import com.bc.webform.functions.FormInputContext;
 import com.looseboxes.webform.Errors;
@@ -24,6 +23,7 @@ import com.looseboxes.webform.form.FormConfigBean;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.entity.EntityConfigurer;
 import com.looseboxes.webform.entity.EntityConfigurerService;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -36,7 +36,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     public static final String FORM_ID_PREFIX = "form";
     
     private final ModelObjectService modelObjectService;
-    private final EntityRepositoryFactory entityRepositoryFactory;
+    private final EntityRepositoryProvider entityRepositoryFactory;
     private final TypeFromNameResolver typeFromNameResolver;
     private final FormAttributeService formAttributeService;
     private final FormFactory formFactory;
@@ -47,7 +47,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     @Autowired
     public FormService(
             ModelObjectService modelObjectService,
-            EntityRepositoryFactory entityRepositoryFactory, 
+            EntityRepositoryProvider entityRepositoryFactory, 
             TypeFromNameResolver typeFromNameResolver,
             FormAttributeService formAttributeService,
             FormFactory formFactory,

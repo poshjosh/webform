@@ -1,7 +1,6 @@
 package com.looseboxes.webform.controllers;
 
-import com.bc.jpa.spring.repository.EntityRepository;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
+import com.looseboxes.webform.entity.EntityRepository;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
@@ -36,6 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.form.FormConfigDTO, java.lang.String)} 
@@ -52,11 +52,12 @@ public class FormControllerRest extends FormControllerBase{
     
     private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
     
-    @Autowired private EntityRepositoryFactory repoFactory;
+    @Autowired private EntityRepositoryProvider repoFactory;
     @Autowired private DependentsProvider dependentsProvider;
     @Autowired private DomainObjectPrinter domainObjectPrinter;
     
     public FormControllerRest() { }
+
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
     public ResponseEntity<Object> dependents(
             // Without the @Valid annotation the modelobject properties were not set

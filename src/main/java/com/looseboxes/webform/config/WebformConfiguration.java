@@ -9,7 +9,6 @@ import com.looseboxes.webform.store.PropertyStore;
 import com.looseboxes.webform.util.PropertySearchImpl;
 import com.looseboxes.webform.util.PropertySearch;
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.bc.webform.FormBuilder;
 import com.bc.webform.FormBuilderForJpaEntity;
 import com.bc.webform.FormMemberBuilder;
@@ -50,6 +49,7 @@ import com.looseboxes.webform.util.TextExpressionResolver;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
@@ -171,7 +171,7 @@ public class WebformConfiguration {
     }
     
     @Bean public DependentsProvider dependentsProvider(
-            @Autowired EntityRepositoryFactory repoFactory,
+            @Autowired EntityRepositoryProvider repoFactory,
             @Autowired TypeFromNameResolver typeFromNameResolver,
             @Autowired DomainTypeConverter domainTypeConverter) {
         return new DependentsProviderImpl(

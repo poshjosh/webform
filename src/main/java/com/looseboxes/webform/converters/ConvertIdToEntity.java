@@ -16,7 +16,7 @@
 
 package com.looseboxes.webform.converters;
 
-import com.bc.jpa.spring.repository.EntityRepository;
+import com.looseboxes.webform.entity.EntityRepository;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

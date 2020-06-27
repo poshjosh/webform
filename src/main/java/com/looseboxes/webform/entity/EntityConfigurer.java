@@ -36,10 +36,10 @@ import java.util.Objects;
 public interface EntityConfigurer<T>{
    
     /**
-     * @param modelobject The model object to configure
+     * @param entity The domain object to configure
      * @return The configured model object
      */
-    T configure(T modelobject);
+    T configure(T entity);
 
     default EntityConfigurer<T> andThen(EntityConfigurer<T> after) {
         Objects.requireNonNull(after);

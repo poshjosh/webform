@@ -21,7 +21,7 @@ import javax.persistence.EntityManagerFactory;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 6, 2019 2:04:27 PM
  */
-public interface EntityRepositoryFactory {
+public interface EntityRepositoryProvider {
 
     EntityManagerFactory getEntityManagerFactory();
     
