@@ -1,4 +1,4 @@
-package com.looseboxes.webform;
+package com.looseboxes.webform.entity;
 
 import java.util.Objects;
 
@@ -33,7 +33,7 @@ import java.util.Objects;
  * 
  * @author hp
  */
-public interface ModelObjectConfigurer<T>{
+public interface EntityConfigurer<T>{
    
     /**
      * @param modelobject The model object to configure
@@ -41,7 +41,7 @@ public interface ModelObjectConfigurer<T>{
      */
     T configure(T modelobject);
 
-    default ModelObjectConfigurer<T> andThen(ModelObjectConfigurer<T> after) {
+    default EntityConfigurer<T> andThen(EntityConfigurer<T> after) {
         Objects.requireNonNull(after);
         return (T t) -> after.configure(configure(t));
     }

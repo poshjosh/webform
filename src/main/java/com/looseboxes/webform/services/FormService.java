@@ -18,12 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import com.looseboxes.webform.CRUDAction;
-import com.looseboxes.webform.ModelObjectConfigurer;
-import com.looseboxes.webform.ModelObjectConfigurerService;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.FormConfig;
 import com.looseboxes.webform.form.FormConfigBean;
 import org.springframework.lang.Nullable;
+import com.looseboxes.webform.entity.EntityConfigurer;
+import com.looseboxes.webform.entity.EntityConfigurerService;
 
 /**
  * @author hp
@@ -41,7 +41,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     private final FormAttributeService formAttributeService;
     private final FormFactory formFactory;
     private final FormInputContext<Object, Field, Object> formInputContext;
-    private final ModelObjectConfigurerService modelObjectConfigurerService;
+    private final EntityConfigurerService modelObjectConfigurerService;
     private final DependentsProvider dependentsProvider;
 
     @Autowired
@@ -52,7 +52,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
             FormAttributeService formAttributeService,
             FormFactory formFactory,
             FormInputContext<Object, Field, Object> formInputContext,
-            ModelObjectConfigurerService modelObjectConfigurerService,
+            EntityConfigurerService modelObjectConfigurerService,
             DependentsProvider dependentsProvider) {
         this.modelObjectService = Objects.requireNonNull(modelObjectService);
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
@@ -134,7 +134,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
 
         // Custom configuration for the newly created model object
         //
-        final ModelObjectConfigurer configurer = 
+        final EntityConfigurer configurer = 
                 modelObjectConfigurerService.getConfigurer(
                         modelobject.getClass()).orElse(null);
         if(configurer != null) {

@@ -1,5 +1,7 @@
 package com.looseboxes.webform;
 
+import com.looseboxes.webform.entity.EntityConfigurerService;
+import com.looseboxes.webform.entity.EntityConfigurerServiceImpl;
 import com.looseboxes.webform.form.FormFactoryImpl;
 import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.store.EnvironmentStore;
@@ -60,9 +62,9 @@ public class WebformConfiguration {
     
     public WebformConfiguration() { }
     
-    @Bean @Scope("singleton") protected ModelObjectConfigurerService 
+    @Bean @Scope("singleton") protected EntityConfigurerService 
         modelObjectConfigurerService(ApplicationContext applicationContext) {
-        ModelObjectConfigurerService service = new ModelObjectConfigurerServiceImpl();
+        EntityConfigurerService service = new EntityConfigurerServiceImpl();
         try{
             WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
             configurer.addModelObjectConfigurers(service);
