@@ -1,35 +1,33 @@
 package com.looseboxes.webform.form;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.bc.jpa.spring.repository.EntityRepository;
-import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.controllers.FormControllerHtml;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.entity.EntityRepository;
+import com.looseboxes.webform.entity.EntityRepositoryProvider;
 
 /**
  * @author hp
  */
-public class OnFormSubmittedImpl implements 
-        FormControllerHtml.OnFormSubmitted{
+public class FormSubmitHandlerImpl implements FormSubmitHandler{
     
-    private static final Logger LOG = LoggerFactory.getLogger(OnFormSubmittedImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FormSubmitHandlerImpl.class);
     
     private final TypeFromNameResolver entityTypeResolver;
-    private final EntityRepositoryFactory entityRepositoryFactory;
+    private final EntityRepositoryProvider entityRepositoryFactory;
             
-    public OnFormSubmittedImpl(
+    public FormSubmitHandlerImpl(
             TypeFromNameResolver entityTypeResolver, 
-            EntityRepositoryFactory entityRepositoryFactory) {
+            EntityRepositoryProvider entityRepositoryFactory) {
         this.entityTypeResolver = Objects.requireNonNull(entityTypeResolver);
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
     }
     
     @Override
-    public void onFormSubmitted(FormConfig formReqParams) {
+    public void process(FormConfig formReqParams) {
                     
         final Class entityType = this.getType(formReqParams);
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
