@@ -10,6 +10,27 @@ import java.util.Objects;
  * For example we could set the current logged in user if there is a field and/
  * accessor methods for that on the model object.
  * 
+ * <p><b>Example usage:</b></p>
+ * <code>
+ * <pre>
+    @Configuration
+    public class WebformConfigurerImpl implements WebformConfigurer{
+        private static class PostPreconfigurer implements ModelObjectConfigurer<Post>{
+            @Override
+            public Post configure(Post post) {
+                // Configure the Post here
+                return post;
+            }
+        }
+
+        @Override
+        public void addModelObjectConfigurers(ModelObjectConfigurerService service) {
+            service.addConfigurer(Post.class, new PostPreconfigurer());
+        }
+    }
+ * </pre>
+ * </code>
+ * 
  * @author hp
  */
 public interface ModelObjectConfigurer<T>{
