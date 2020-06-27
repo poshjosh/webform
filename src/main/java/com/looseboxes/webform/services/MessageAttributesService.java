@@ -5,6 +5,7 @@ import com.looseboxes.webform.MessageAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,12 +28,41 @@ public class MessageAttributesService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageAttributesService.class);
 
-
     private final MessageAttributes messageAttributes;
     
     @Autowired
     public MessageAttributesService(MessageAttributes messageAttributes) { 
         this.messageAttributes = Objects.requireNonNull(messageAttributes);
+    }
+    
+    /**
+     * @param model
+     * @return 
+     * @see #collectMessages(org.springframework.ui.ModelMap, java.util.Map) 
+     */
+    public Map collectMessagesFromModelMap(ModelMap model) {
+        return this.collectMessagesFromModelMap(model, new LinkedHashMap());
+    }
+
+    /**
+     * <p>
+     * Collect the messages from the ModelMap.When we returned the ModelMap directly exception:
+     * </p>
+     * <code>com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class org.springframework.validation.DefaultMessageCodesResolver and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS) (through reference chain: java.util.HashMap["org.springframework.validation.BindingResult.formConfigDTO"]->org.springframework.validation.BeanPropertyBindingResult["messageCodesResolver"])</code>
+     * <p>
+     *    Apparently, the ModelMap contained some custom Spring object which
+     *    jackson could not serialize
+     * </p>
+     * @param model
+     * @param collectInto
+     * @return 
+     */
+    public Map collectMessagesFromModelMap(ModelMap model, Map collectInto) {
+        final String errorMsgAttr = this.getErrorMessageAttribute();
+        collectInto.put(errorMsgAttr, model.getAttribute(errorMsgAttr));
+        final String infoMsgAttr = this.getInfoMessageAttribute();
+        collectInto.put(infoMsgAttr, model.getAttribute(infoMsgAttr));
+        return collectInto;
     }
     
     public void addErrorsToModel(BindingResult bindingResult, Object model) {

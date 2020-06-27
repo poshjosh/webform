@@ -20,3 +20,19 @@ HTML forms are generated based on domain object annotations, including:
     - javax.validation.constraints.Size;
 
 Enums are treated as HTML `<select>` element.
+
+### Handling DTO
+
+Register the DTO for the name TypeFromNameResolver 
+
+Add an EntityMapper to be used by EntityRepositoryProvider
+
+### Custom values for form fields
+
+__Update properties__
+
+__Use EntityConfigurer__
+
+### 
+
+

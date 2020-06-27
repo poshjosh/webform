@@ -127,6 +127,7 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
     /**
      * Apply custom configurations to the modelobject.
      * @param modelobject 
+     * @return  
      */
     public Object configureModelObject(Object modelobject) {
         
@@ -241,20 +242,15 @@ public class FormService implements Wrapper<StoreDelegate, FormService>, FormFac
         return formFactory.newForm(parentForm, id, name, object);
     }
     
-    /**
-     * Mirror for {@link #getFormAttributeService()}
-     * @return The {@link com.looseboxes.webform.services.FormAttributeService}
-     * @see #getFormAttributeService() 
-     */
-    public FormAttributeService attributeService() {
+    public FormAttributeService getFormAttributeService() {
         return formAttributeService;
     }
 
     /**
-     * @return The {@link com.looseboxes.webform.services.FormAttributeService}
+     * @return The {@link com.looseboxes.webform.services.ttributeService}
      */
-    public FormAttributeService getFormAttributeService() {
-        return formAttributeService;
+    public AttributeService getAttributeService() {
+        return formAttributeService.getAttributeService();
     }
 }
 /**

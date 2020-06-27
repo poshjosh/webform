@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 /**
  * @author hp
@@ -40,19 +39,20 @@ public class FileUploadService {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
     }
     
-    public Collection<String> upload(
-            String modelname, Object modelobject, MultipartHttpServletRequest request) {
+    public Collection<String> upload(FileUploadConfig<Object> config) {
         
         final Collection<String> output = new ArrayList<>();
+        
+        final String id = config.getId();
+        final Object modelobject = config.getModelobject();
+        final MultiValueMap<String, MultipartFile> multiValueFiles = config.getMultiValueFiles();
+        
         final Function<UploadFileResponse, String> toFileName = 
                 response -> response.getFileName();
         final Consumer<String> addToOutput = filename -> output.add(filename);
 
-        final String id = request.getSession().getId();
-        
         final Map<String, List<UploadFileResponse>> multiOutput = 
-                uploadMultipleFiles(
-                        id, modelname, modelobject, request.getMultiFileMap());
+                uploadMultipleFiles(id, modelobject, multiValueFiles);
 
         if(multiOutput != null && ! multiOutput.isEmpty()) {
             multiOutput.values().stream()
@@ -61,16 +61,19 @@ public class FileUploadService {
                     .forEach(addToOutput);
         }
         
-        final Map<String, MultipartFile> fileMap = request.getFileMap() == null ? 
-                Collections.EMPTY_MAP : new HashMap<>(request.getFileMap());
-        
-        fileMap.keySet().removeAll(multiOutput.keySet());
+        final Map<String, MultipartFile> files = config.getFiles();
+
+        final Map<String, MultipartFile> fileMap = files == null ? 
+                Collections.EMPTY_MAP : new HashMap<>(files);
+
+        if(multiOutput != null && ! multiOutput.isEmpty()) {
+            fileMap.keySet().removeAll(multiOutput.keySet());
+        }
 
         if( ! fileMap.isEmpty()) {
             
             final Map<String, UploadFileResponse> singleOutput = 
-                    uploadSingleFiles(
-                            id, modelname, modelobject, fileMap);
+                    uploadSingleFiles(id, modelobject, fileMap);
 
             if(singleOutput != null && ! singleOutput.isEmpty()) {
                 singleOutput.values().stream()
@@ -82,9 +85,9 @@ public class FileUploadService {
         return output.isEmpty() ? 
                 Collections.EMPTY_LIST : Collections.unmodifiableCollection(output);
     }
-    
-    public Map<String, UploadFileResponse> uploadSingleFiles(String id,
-            String modelname, Object modelobject, Map<String, MultipartFile> fileMap) {
+
+    public Map<String, UploadFileResponse> uploadSingleFiles(
+            String id, Object modelobject, Map<String, MultipartFile> fileMap) {
         
         LOG.debug("Uploading single value multipart file(s): {}", (fileMap == null ? null : fileMap.keySet()));
 
@@ -112,14 +115,14 @@ public class FileUploadService {
                 output.put(name, response);
                 
                 final String propertyName = getPropertyName(
-                        modelname, modelobject, response, bean, name);
+                        modelobject, response, bean, name);
                 
                 if(propertyName == null) {
                     continue;
                 }
                 
                 final Object propertyValue = getPropertyValue(
-                        modelname, modelobject, response, bean, propertyName);
+                        modelobject, response, bean, propertyName);
                 
                 final Object previousValue = bean.getPropertyValue(propertyName);
                 
@@ -129,7 +132,8 @@ public class FileUploadService {
                 if(bean.isWritableProperty(propertyName)) {
                     bean.setPropertyValue(propertyName, propertyValue);
                 }else{
-                    LOG.warn("Not writable: {}.{}", modelname, propertyName);
+                    LOG.warn("Not writable: {}#{}", 
+                            modelobject.getClass().getName(), propertyName);
                 }
             }
         }
@@ -138,19 +142,18 @@ public class FileUploadService {
                 Collections.unmodifiableMap(output);
     }  
     
-    public String getPropertyName(String modelname, Object modelobject, 
+    public String getPropertyName(Object modelobject, 
             UploadFileResponse response, BeanWrapper bean, String propertyName) {
         return propertyName;
     }
-    public Object getPropertyValue(String modelname, Object modelobject, 
+    public Object getPropertyValue(Object modelobject, 
             UploadFileResponse response, BeanWrapper bean, String propertyName) {
         final String relativePath = response.getFileName();
         return relativePath;
     }
     
     public Map<String, List<UploadFileResponse>> uploadMultipleFiles(
-            String id, String modelname, Object modelobject, 
-            MultiValueMap<String, MultipartFile> mvm) {
+            String id, Object modelobject, MultiValueMap<String, MultipartFile> mvm) {
         
         LOG.debug("Uploading multi-value multipart file(s): {}", 
                 (mvm == null ? null : mvm.keySet()));
@@ -193,14 +196,14 @@ public class FileUploadService {
                 }
                 
                 final String propertyName = getPropertyName(
-                        modelname, modelobject, responseList, bean, name);
+                        modelobject, responseList, bean, name);
                 
                 if(propertyName == null) {
                     continue;
                 }
                 
                 final List<Object> propertyValueList = getPropertyValues(
-                        modelname, modelobject, responseList, bean, propertyName);
+                        modelobject, responseList, bean, propertyName);
                 
                 final Object previousValue = bean.getPropertyValue(propertyName);
                 
@@ -228,7 +231,7 @@ public class FileUploadService {
                     bean.setPropertyValue(propertyName, value);
                     
                 }else{
-                    LOG.warn("Not writable: {}.{}", modelname, propertyName);
+                    LOG.warn("Not writable: {}#{}", modelobject.getClass().getName(), propertyName);
                 }
             }
         }
@@ -237,12 +240,12 @@ public class FileUploadService {
                 Collections.unmodifiableMap(output);
     }    
 
-    public String getPropertyName(String modelname, Object modelobject, 
+    public String getPropertyName(Object modelobject, 
             List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
         return propertyName;
     }
     
-    public List<Object> getPropertyValues(String modelname, Object modelobject, 
+    public List<Object> getPropertyValues(Object modelobject, 
             List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
         return responseList.stream().map((response) -> response.getFileName())
                 .collect(Collectors.toList());

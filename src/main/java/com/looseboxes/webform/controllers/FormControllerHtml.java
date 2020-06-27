@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
 import com.looseboxes.webform.form.FormConfigBean;
+import com.looseboxes.webform.services.MessageAttributesService;
 import java.util.Collections;
 
 /**
@@ -37,6 +38,7 @@ public class FormControllerHtml extends FormControllerBase{
     
     @Autowired private Environment environment;
     @Autowired private FormEndpoints formEndpoints;
+    @Autowired private MessageAttributesService messageAttributesService;
 
     public FormControllerHtml() { }
 
@@ -79,8 +81,7 @@ public class FormControllerHtml extends FormControllerBase{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/submit")
     public String submitForm(
-            ModelMap model,
-            FormConfigBean formConfigDTO,
+            ModelMap model, FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
         String target;
@@ -169,7 +170,7 @@ public class FormControllerHtml extends FormControllerBase{
         
         final ModelAndView modelAndView = new ModelAndView(endpoint);
         
-        this.getMessageAttributesSvc().addErrorMessage(modelAndView.getModel(), errors);
+        this.messageAttributesService.addErrorMessage(modelAndView.getModel(), errors);
 
         modelAndView.setStatus(status);
         

@@ -1,5 +1,6 @@
 package com.looseboxes.webform.controllers;
 
+import com.looseboxes.webform.services.FormValidatorService;
 import com.looseboxes.webform.entity.EntityRepository;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
@@ -29,13 +30,13 @@ import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.form.DependentsProvider;
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.services.MessageAttributesService;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.form.FormConfigDTO, java.lang.String)} 
@@ -55,6 +56,8 @@ public class FormControllerRest extends FormControllerBase{
     @Autowired private EntityRepositoryProvider repoFactory;
     @Autowired private DependentsProvider dependentsProvider;
     @Autowired private DomainObjectPrinter domainObjectPrinter;
+    @Autowired private MessageAttributesService messageAttributesService;
+    @Autowired private FormValidatorService formValidatorService;
     
     public FormControllerRest() { }
 
@@ -124,12 +127,12 @@ public class FormControllerRest extends FormControllerBase{
                     
             if(bindingResult.hasFieldErrors(propertyName)) {
             
-                this.getMessageAttributesSvc()
+                this.messageAttributesService
                         .addErrorToModel(bindingResult, model, propertyName);
                 
             }else{
             
-                this.validateModelObject(
+                this.formValidatorService.validateModelObject(
                         bindingResult, model, formConfig, modelobject);
             }
             
@@ -336,7 +339,7 @@ public class FormControllerRest extends FormControllerBase{
             BindingResult bindingResult, String propertyName,
             ModelMap model, Object payload) {
         if(propertyName == null ? bindingResult.hasErrors() : bindingResult.hasFieldErrors(propertyName)) {
-            final Object body = this.collectMessages(model);
+            final Object body = this.messageAttributesService.collectMessagesFromModelMap(model);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
         }else{
             log.trace("Response body: {}", payload);
@@ -346,38 +349,8 @@ public class FormControllerRest extends FormControllerBase{
     
     protected ResponseEntity<Object> respond(Exception e, ModelMap model) {
         log.warn("Unexpected exception", e);
-        getMessageAttributesSvc().addErrorMessage(model, "An unexpected error occured");
-        final Map body = this.collectMessages(model);
+        this.messageAttributesService.addErrorMessage(model, "An unexpected error occured");
+        final Map body = this.messageAttributesService.collectMessagesFromModelMap(model);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-    }
-
-    /**
-     * @param model
-     * @return 
-     * @see #collectMessages(org.springframework.ui.ModelMap, java.util.Map) 
-     */
-    protected Map collectMessages(ModelMap model) {
-        return this.collectMessages(model, new LinkedHashMap());
-    }
-    
-    /**
-     * <p>
-     * Collect the messages from the ModelMap.When we returned the ModelMap directly exception:
-     * </p>
-     * <code>com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class org.springframework.validation.DefaultMessageCodesResolver and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS) (through reference chain: java.util.HashMap["org.springframework.validation.BindingResult.formConfigDTO"]->org.springframework.validation.BeanPropertyBindingResult["messageCodesResolver"])</code>
-     * <p>
-     *    Apparently, the ModelMap contained some custom Spring object which
-     *    jackson could not serialize
-     * </p>
-     * @param model
-     * @param collectInto
-     * @return 
-     */
-    protected Map collectMessages(ModelMap model, Map collectInto) {
-        final String errorMsgAttr = this.getMessageAttributesSvc().getErrorMessageAttribute();
-        collectInto.put(errorMsgAttr, model.getAttribute(errorMsgAttr));
-        final String infoMsgAttr = this.getMessageAttributesSvc().getErrorMessageAttribute();
-        collectInto.put(infoMsgAttr, model.getAttribute(infoMsgAttr));
-        return collectInto;
     }
 }

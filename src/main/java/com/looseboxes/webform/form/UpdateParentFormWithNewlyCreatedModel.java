@@ -4,13 +4,9 @@ import com.bc.webform.Form;
 import com.bc.webform.FormMember;
 import com.bc.webform.functions.FormInputContext;
 import com.looseboxes.webform.CRUDAction;
-import com.looseboxes.webform.Wrapper;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
-import com.looseboxes.webform.services.FormAttributeService;
-import com.looseboxes.webform.store.StoreDelegate;
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,58 +17,43 @@ import org.springframework.stereotype.Component;
  * @author hp
  */
 @Component
-public class UpdateParentFormWithNewlyCreatedModel 
-        implements Wrapper<StoreDelegate, UpdateParentFormWithNewlyCreatedModel>{
-
+public class UpdateParentFormWithNewlyCreatedModel {
+    
     private static final Logger LOG = LoggerFactory.getLogger(UpdateParentFormWithNewlyCreatedModel.class);
     
-    private final FormAttributeService formAttributeService;
-    private final FormInputContext<Object, Field, Object> formInputContext;
+   private final FormInputContext<Object, Field, Object> formInputContext;
 
     @Autowired
     public UpdateParentFormWithNewlyCreatedModel(
-            FormAttributeService formAttributeService,
             FormInputContext<Object, Field, Object> formInputContext) {
-        this.formAttributeService = Objects.requireNonNull(formAttributeService);
         this.formInputContext = Objects.requireNonNull(formInputContext);
     }
     
-    @Override
-    public UpdateParentFormWithNewlyCreatedModel wrap(StoreDelegate delegate) {
-        return new UpdateParentFormWithNewlyCreatedModel(
-                this.formAttributeService.wrap(delegate),
-                this.formInputContext);
-    }
-
-    @Override
-    public StoreDelegate unwrap() {
-        return this.formAttributeService.unwrap();
-    }
-    
-    public Optional<FormConfig> updateParent(FormConfig formConfig) throws FormMemberNotFoundException{
+    public FormConfig updateParent(FormConfig formConfig, FormConfig parentFormConfig) 
+            throws FormMemberNotFoundException{
         
         LOG.trace("#updateParent({})", formConfig);
         
         if(CRUDAction.create != formConfig.getCrudAction()) {
             LOG.debug("Only '" + CRUDAction.create + 
                     "' supported but found: " + formConfig.getCrudAction());
-            return Optional.empty();
+            return parentFormConfig;
         }
 
         final Form<Object> form = Objects.requireNonNull(formConfig.getForm());
         
-        final Form<Object> parent = form.getParent();
+        final Form<Object> parent = parentFormConfig.getForm();
         if(parent == null) {
             LOG.debug("No parent to update for form: {}", form);
-            return Optional.empty();
+            return parentFormConfig;
         }
         
         final FormMember parentMember = getParentMemberCorrespondingToForm(parent, form);
         
-        final FormConfig formConfigUpdate = this.updateFormMember(
-                parent, parentMember.getName(), formConfig.getModelobject());
+        final FormConfig parentFormConfigUpdate = this.updateFormMember(
+                parentFormConfig, parentMember.getName(), formConfig.getModelobject());
         
-        return Optional.of(formConfigUpdate);
+        return parentFormConfigUpdate;
     }
     
     /**
@@ -112,17 +93,14 @@ public class UpdateParentFormWithNewlyCreatedModel
     }
 
     public FormConfig updateFormMember(
-            Form<Object> form, String memberName, Object memberValue) 
+            FormConfig formConfig, String memberName, Object memberValue) 
             throws FormMemberNotFoundException{
-        
-        final String formid = form.getId();
-        
-        final FormConfig formConfig = this.formAttributeService
-                .getSessionAttributeOrException(formid);
         
         final Object modelobject = formConfig.getModelobject();
         
         Objects.requireNonNull(modelobject);
+        
+        final Form<Object> form = formConfig.getForm();
         
         final FormMember formMember = form.getMemberOptional(memberName)
                 .orElseThrow(() -> this.formMemberNotFoundException(form, memberName));
@@ -138,8 +116,6 @@ public class UpdateParentFormWithNewlyCreatedModel
                 .replaceMember(formMemberUpdate);
         
         final FormConfig formConfigUpdate = formConfig.writableCopy().form(formUpdate);
-        
-        this.formAttributeService.setSessionAttribute(formConfigUpdate);
         
         LOG.debug("Updated: {}", formConfigUpdate);
         
