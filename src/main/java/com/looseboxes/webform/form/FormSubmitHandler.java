@@ -1,5 +1,7 @@
 package com.looseboxes.webform.form;
 
+import com.looseboxes.webform.web.FormConfig;
+
 /**
  * This interface's {@link #process(com.looseboxes.webform.form.FormConfig)} 
  * method will be called after validation as part of the submit process. 

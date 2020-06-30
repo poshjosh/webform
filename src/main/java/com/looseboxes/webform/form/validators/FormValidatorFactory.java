@@ -18,7 +18,7 @@ package com.looseboxes.webform.form.validators;
 
 import java.util.List;
 import org.springframework.validation.Validator;
-import com.looseboxes.webform.form.FormConfig;
+import com.looseboxes.webform.web.FormConfig;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 9:48:35 PM

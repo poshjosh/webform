@@ -1,13 +1,12 @@
 package com.looseboxes.webform.services;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.Wrapper;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
-import com.looseboxes.webform.form.FormConfig;
-import com.looseboxes.webform.store.AttributeStore;
+import com.looseboxes.webform.web.FormConfig;
+import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.store.AttributeStoreProvider;
 import com.looseboxes.webform.store.StoreDelegate;
 import java.util.Objects;
-import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,27 +16,24 @@ import org.springframework.stereotype.Service;
  * @author hp
  */
 @Service
-public class FormAttributeService implements Wrapper<StoreDelegate, FormAttributeService>{
+public class FormAttributeService extends AttributeService{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormService.class);
-
-    private final AttributeService attributeService;
+    private static final Logger LOG = LoggerFactory.getLogger(ModelObjectService.class);
 
     @Autowired
-    public FormAttributeService(AttributeService attributeService) {
-        this.attributeService = Objects.requireNonNull(attributeService);
+    public FormAttributeService(AttributeStoreProvider provider) {
+        super(provider);
+    }
+
+    public FormAttributeService(AttributeStoreProvider provider, StoreDelegate delegate) {
+        super(provider, delegate);
     }
 
     @Override
     public FormAttributeService wrap(StoreDelegate delegate) {
-        return new FormAttributeService(this.attributeService.wrap(delegate));
+        return new FormAttributeService(this.getAttributeStoreProvider(), delegate);
     }
 
-    @Override
-    public StoreDelegate unwrap() {
-        return this.attributeService.unwrap();
-    }
-    
     public Form getFormOrException(String formid) {
         
         Objects.requireNonNull(formid);
@@ -55,11 +51,11 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
         return form;
     }  
     
-    public FormConfig getSessionAttributeOrException(String formid) {
+    public FormConfigBean getSessionAttributeOrException(String formid) {
         
         Objects.requireNonNull(formid);
         
-        final FormConfig formConfig = getSessionAttribute(formid, null);
+        final FormConfigBean formConfig = getSessionAttribute(formid, null);
         
         if(formConfig == null) {
             throw new InvalidRouteException("FormConfig not found for: " + formid);
@@ -68,14 +64,14 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
         return formConfig;
     }
 
-    public FormConfig getSessionAttribute(
-            String formid, FormConfig resultIfNone) {
+    public FormConfigBean getSessionAttribute(
+            String formid, FormConfigBean resultIfNone) {
         final String attributeName = formid;
         Objects.requireNonNull(attributeName);
         final Object value = this.sessionAttributes()
                 .getOrDefault(attributeName, null);
         LOG.trace("Got {} = {}", attributeName, value);
-        return value == null ? resultIfNone : (FormConfig)value;
+        return value == null ? resultIfNone : (FormConfigBean)value;
     }
 
     public void removeSessionAttribute(String formid) {
@@ -90,13 +86,5 @@ public class FormAttributeService implements Wrapper<StoreDelegate, FormAttribut
         Objects.requireNonNull(attributeName);
         this.sessionAttributes().put(attributeName, formConfig);
         LOG.trace("Set {} = {}", attributeName, formConfig);
-    }
-
-    public AttributeStore<HttpSession> sessionAttributes() {
-        return this.attributeService.sessionAttributes();
-    }
-
-    public AttributeService getAttributeService() {
-        return attributeService;
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.web;
 
 import com.bc.webform.Form;
 import com.looseboxes.webform.CRUDAction;
@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -264,6 +265,25 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
         map.put(HttpSessionAttributes.FORM, getForm());
         return Collections.unmodifiableMap(map);
+    }
+    
+    public void validate(FormConfig target) {
+        this.validate(Params.ACTION, this.getCrudAction(), target.getCrudAction());
+        this.validate(Params.FORMID, this.getFormid(), target.getFormid());
+        this.validate(Params.MODELNAME, this.getModelname(), target.getModelname());
+        this.validate(Params.MODELID, this.getModelid(), target.getModelid());
+        // This is changes with each request
+//        this.validate(existing.getModelobject(), fromHttpRequest.getModelobject());
+        this.validate(Params.MODELFIELDS, this.getModelfields(), target.getModelfields());
+        this.validate(Params.PARENT_FORMID, this.getParentFormid(), target.getParentFormid());
+        this.validate(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion(), target.getTargetOnCompletion());
+    }
+    
+    private void validate(String name, Object expected, Object found) {
+        if( ! Objects.equals(expected, found)) {
+            throw new ValidationException(
+                    "For: " + name + "\nExpected: " + expected + "\n   Found: " + found);
+        }
     }
     
     @Override

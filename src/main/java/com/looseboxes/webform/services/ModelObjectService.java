@@ -1,20 +1,26 @@
 package com.looseboxes.webform.services;
 
-import com.bc.jpa.spring.TypeFromNameResolver;
-import com.looseboxes.webform.entity.EntityRepository;
-import com.looseboxes.webform.CRUDAction;
-import com.looseboxes.webform.Errors;
+import com.bc.webform.Form;
+import com.bc.webform.FormBuilder;
+import com.bc.webform.FormMember;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
-import com.looseboxes.webform.exceptions.MalformedRouteException;
-import com.looseboxes.webform.exceptions.ResourceNotFoundException;
-import com.looseboxes.webform.form.FormConfig;
-import java.util.Objects;
+import com.looseboxes.webform.exceptions.InvalidRouteException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import java.lang.reflect.Field;
+import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.web.FormConfigBean;
+import org.springframework.lang.Nullable;
+import com.looseboxes.webform.entity.EntityConfigurerService;
+import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.web.FormRequest;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author hp
@@ -22,83 +28,159 @@ import com.looseboxes.webform.entity.EntityRepositoryProvider;
 @Service
 public class ModelObjectService{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormService.class);
+    private final Logger log = LoggerFactory.getLogger(ModelObjectService.class);
 
     public static final String FORM_ID_PREFIX = "form";
     
-    private final EntityRepositoryProvider entityRepositoryFactory;
-    private final TypeFromNameResolver typeFromNameResolver;
+    @Autowired private ModelObjectProvider modelObjectProvider;
+    @Autowired private FormBuilder<Object, Field, Object> formBuilder;
+    @Autowired private EntityConfigurerService modelObjectConfigurerService;
+    @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
 
-    @Autowired
-    public ModelObjectService(
-            EntityRepositoryProvider entityRepositoryFactory, 
-            TypeFromNameResolver typeFromNameResolver) {
-        this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
-        this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
+    public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest) {
+        
+        final T modelobject;
+        
+        final FormConfigBean formConfig = formRequest.getFormConfig();
+        
+        // Form id is often passed to a form at the first stage.
+        // This happens when the form is being returned to after some tangential
+        // action, usually the tangential action is carried out via another form
+        //
+        final boolean newForm = formConfig.getFormid() == null;
+        if(newForm) {
+            
+            modelobject = this.configureModelObject(
+                    (T)this.modelObjectProvider.getModel(formConfig), formRequest);
+            
+            formConfig.setFormid(this.generateFormId());
+            
+        }else{
+            modelobject = null;
+        }
+        
+        return this.update(formRequest, ! newForm, modelobject);
     }
     
-    public Object getModel(FormConfig formConfig) {
-        final CRUDAction crudAction = formConfig.getCrudAction();
+    /**
+     * Apply custom configurations to the modelobject.
+     * @param modelobject 
+     * @param formRequest
+     * @return  
+     */
+    public <T> T configureModelObject(T modelobject, FormRequest<T> formRequest) {
+        
+        final Class<T> type = (Class<T>)modelobject.getClass();
+
+        // Custom configuration for the newly created model object
+        //
+        return modelObjectConfigurerService.getConfigurer(type)
+                        .map((configurer) -> configurer.configure(modelobject, formRequest))
+                        .orElse(modelobject);
+    }
+    
+    public <T> FormRequest<T> onValidateForm(FormRequest<T> formRequest, T modelobject) {
+        
+        return this.update(formRequest, true, modelobject);
+    }
+    
+    public <T> FormRequest<T> onSubmitForm(FormRequest<T> formRequest) {
+        
+        return this.update(formRequest, true, null);
+    }
+    
+    private <T> FormRequest<T> update(
+            FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
+        
+        FormConfigBean formConfig = formRequest.getFormConfig();
+        
+        final CRUDAction action = formConfig.getCrudAction();
+        final String formid = formConfig.getFormid();
         final String modelname = formConfig.getModelname();
         final String modelid = formConfig.getModelid();
-        final Object object;
-        switch(crudAction) {
-            case create: 
-                object = this.createModel(modelname);
-                break;
-            case read: 
-            case update: 
-            case delete: 
-                object = this.getModel(modelname, modelid); 
-                break;
-            default: throw Errors.unexpected(crudAction, (Object[])CRUDAction.values());
-        }
-        return object;
-    }
-    
-    public Object getModel(String modelname, String modelid) {
-        if(modelid == null || modelid.isEmpty()) {
+        final String parentFormId = formConfig.getParentFormid();
+        
+        if(CRUDAction.create != action && modelid == null) {
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
-        final String errMsg = modelname + " with id = " + modelid;
-        Object found = null;
-        try{
-            found = this.fetchModelFromDatabase(modelname, modelid);
-        }catch(javax.persistence.EntityNotFoundException e){
-            LOG.debug(errMsg, e);
-            throw new ResourceNotFoundException(errMsg, e);
+        
+        final FormAttributeService formAttributeService = formRequest.getAttributeService();
+        
+        FormConfigBean existingFormConfig = ! existingForm ?
+                formAttributeService.getSessionAttribute(formid, null) :
+                formAttributeService.getSessionAttributeOrException(formid);
+        
+        log.debug("Existing params: {}\nexisting form: {}", existingFormConfig,
+                (existingFormConfig==null?null:existingFormConfig.getForm()));
+
+        if(existingForm && existingFormConfig == null) {
+            throw new InvalidRouteException();
         }
-        if(found == null) {
-            throw new ResourceNotFoundException(errMsg);
+
+        final Form parentForm = parentFormId == null ? null : 
+                formAttributeService.getFormOrException(parentFormId);
+        
+        if (modelobject == null) {
+            modelobject = (T)existingFormConfig.getModelobject();
         }
-        return found;
+
+        final Form form = this.newForm(parentForm, formid, modelname, modelobject);
+
+        if(existingFormConfig == null) {
+            
+            formRequest.setFormConfig(formConfig.writableCopy().form(form));
+
+        }else{
+        
+            existingFormConfig.validate(formConfig);
+            
+            formRequest.setFormConfig(existingFormConfig.writableCopy().form(form));
+        }
+        
+        return formRequest;
+    }   
+    
+    public boolean updateParentForm(FormRequest formRequest) {
+        return this.parentFormUpdater.updateParent(formRequest);
+    }
+    
+    /**
+     * Form ids need to be unique within a session.
+     * @return 
+     */
+    public String generateFormId() {
+        return FORM_ID_PREFIX + Long.toHexString(System.currentTimeMillis());
     }
 
-    public Object fetchModelFromDatabase(String modelname, String modelid) {
-    
-        final String errMsg = modelname + " not found";
-        final Class modeltype = this.typeFromNameResolver.getTypeOptional(
-                modelname).orElseThrow(() -> new MalformedRouteException(errMsg));
-        
-        final EntityRepository jpaRepo = entityRepositoryFactory.forEntity(modeltype);
+    private <T> Form<T> newForm(Form<T> parentForm, String id, String name, T domainObject) {
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(domainObject);
+        final Form form = this.formBuilder
+                .applyDefaults(name)
+                .id(id)
+                .parent(parentForm)
+                .dataSource(domainObject)
+                .build();
 
-        final Object modelobject = jpaRepo.find(modelid);
+        this.logFormFields(form);
 
-        LOG.debug("{} {} = {};", modeltype.getName(), modelname, modelobject);
-
-        return modelobject;
+        return (Form<T>)form;
     }
     
-    public Object createModel(String modelname) {
-        
-        final String errMsg = modelname + " not found";
-
-        Object modelobject = this.typeFromNameResolver
-                .newInstanceOptional(modelname)
-                .orElseThrow(() -> new MalformedRouteException(errMsg));
-
-        LOG.debug("Newly created modelobject: {}", modelobject);
-        
-        return modelobject;
+    private void logFormFields(Form form) {
+        if(log.isDebugEnabled()) {
+            final Function<FormMember, String> mapper = (ff) -> {
+                final Object value = ff.getValue();
+                final Map choices = ff.getChoices();
+                return ff.getName() + '=' + 
+                        (choices==null||choices.isEmpty() ? value : 
+                        (String.valueOf(value) + ", " + choices.size() + " choice(s)"));
+            };
+            log.debug("Form fields:{}", 
+                    form.getMembers().stream()
+                            .map(mapper)
+                            .collect(Collectors.joining(", ")));
+        }
     }
 }

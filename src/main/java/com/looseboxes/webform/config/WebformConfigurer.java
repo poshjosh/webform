@@ -7,5 +7,5 @@ import com.looseboxes.webform.entity.EntityConfigurerService;
  */
 public interface WebformConfigurer {
     
-    default void addModelObjectConfigurers(EntityConfigurerService service) { }
+    default void addEntityConfigurers(EntityConfigurerService service) { }
 }

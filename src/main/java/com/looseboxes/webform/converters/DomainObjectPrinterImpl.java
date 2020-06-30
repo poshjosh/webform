@@ -1,6 +1,5 @@
 package com.looseboxes.webform.converters;
 
-import com.looseboxes.webform.util.StringArrayUtils;
 import com.looseboxes.webform.WebformProperties;
 import java.util.Locale;
 import java.util.Objects;
@@ -10,6 +9,8 @@ import com.looseboxes.webform.util.PropertySearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.util.StringUtils;
+import java.util.List;
 
 /**
  * @author hp
@@ -44,26 +45,21 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
             
             final Class type = object.getClass();
 
-            final String sval = propertyAccess.appendingInstance().find(
-                    WebformProperties.DEFAULT_FIELDS, type).orElse(null);
+            final List<String> defaultFieldNames = propertyAccess
+                    .findAll(WebformProperties.DEFAULT_FIELDS, type);
 
-            if(sval != null) {
+            final BeanWrapper bean = PropertyAccessorFactory.forBeanPropertyAccess(object);
 
-                final String [] names = StringArrayUtils.toArray(sval);
-                
-                final BeanWrapper bean = PropertyAccessorFactory.forBeanPropertyAccess(object);
-                
-                for(String name : names) {
-                
-                    if(name.isEmpty()) {
-                        continue;
-                    }
-                    
-                    final Object value = bean.getPropertyValue(name);
-                    if(value != null) {
-                        output = value.toString();
-                        break;
-                    }
+            for(String fieldName : defaultFieldNames) {
+
+                if(StringUtils.isNullOrEmpty(fieldName)) {
+                    continue;
+                }
+
+                final Object value = bean.getPropertyValue(fieldName);
+                if(value != null) {
+                    output = value.toString();
+                    break;
                 }
             }
 

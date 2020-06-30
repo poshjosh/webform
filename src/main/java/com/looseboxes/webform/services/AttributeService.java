@@ -35,9 +35,9 @@ public class AttributeService
     
     private static final Logger LOG = LoggerFactory.getLogger(AttributeService.class);
     
-    private final AttributeStoreProvider provider;
+    private final AttributeStoreProvider attributeStoreProvider;
     
-    @Nullable private StoreDelegate delegate;
+    @Nullable private StoreDelegate storeDelegate;
 
     @Autowired
     public AttributeService(AttributeStoreProvider provider) {
@@ -56,18 +56,18 @@ public class AttributeService
                     provider.forSession(delegate.getRequest().getSession())
                 }
         );
-        this.provider = Objects.requireNonNull(provider);
-        this.delegate = delegate;
+        this.attributeStoreProvider = Objects.requireNonNull(provider);
+        this.storeDelegate = delegate;
     }
 
     @Override
     public AttributeService wrap(StoreDelegate delegate) {
-        return new AttributeService(this.provider, delegate);
+        return new AttributeService(this.attributeStoreProvider, delegate);
     }
 
     @Override
     @Nullable public StoreDelegate unwrap() {
-        return this.delegate;
+        return this.storeDelegate;
     }
 
     public boolean addUploadedFiles(Collection<String> filesToAdd) {
@@ -120,24 +120,27 @@ public class AttributeService
     }
 
     public AttributeStore<ModelMap> modelAttributes() {
-        if(delegate == null) {
+        if(storeDelegate == null) {
             throw new UnbackedStoreException(ModelMap.class);
         }
-        return provider.forModel(delegate.getModelMap());
+        return attributeStoreProvider.forModel(storeDelegate.getModelMap());
     }
 
     public AttributeStore<HttpServletRequest> requestAttributes() {
-        if(delegate == null) {
+        if(storeDelegate == null) {
             throw new UnbackedStoreException(HttpServletRequest.class);
         }
-        return provider.forRequest(delegate.getRequest());
+        return attributeStoreProvider.forRequest(storeDelegate.getRequest());
     }
 
     public AttributeStore<HttpSession> sessionAttributes() {
-        if(delegate == null) {
+        if(storeDelegate == null) {
             throw new UnbackedStoreException(HttpSession.class);
         }
-        return provider.forSession(delegate.getRequest().getSession());
+        return attributeStoreProvider.forSession(storeDelegate.getRequest().getSession());
     }
 
+    public AttributeStoreProvider getAttributeStoreProvider() {
+        return attributeStoreProvider;
+    }
 }

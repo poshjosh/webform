@@ -2,6 +2,7 @@ package com.looseboxes.webform.form;
 
 import java.beans.PropertyDescriptor;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -9,6 +10,18 @@ import java.util.Map;
  */
 public interface DependentsProvider {
 
+    /**
+     * @see #getDependents(java.lang.Object, java.lang.String, java.lang.String) 
+     * @param modelobject The model object whose field dependents are required
+     * @param propertyName The name of the field/property for which dependents are required
+     * @param propertyValue The value of the field/property for which dependents are required
+     * @param locale The locale to use in printing the dependents
+     * @return The dependents for the field/property of the model object
+     */
+    Map<String, Map> getChoicesForDependents(
+            Object modelobject, String propertyName, 
+            String propertyValue, Locale locale);
+    
     /**
      * Provide lists of dependents based on current selection.
      *
@@ -59,10 +72,10 @@ public interface DependentsProvider {
      * A value for country (representing the selected country) must have been 
      * set in the Address model object, or this method returns an empty list
      * for region.
-     * @param modelobject
-     * @param propertyName
-     * @param propertyValue
-     * @return
+     * @param modelobject The model object whose field dependents are required
+     * @param propertyName The name of the field/property for which dependents are required
+     * @param propertyValue The value of the field/property for which dependents are required
+     * @return The dependents for the field/property of the model object
      */
     Map<PropertyDescriptor, List> getDependents(
             Object modelobject, String propertyName, String propertyValue);

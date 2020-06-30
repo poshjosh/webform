@@ -2,8 +2,6 @@ package com.looseboxes.webform.config;
 
 import com.looseboxes.webform.entity.EntityConfigurerService;
 import com.looseboxes.webform.entity.EntityConfigurerServiceImpl;
-import com.looseboxes.webform.form.FormFactoryImpl;
-import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.store.EnvironmentStore;
 import com.looseboxes.webform.store.PropertyStore;
 import com.looseboxes.webform.util.PropertySearchImpl;
@@ -30,7 +28,7 @@ import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
-import com.looseboxes.webform.form.FormInputContextImpl;
+import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
 import com.looseboxes.webform.form.MultiChoiceContextImpl;
 import java.lang.reflect.Field;
@@ -50,6 +48,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.form.FormMemberUpdater;
+import com.looseboxes.webform.form.FormMemberUpdaterImpl;
+import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.util.PropertySuffixes;
 
 /**
  * @author hp
@@ -66,11 +68,11 @@ public class WebformConfiguration {
     public WebformConfiguration() { }
     
     @Bean @Scope("singleton") protected EntityConfigurerService 
-        modelObjectConfigurerService(ApplicationContext applicationContext) {
+        entityConfigurerService(ApplicationContext applicationContext) {
         EntityConfigurerService service = new EntityConfigurerServiceImpl();
         try{
             WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
-            configurer.addModelObjectConfigurers(service);
+            configurer.addEntityConfigurers(service);
         }catch(NoSuchBeanDefinitionException ignored) { }
         return service;
     }
@@ -79,20 +81,6 @@ public class WebformConfiguration {
         return new MessageAttributesImpl();
     }
     
-    @Bean public FormFactory formFactory(
-            @Autowired TypeFromNameResolver typeFromNameResolver,
-            @Autowired PropertySearch propertySearch,
-            @Autowired DateToStringConverter dateToStringConverter,
-            @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter) {
-        
-        return new FormFactoryImpl(
-                typeFromNameResolver, 
-                this.formBuilder(propertySearch, dateToStringConverter, 
-                        temporalToStringConverter, entityToIdConverter,
-                        typeFromNameResolver));
-    }
-
     @Bean public FormBuilder formBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
@@ -135,14 +123,24 @@ public class WebformConfiguration {
         
         return new ReferencedFormContextImpl(typeTests(), typeFromNameResolver);
     }
+    
+    @Bean public UpdateParentFormWithNewlyCreatedModel updateParentFormWithNewlyCreatedModel(
+            FormMemberUpdater formMemberUpdater) {
+        return new UpdateParentFormWithNewlyCreatedModel(formMemberUpdater);
+    }
 
+    @Bean public FormMemberUpdater formMemberUpdater(
+            @Autowired FormInputContext formInputContext) {
+        return new FormMemberUpdaterImpl(formInputContext);
+    }
+    
     @Bean public FormInputContext<Object, Field, Object> formInputContext(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
             @Autowired DomainTypeToIdConverter domainTypeToIdConverter) {
         
-        return new FormInputContextImpl(
+        return new FormInputContextWithDefaultValuesFromProperties(
                 this.typeTests(),
                 propertySearch,
                 this.propertyExpressionsResolver(),
@@ -172,13 +170,15 @@ public class WebformConfiguration {
     
     @Bean public DependentsProvider dependentsProvider(
             @Autowired EntityRepositoryProvider repoFactory,
-            @Autowired TypeFromNameResolver typeFromNameResolver,
-            @Autowired DomainTypeConverter domainTypeConverter) {
+            @Autowired PropertySuffixes propertySuffixes,
+            @Autowired DomainTypeConverter domainTypeConverter,
+            @Autowired DomainObjectPrinter domainObjectPrinter) {
         return new DependentsProviderImpl(
-                this.propertySearch(typeFromNameResolver), 
+                this.propertySearch(propertySuffixes), 
                 repoFactory, 
                 this.typeTests(),
-                domainTypeConverter);
+                domainTypeConverter,
+                domainObjectPrinter);
     }
     
     @Bean public FormFieldTest formFieldTest(
@@ -196,10 +196,15 @@ public class WebformConfiguration {
     }
     
     @Bean public PropertySearch propertySearch(
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
-        return new PropertySearchImpl(environmentStore(), typeFromNameResolver);
+            @Autowired PropertySuffixes propertySuffixes) {
+        return new PropertySearchImpl(environmentStore(), propertySuffixes);
     }
     
+    @Bean public PropertySuffixes propertySuffixes(
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
+        return new PropertySuffixes(typeFromNameResolver);
+    }
+
     @Bean public PropertyStore environmentStore() {
         return new EnvironmentStore(this.environment);
     }

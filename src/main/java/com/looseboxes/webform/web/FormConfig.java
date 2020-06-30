@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.web;
 
 import com.bc.webform.Form;
 import com.fasterxml.jackson.annotation.JsonIgnore;

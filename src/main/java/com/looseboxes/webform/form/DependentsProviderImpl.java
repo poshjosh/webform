@@ -4,6 +4,7 @@ import com.looseboxes.webform.entity.EntityRepository;
 import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
+import com.looseboxes.webform.converters.DomainObjectPrinter;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.util.PropertySearch;
 import java.beans.PropertyDescriptor;
@@ -21,6 +22,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.convert.TypeDescriptor;
 import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import java.util.Locale;
 
 /**
  * @author hp
@@ -30,21 +32,69 @@ public class DependentsProviderImpl implements DependentsProvider {
     private static final Logger LOG = LoggerFactory.getLogger(DependentsProviderImpl.class);
     
     private final PropertySearch propertySearch;
-    private final EntityRepositoryProvider repoFactory;
+    private final EntityRepositoryProvider entityRepositoryProvider;
     private final TypeTests typeTests;
     private final DomainTypeConverter domainTypeConverter;
+    private final DomainObjectPrinter domainObjectPrinter;
 
     public DependentsProviderImpl(
             PropertySearch propertySearch, 
-            EntityRepositoryProvider repoFactory, 
+            EntityRepositoryProvider entityRepositoryProvider, 
             TypeTests typeTests,
-            DomainTypeConverter domainTypeConverter) {
+            DomainTypeConverter domainTypeConverter,
+            DomainObjectPrinter domainObjectPrinter) {
         this.propertySearch = Objects.requireNonNull(propertySearch);
-        this.repoFactory = Objects.requireNonNull(repoFactory);
+        this.entityRepositoryProvider = Objects.requireNonNull(entityRepositoryProvider);
         this.typeTests = Objects.requireNonNull(typeTests);
         this.domainTypeConverter = Objects.requireNonNull(domainTypeConverter);
+        this.domainObjectPrinter = Objects.requireNonNull(domainObjectPrinter);
     }
 
+    /**
+     * @see #getDependents(java.lang.Object, java.lang.String, java.lang.String) 
+     * @param modelobject The model object whose field dependents are required
+     * @param propertyName The name of the field/property for which dependents are required
+     * @param propertyValue The value of the field/property for which dependents are required
+     * @param locale The locale to use in printing the dependents
+     * @return The dependents for the field/property of the model object
+     */
+    @Override
+    public Map<String, Map> getChoicesForDependents(
+            Object modelobject, String propertyName, 
+            String propertyValue, Locale locale) {
+    
+        final Map<PropertyDescriptor, List> dependents = this.getDependents(
+                modelobject, propertyName, propertyValue);
+        
+        final Map<String, Map> result;
+        
+        if(dependents == null || dependents.isEmpty()) {
+            
+            result = Collections.EMPTY_MAP;
+            
+        }else{
+            
+            result = new HashMap(dependents.size(), 1.0f);
+
+            dependents.forEach((propertyDescriptor, entityList) -> {
+                final Map choices = new HashMap(entityList.size(), 1.0f);
+                final Class entityType = propertyDescriptor.getPropertyType();
+                final EntityRepository repo = entityRepositoryProvider.forEntity(entityType);
+                for(Object entity : entityList) {
+                    final Object key = repo.getIdOptional(entity).orElse(null);
+                    Objects.requireNonNull(key);
+                    final Object val = domainObjectPrinter.print(entity, locale);
+                    Objects.requireNonNull(val);
+                    choices.put(key, val);
+                }
+                final String name = propertyDescriptor.getName();
+                result.put(name, choices);
+            });
+        }
+        
+        return result;
+    }
+    
     /**
      * Provide lists of dependents based on current selection.
      * 
@@ -90,14 +140,15 @@ public class DependentsProviderImpl implements DependentsProvider {
      * PropertyDescriptor (whose name is "region", and propertyType is Region.class) 
      * and value equal to the list of regions for the selected country.
      * <p>
-     * <b>Note:</b><br/>
+     * <b>Note:</b>
+     * </p>
      * A value for country (representing the selected country) must have been 
      * set in the Address model object, or this method returns an empty list
      * for region.
-     * </p>
-     * @param modelobject
-     * @param propertyName
-     * @return 
+     * @param modelobject The model object whose field dependents are required
+     * @param propertyName The name of the field/property for which dependents are required
+     * @param propertyValue The value of the field/property for which dependents are required
+     * @return The dependents for the field/property of the model object
      */
     @Override
     public Map<PropertyDescriptor, List> getDependents(
@@ -135,7 +186,7 @@ public class DependentsProviderImpl implements DependentsProvider {
 
                 final Class dependentType = dependentProperty.getPropertyType();
 
-                final EntityRepository repo = this.repoFactory.forEntity(dependentType);
+                final EntityRepository repo = this.entityRepositoryProvider.forEntity(dependentType);
 
                 LOG.debug("SELECT ALL FROM {} WHERE {} = {}, RETURN RECORDS {} - {}", 
                         dependentType, name, value, offset, limit);

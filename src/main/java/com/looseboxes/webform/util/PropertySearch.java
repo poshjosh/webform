@@ -17,6 +17,7 @@
 package com.looseboxes.webform.util;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Optional;
 import javax.persistence.Column;
 
@@ -76,70 +77,85 @@ import javax.persistence.Column;
  */
 public interface PropertySearch{
     
-    /**
-     * @return An instance which appends multiple properties using the default
-     * separator
-     * @see #appendingInstance(java.lang.String) 
-     */
-    default PropertySearch appendingInstance(){
-        return this.appendingInstance(",");
-    }
-    
-    /**
-     * Create an instance which will extract and concatenate properties based
-     * on the specified separator. 
-     * 
-     * When multiple values are found for the same properties, they a 
-     * concatenated using the supplied separator.
-     * @param separator The appendingInstance to use in concatenating multiple 
-     * values
-     * @return An instance which appends multiple properties using the supplied
-     * separator
-     */
-    PropertySearch appendingInstance(String separator);
-
     default Optional<String> find(String propertyName, Field field) {
         return Optional.ofNullable(this.findOrDefault(propertyName, field, null));
     }
     
     default String findOrDefault(String propertyName, Field field, String defaultValue) {
         final Class type = field.getDeclaringClass();
-        String val = this.findOrDefault(propertyName, type, field.getName(), null);
-        if(val == null) {
-            final Column column = field.getAnnotation(Column.class);
-            final String columnName = column == null ? null : column.name();
-            if(columnName != null && !columnName.isEmpty()) {
-                val = this.findOrDefault(
-                propertyName, field.getDeclaringClass(), columnName, null);
-            }
-        }
-        return val == null ? defaultValue : val;
+        final String [] names = this.getFieldNames(field);
+        return this.findOrDefault(propertyName, type, names, defaultValue);
     }
 
+    default List<String> findAll(String propertyName, Field field) {
+        final Class type = field.getDeclaringClass();
+        final String [] names = this.getFieldNames(field);
+        return this.findAll(propertyName, type, names);
+    }
+
+    default String [] getFieldNames(Field field) {
+        final String name1 = field.getName();
+        final String name2;
+        final Column column = field.getAnnotation(Column.class);
+        final String columnName = column == null ? null : column.name();
+        if(columnName != null && !columnName.isEmpty() && !name1.equals(columnName)) {
+            name2 = columnName;
+        }else {
+            final String snake_case = StringUtils.camelToSnakeCase(name1);
+            if( ! snake_case.equals(name1)) {
+                name2 = snake_case;
+            }else{
+                name2 = null;
+            }
+        }
+        return name2 == null ? new String[]{name1} : new String[]{name1, name2};
+    }
+    
     default Optional<String> find(String propertyName, Class type) {
         return this.find(propertyName, type, null);
     }
     
     default String findOrDefault(String propertyName, Class type, String defaultValue) {
-        return this.findOrDefault(propertyName, type, null, defaultValue);
+        return this.findOrDefault(propertyName, type, (String[])null, defaultValue);
     }
     
+    default List<String> findAll(String propertyName, Class type) {
+        return this.findAll(propertyName, type, (String[])null);
+    }
+
     default Optional<String> find(String propertyName, Class type, String fieldName) {
         return Optional.ofNullable(this.findOrDefault(propertyName, type, fieldName, null));
     }
     
+    default String findOrDefault(String propertyName, Class type, 
+            String fieldName, String defaultValue) {
+        return this.findOrDefault(propertyName, type, 
+                fieldName == null ? (String[])null : new String[]{fieldName}, defaultValue);
+    }
+    
+    default List<String> findAll(String propertyName, Class type, String fieldName) {
+        return this.findAll(propertyName, type, 
+                fieldName == null ? (String[])null : new String[]{fieldName});
+    }
+
     String findOrDefault(String propertyName, Class type, 
-            String fieldName, String defaultValue);
+            String [] fieldNames, String defaultValue);
+    
+    List<String> findAll(String propertyName, Class type, String [] fieldNames);
 
     default Optional<String> find(String propertyName, String suffix) {
         return Optional.ofNullable(this.findOrDefault(propertyName, suffix, null));
     }
     
     String findOrDefault(String propertyName, String suffix, String defaultValue);
+    
+    List<String> findAll(String propertyName, String suffix);
 
     default Optional<String> find(String propertyName) {
         return Optional.ofNullable(this.findOrDefault(propertyName, null));
     }
     
     String findOrDefault(String propertyName, String defaultValue);
+    
+    List<String> findAll(String propertyName);
 }

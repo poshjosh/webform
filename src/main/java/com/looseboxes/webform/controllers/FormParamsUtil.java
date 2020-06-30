@@ -1,7 +1,7 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.Params;
-import com.looseboxes.webform.form.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigBean;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

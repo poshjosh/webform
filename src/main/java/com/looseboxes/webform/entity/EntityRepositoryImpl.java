@@ -75,7 +75,7 @@ public class EntityRepositoryImpl implements EntityRepository{
         return this.getUniqueColumns(tableName);
     }
 
-    public String getTableNameFromAnnotation(Class entityType, String resultIfNone) {
+    private String getTableNameFromAnnotation(Class entityType, String resultIfNone) {
         
         final Table table = (Table)entityType.getAnnotation(Table.class);
         
@@ -84,7 +84,7 @@ public class EntityRepositoryImpl implements EntityRepository{
         return nameFromAnnotation == null ? resultIfNone : nameFromAnnotation;
     }
     
-    public Collection<String> getUniqueColumns(String tableName) {
+    private Collection<String> getUniqueColumns(String tableName) {
 
         final Set<String> uniqueColumns;
 

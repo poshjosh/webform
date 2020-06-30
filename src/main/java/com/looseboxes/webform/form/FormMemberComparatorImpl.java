@@ -2,12 +2,11 @@ package com.looseboxes.webform.form;
 
 import com.bc.webform.FormMember;
 import com.bc.webform.PreferMandatory;
-import com.looseboxes.webform.util.StringArrayUtils;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import javax.persistence.Column;
+import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +26,7 @@ public class FormMemberComparatorImpl
     private final PropertySearch propertySearch;
 
     public FormMemberComparatorImpl(PropertySearch propertySearch) {
-        this.propertySearch = propertySearch.appendingInstance();
+        this.propertySearch = Objects.requireNonNull(propertySearch);
     }
 
     @Override
@@ -94,7 +93,7 @@ public class FormMemberComparatorImpl
     }
     
     private Class _cachedType;
-    private String[] _cachedArr;
+    private List<String> _cachedOrder;
     
     /**
      * A smaller number implies a higher priority
@@ -105,17 +104,17 @@ public class FormMemberComparatorImpl
         
         final Class type = field.getDeclaringClass();
         
-        final String [] order;
+        final List<String> order;
         
         if(type.equals(_cachedType)) {
-            order = _cachedArr;
+            order = _cachedOrder;
         }else{
             order = this.getOrder(type);
-            _cachedArr = order;
+            _cachedOrder = order;
             _cachedType = type;
         }
 
-        final int result = order == null || order.length == 0 ? -1 :
+        final int result = order == null || order.isEmpty() ? -1 :
                 this.indexOf(order, field);
         
         LOG.trace("Priority: {}, field: {}.{}", 
@@ -124,51 +123,31 @@ public class FormMemberComparatorImpl
         return result;
     }
     
-    public String [] getOrder(Class type) {
-    
-        final String [] order;
-        
-        final String value = this.propertySearch.findOrDefault(
-                WebformProperties.ORDER, type, null);
+    public List<String> getOrder(Class type) {
 
-        if(value == null || value.isEmpty()) {
+        final List<String> order = this.propertySearch
+                .findAll(WebformProperties.ORDER, type);
 
-            order = null;
-
-        }else{
-
-            order = StringArrayUtils.toArray(value);
-        }
-
-        if(LOG.isDebugEnabled()) {
-            LOG.debug("Type: {}, Order: {}", type.getName(), 
-                    (order == null ? null : Arrays.toString(order)));
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("Type: {}, Order: {}", type.getName(), order);
         }
         
         return order;
     }
     
-    private int indexOf(String[] order, Field field) {
-        int n = this.indexOf(order, field.getName());
-        if(n == -1) {
-            final Column column = field.getAnnotation(Column.class);
-            final String name = column == null ? null : column.name();
-            n = this.indexOf(order, name);
-        }
-        if(LOG.isTraceEnabled()) {
-            LOG.trace("Index: {}, Order: {}, Field: {}",
-                    n, (order==null?null:Arrays.toString(order)), field);
-        }
-        return n;
-    }
-    
-    private int indexOf(String [] order, String name) {
-        for(int i=0; i<order.length; i++) {
-            if(order[i].equals(name)) {
-                return i;
+    private int indexOf(List<String> order, Field field) {
+        int index = -1;
+        final String [] fieldNames = this.propertySearch.getFieldNames(field);
+        for(String fieldName : fieldNames) {
+            index = order.indexOf(fieldName);
+            if(index != -1) {
+                break;
             }
         }
-        return -1;
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("Index: {}, Order: {}, Field: {}", index, order, field);
+        }
+        return index;
     }
 }
 /**

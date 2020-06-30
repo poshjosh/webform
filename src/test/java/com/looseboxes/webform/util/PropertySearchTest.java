@@ -1,6 +1,5 @@
 package com.looseboxes.webform.util;
 
-import com.looseboxes.webform.util.PropertySearch;
 import com.looseboxes.webform.TestConfig;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -8,6 +7,7 @@ import java.util.Optional;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author hp
@@ -22,9 +22,14 @@ public class PropertySearchTest {
         private Date dateOfBirth;
     }
     
-    private static final Properties properties = new Properties();
+    private Properties properties = new Properties();
     
     public PropertySearchTest() { }
+    
+    @BeforeEach
+    public void setUp() {
+        properties = new Properties();
+    }
 
     /**
      * Test of find method, of class PropertySearch.
@@ -177,7 +182,7 @@ public class PropertySearchTest {
     }
     
     public PropertySearch getInstance() {
-        return this.getTestConfig().propertyAccess(PREFIX, this.getProperties());
+        return this.getTestConfig().propertySearch(PREFIX, this.getProperties(), ",");
     }
     
     public void setPrefixedProperty(String name, String value) {

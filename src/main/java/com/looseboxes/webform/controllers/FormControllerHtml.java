@@ -1,6 +1,7 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.FormEndpoints;
+import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.SpringProperties;
@@ -25,14 +26,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
-import com.looseboxes.webform.form.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigBean;
 import com.looseboxes.webform.services.MessageAttributesService;
 import java.util.Collections;
 
 /**
  * @author hp
  */
-public class FormControllerHtml extends FormControllerBase{
+public class FormControllerHtml<T> extends FormControllerBase<T>{
     
     private final Logger log = LoggerFactory.getLogger(FormControllerHtml.class);
     
@@ -52,9 +53,9 @@ public class FormControllerHtml extends FormControllerBase{
         return this.formEndpoints.forCrudAction(formConfigDTO.getCrudAction());
     }
     
-    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/validate")
+    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/"+FormStage.validate)
     public String validateForm(
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject,
+            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
             BindingResult bindingResult,
             ModelMap model,
             FormConfigBean formConfigDTO,
@@ -79,7 +80,7 @@ public class FormControllerHtml extends FormControllerBase{
         return target;
     }    
 
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/submit")
+    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/"+FormStage.submit)
     public String submitForm(
             ModelMap model, FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {

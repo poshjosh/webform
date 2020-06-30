@@ -1,8 +1,7 @@
 package com.looseboxes.webform.services;
 
-import com.looseboxes.webform.form.FormConfig;
+import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
-import com.looseboxes.webform.services.MessageAttributesService;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
 package com.looseboxes.webform.util;
 
 import com.bc.webform.Form;
-import com.looseboxes.webform.form.FormConfig;
+import com.looseboxes.webform.web.FormConfig;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -197,5 +197,25 @@ public class Print<A extends Appendable> {
         final String suffix = "</body></html>";
         
         builder.append(suffix);
+    }
+
+    public static boolean isTraceEnabled() {
+        return LOG.isTraceEnabled();
+    }
+
+    public static boolean isDebugEnabled() {
+        return LOG.isDebugEnabled();
+    }
+
+    public static boolean isInfoEnabled() {
+        return LOG.isInfoEnabled();
+    }
+
+    public static boolean isWarnEnabled() {
+        return LOG.isWarnEnabled();
+    }
+
+    public static boolean isErrorEnabled() {
+        return LOG.isErrorEnabled();
     }
 }

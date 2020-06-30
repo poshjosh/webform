@@ -16,13 +16,14 @@
 
 package com.looseboxes.webform.util;
 
-import com.bc.jpa.spring.TypeFromNameResolver;
 import com.looseboxes.webform.store.PropertyStore;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,110 +38,82 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
     
     private final PropertyStore store;
 
-    private final TypeFromNameResolver typeFromNameResolver;
+    private final PropertySuffixes propertySuffixes;
     
     private final String separator;
 
     public PropertySearchImpl(PropertyStore store, 
-            TypeFromNameResolver typeFromNameResolver) {
-        this("", store, typeFromNameResolver, "");
+            PropertySuffixes propertySuffixes) {
+        this("", store, propertySuffixes, ",");
     }
     
     public PropertySearchImpl(String prefix, PropertyStore store, 
-            TypeFromNameResolver typeFromNameResolver, String separator) {
+            PropertySuffixes propertySuffixes, String separator) {
         this.globalPrefix = Objects.requireNonNull(prefix);
         this.store = Objects.requireNonNull(store);
-        this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
+        this.propertySuffixes = Objects.requireNonNull(propertySuffixes);
         this.separator = Objects.requireNonNull(separator);
     }
     
     @Override
-    public PropertySearch appendingInstance(String separator) {
-        if(separator.equals(this.separator)) {
-            return this;
-        }else{
-            return new PropertySearchImpl(this.globalPrefix, this.store, 
-                this.typeFromNameResolver, separator);
-        }
+    public List<String> findAll(
+            String propertyName, Class type, String [] fieldNames) {
+        final String found = this.findOrDefault(propertyName, type, fieldNames, null);
+        return this.split(found);
     }
     
     @Override
     public String findOrDefault(
             String propertyName, Class type, 
-            String fieldName, String defaultValue) {
+            String [] fieldNames, String defaultValue) {
 
-        final List<String> suffixes = this.buildSuffixes(type, fieldName);
+        final Collection<String> suffixes = this.propertySuffixes.from(type, fieldNames);
         
-        final boolean hasSeparator = ! this.isNullOrEmpty(separator);
+        final boolean hasSeparator = ! StringUtils.isNullOrEmpty(separator);
         
         String val = null;
+        List<String> list = null;
         
         for(String suffix : suffixes) {
         
             final String found = this.findOrDefault(propertyName, suffix, null);
             
+            if(StringUtils.isNullOrEmpty(found)) {
+                continue;
+            }
+            
             if( ! hasSeparator) {
-                if(found != null) {
-                    val = found;
-                    break;
-                }
+                val = found;
+                break;
             }else{
-                val = val == null ? found : val + separator + found;
+                if(list == null) {
+                    list = new ArrayList(suffixes.size());
+                }
+                if( ! list.contains(found)) {
+                    list.add(found);
+                }
+//                val = val == null ? found : val + separator + found;
             }
         }
         
-        LOG.trace("Value: {}, property: {}, entity: {}, field: {}",
-                val, propertyName, type.getName(), fieldName);
+        if(hasSeparator && list != null) {
+            val = list.stream().collect(Collectors.joining(separator));
+        }
+        
+        LOG.trace("Value: {}, property: {}, entity: {}, fields: {}",
+                val, propertyName, type.getName(), fieldNames);
         
         final String output = val == null ? defaultValue : val;
         
         return output;
     }
+
+    @Override
+    public List<String> findAll(String propertyName, String suffix) {
+        final String found = findOrDefault(propertyName, suffix, null);
+        return this.split(found);
+    }
     
-    private List<String> buildSuffixes(Class type, String fieldName) {
-
-        final List<String> suffixes = new ArrayList(6);
-        
-        // form.dateTimeFormat.org.domain.Person.dateOfBirth
-        suffixes.add(this.appendIfPresent(type.getName(), fieldName));
-        
-        // form.dateTimeFormat.Person.dateOfBirth
-        suffixes.add(this.appendIfPresent(type.getSimpleName(), fieldName));
-        
-        final String typeName = this.typeFromNameResolver.getName(type);
-        if( ! type.getSimpleName().equals(typeName)) {
-            // form.dateTimeFormat.org.domain.${TYPE_NAME}.dateOfBirth
-            suffixes.add(this.appendIfPresent(typeName, fieldName));
-        }
-        
-        // If fieldName is null or empty then we have already attempted these
-        // formats hence proceed only if fieldName is not null or empty
-        if( ! this.isNullOrEmpty(fieldName)) {
-            
-            // form.dateTimeFormat.org.domain.Person
-            suffixes.add(type.getName());
-            
-            // form.dateTimeFormat.Person
-            suffixes.add(type.getSimpleName());
-         
-            if( ! type.getSimpleName().equals(typeName)) {
-                // form.dateTimeFormat.org.domain.${TYPE_NAME}.dateOfBirth
-                suffixes.add(typeName);
-            }
-        }
-        
-        if( ! this.isNullOrEmpty(fieldName)) {
-            
-            // form.dateTimeFormat.dateOfBirth
-            suffixes.add(fieldName);
-        }
-
-        // form.dateTimeFormat
-        suffixes.add(null);
-        
-        return Collections.unmodifiableList(suffixes);
-    }    
-
     @Override
     public String findOrDefault(String propertyName, String suffix, String defaultValue) {
         Objects.requireNonNull(propertyName);
@@ -155,6 +128,12 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
     }
     
     @Override
+    public List<String> findAll(String propertyName) {
+        final String found = findOrDefault(propertyName, null);
+        return this.split(found);
+    }
+    
+    @Override
     public String findOrDefault(String propertyName, String defaultValue) {
         Objects.requireNonNull(propertyName);
         final String key = this.withPrefix(propertyName);
@@ -162,21 +141,17 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
         return val == null ? defaultValue : val;
     }
     
-    private String withPrefix(String s) {
-        Objects.requireNonNull(s);
-        return this.isNullOrEmpty(globalPrefix) ? s : globalPrefix + '.' + s;
-    }
-
-    private String appendIfPresent(String appendTo, String toAppend) {
-        if(this.isNullOrEmpty(toAppend)) {
-            return appendTo;
+    private List<String> split(String val) {
+        if(StringUtils.isNullOrEmpty(separator)) {
+            return Collections.singletonList(val);
         }else{
-            return appendTo + '.' + toAppend;
+            return StringArrayUtils.toList(val, separator);
         }
     }
-    
-    private boolean isNullOrEmpty(String s) {
-        return s == null || s.isEmpty();
+
+    private String withPrefix(String s) {
+        Objects.requireNonNull(s);
+        return StringUtils.isNullOrEmpty(globalPrefix) ? s : globalPrefix + '.' + s;
     }
     
     private String getOrNull(String key) {
@@ -185,7 +160,7 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
 
     private String get(String key, String resultIfNone) {
         final String val = this.store.getOrDefault(key, resultIfNone);
-        LOG.trace("{} = {}", key, val);
+//        LOG.trace("{} = {}", key, val);
         return val;
     }
 }

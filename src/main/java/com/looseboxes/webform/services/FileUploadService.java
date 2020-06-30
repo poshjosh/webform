@@ -4,6 +4,7 @@ import com.bc.fileupload.UploadFileResponse;
 import com.bc.fileupload.services.FileStorageHandler;
 import com.bc.reflection.ReflectionUtil;
 import com.looseboxes.webform.Errors;
+import com.looseboxes.webform.web.WebRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,7 +22,6 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -39,51 +39,59 @@ public class FileUploadService {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
     }
     
-    public Collection<String> upload(FileUploadConfig<Object> config) {
+    public Collection<String> upload(WebRequest<Object> webRequest) {
         
-        final Collection<String> output = new ArrayList<>();
+        final Collection<String> output;
         
-        final String id = config.getId();
-        final Object modelobject = config.getModelobject();
-        final MultiValueMap<String, MultipartFile> multiValueFiles = config.getMultiValueFiles();
+        if( ! webRequest.hasFiles()) {
+            output = Collections.EMPTY_LIST;
+        }else{
         
-        final Function<UploadFileResponse, String> toFileName = 
-                response -> response.getFileName();
-        final Consumer<String> addToOutput = filename -> output.add(filename);
+            final List result = new ArrayList<>();
+            final String id = webRequest.getSessionId();
+            final Object modelobject = webRequest.getModelObject();
+            final Map<String, List<MultipartFile>> multiValueFiles = webRequest.getMultiValueFiles();
 
-        final Map<String, List<UploadFileResponse>> multiOutput = 
-                uploadMultipleFiles(id, modelobject, multiValueFiles);
+            final Function<UploadFileResponse, String> toFileName = 
+                    response -> response.getFileName();
+            final Consumer<String> addToOutput = filename -> result.add(filename);
 
-        if(multiOutput != null && ! multiOutput.isEmpty()) {
-            multiOutput.values().stream()
-                    .flatMap((list) -> list.stream())
-                    .map(toFileName)
-                    .forEach(addToOutput);
-        }
-        
-        final Map<String, MultipartFile> files = config.getFiles();
+            final Map<String, List<UploadFileResponse>> multiOutput = 
+                    uploadMultipleFiles(id, modelobject, multiValueFiles);
 
-        final Map<String, MultipartFile> fileMap = files == null ? 
-                Collections.EMPTY_MAP : new HashMap<>(files);
-
-        if(multiOutput != null && ! multiOutput.isEmpty()) {
-            fileMap.keySet().removeAll(multiOutput.keySet());
-        }
-
-        if( ! fileMap.isEmpty()) {
-            
-            final Map<String, UploadFileResponse> singleOutput = 
-                    uploadSingleFiles(id, modelobject, fileMap);
-
-            if(singleOutput != null && ! singleOutput.isEmpty()) {
-                singleOutput.values().stream()
+            if(multiOutput != null && ! multiOutput.isEmpty()) {
+                multiOutput.values().stream()
+                        .flatMap((list) -> list.stream())
                         .map(toFileName)
                         .forEach(addToOutput);
             }
+
+            final Map<String, MultipartFile> files = webRequest.getFiles();
+
+            final Map<String, MultipartFile> fileMap = files == null ? 
+                    Collections.EMPTY_MAP : new HashMap<>(files);
+
+            if(multiOutput != null && ! multiOutput.isEmpty()) {
+                fileMap.keySet().removeAll(multiOutput.keySet());
+            }
+
+            if( ! fileMap.isEmpty()) {
+
+                final Map<String, UploadFileResponse> singleOutput = 
+                        uploadSingleFiles(id, modelobject, fileMap);
+
+                if(singleOutput != null && ! singleOutput.isEmpty()) {
+                    singleOutput.values().stream()
+                            .map(toFileName)
+                            .forEach(addToOutput);
+                }
+            }
+
+            output = result.isEmpty() ? 
+                    Collections.EMPTY_LIST : Collections.unmodifiableCollection(result);
         }
         
-        return output.isEmpty() ? 
-                Collections.EMPTY_LIST : Collections.unmodifiableCollection(output);
+        return output;
     }
 
     public Map<String, UploadFileResponse> uploadSingleFiles(
@@ -153,24 +161,24 @@ public class FileUploadService {
     }
     
     public Map<String, List<UploadFileResponse>> uploadMultipleFiles(
-            String id, Object modelobject, MultiValueMap<String, MultipartFile> mvm) {
+            String id, Object modelobject, Map<String, List<MultipartFile>> multiValueMap) {
         
         LOG.debug("Uploading multi-value multipart file(s): {}", 
-                (mvm == null ? null : mvm.keySet()));
+                (multiValueMap == null ? null : multiValueMap.keySet()));
 
         final Map<String, List<UploadFileResponse>> output;
         
-        if(mvm == null || mvm.isEmpty()) {
+        if(multiValueMap == null || multiValueMap.isEmpty()) {
             output = Collections.EMPTY_MAP;
         }else{    
-            output = new HashMap<>(mvm.size(), 1.0f);
+            output = new HashMap<>(multiValueMap.size(), 1.0f);
             
             final BeanWrapper bean = PropertyAccessorFactory
                     .forBeanPropertyAccess(modelobject);
 
-            for(String name : mvm.keySet()) {
+            for(String name : multiValueMap.keySet()) {
 
-                final List<MultipartFile> multipartFiles = mvm.get(name);
+                final List<MultipartFile> multipartFiles = multiValueMap.get(name);
     
                 LOG.debug("{} has {} MultipartFile(s)", name, (multipartFiles == null ? null : multipartFiles.size()));
                 

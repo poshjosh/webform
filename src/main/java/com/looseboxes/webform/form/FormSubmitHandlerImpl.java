@@ -1,5 +1,6 @@
 package com.looseboxes.webform.form;
 
+import com.looseboxes.webform.web.FormConfig;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.looseboxes.webform.Errors;
 import java.util.Objects;

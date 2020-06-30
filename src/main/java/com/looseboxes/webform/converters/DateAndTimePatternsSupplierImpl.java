@@ -16,10 +16,10 @@
 
 package com.looseboxes.webform.converters;
 
-import com.looseboxes.webform.util.StringArrayUtils;
 import com.looseboxes.webform.util.PropertySearch;
 import com.looseboxes.webform.WebformProperties;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -41,8 +41,6 @@ public class DateAndTimePatternsSupplierImpl
     public DateAndTimePatternsSupplierImpl(PropertySearch propertySearch) {
         Objects.requireNonNull(propertySearch);
         
-        propertySearch = propertySearch.appendingInstance();
-        
         datetimePatterns = addProperties(
                 propertySearch, WebformProperties.FORMATS_DATETIME);
         datePatterns = addProperties(
@@ -55,21 +53,9 @@ public class DateAndTimePatternsSupplierImpl
                 WebformProperties.FORMATS_DATETIME, datetimePatterns);
     }
     
-    private Set<String> addProperties(
-            PropertySearch propertySearch, String propertyName) {
-        return addProperties(propertySearch, new LinkedHashSet<>(), propertyName);
-    }
-
-    private Set<String> addProperties(PropertySearch propertySearch,
-            Set<String> collection, String propertyName) {
-
-        final String arr = propertySearch.find(propertyName).orElse(null);
-        
-        StringArrayUtils.toStream(arr)
-                .filter((e) -> ! collection.contains(e))
-                .forEach((e) -> collection.add(e));
-
-        return collection;
+    private Set<String> addProperties(PropertySearch propertySearch, String propertyName) {
+        final List<String> arr = propertySearch.findAll(propertyName);
+        return new HashSet(arr);
     }
 
     @Override

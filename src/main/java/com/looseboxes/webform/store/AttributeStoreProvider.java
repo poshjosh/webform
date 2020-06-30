@@ -8,7 +8,6 @@ package com.looseboxes.webform.store;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.springframework.ui.ModelMap;
-import com.looseboxes.webform.store.AttributeStore;
 
 /**
  *

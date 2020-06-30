@@ -1,5 +1,6 @@
 package com.looseboxes.webform.entity;
 
+import com.looseboxes.webform.web.FormRequest;
 import java.util.Objects;
 
 /**
@@ -37,12 +38,13 @@ public interface EntityConfigurer<T>{
    
     /**
      * @param entity The domain object to configure
+     * @param formRequest The object to use in configuring the domain object
      * @return The configured model object
      */
-    T configure(T entity);
+    T configure(T entity, FormRequest<T> formRequest);
 
     default EntityConfigurer<T> andThen(EntityConfigurer<T> after) {
         Objects.requireNonNull(after);
-        return (T t) -> after.configure(configure(t));
+        return (T t, FormRequest<T> req) -> after.configure(configure(t, req), req);
     }
 }

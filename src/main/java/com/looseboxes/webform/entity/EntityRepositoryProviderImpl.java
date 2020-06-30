@@ -10,28 +10,36 @@ import javax.persistence.EntityManagerFactory;
  */
 public class EntityRepositoryProviderImpl implements EntityRepositoryProvider{
 
-    private final EntityRepositoryFactory repoFactory;
+    private final EntityRepositoryFactory entityRepositoryFactory;
     
     private final MetaDataAccess metaDataAccess;
     
     public EntityRepositoryProviderImpl(
             EntityRepositoryFactory repoFactory, MetaDataAccess mda) {
-        this.repoFactory = Objects.requireNonNull(repoFactory);
+        this.entityRepositoryFactory = Objects.requireNonNull(repoFactory);
         this.metaDataAccess = Objects.requireNonNull(mda);
     }
 
     @Override
     public EntityManagerFactory getEntityManagerFactory() {
-        return repoFactory.getEntityManagerFactory();
+        return entityRepositoryFactory.getEntityManagerFactory();
     }
 
     @Override
     public boolean isSupported(Class entityType) {
-        return repoFactory.isSupported(entityType);
+        return entityRepositoryFactory.isSupported(entityType);
     }
 
     @Override
     public <E> EntityRepository<E> forEntity(Class<E> entityType) {
-        return new EntityRepositoryImpl(repoFactory.forEntity(entityType), this.metaDataAccess);
+        return new EntityRepositoryImpl(entityRepositoryFactory.forEntity(entityType), this.metaDataAccess);
+    }
+
+    public EntityRepositoryFactory getEntityRepositoryFactory() {
+        return entityRepositoryFactory;
+    }
+
+    public MetaDataAccess getMetaDataAccess() {
+        return metaDataAccess;
     }
 }

@@ -13,11 +13,27 @@ public class EntityConfigurerServiceImpl implements EntityConfigurerService{
 
     public EntityConfigurerServiceImpl() {
         this.configurers = new HashMap();
+        System.out.println(" =  =========== Created configurer service");        
     }
 
     @Override
     public <T> Optional<EntityConfigurer<T>> getConfigurer(Class<T> type) {
-        return Optional.ofNullable(this.configurers.get(type));
+        
+        type = getMatchingKey(type);
+        
+        final EntityConfigurer entityConfigurer = this.configurers.get(type);
+        
+        return Optional.ofNullable(entityConfigurer);
+    }
+    
+    private Class getMatchingKey(Class type) {
+        for(Class cls : this.configurers.keySet()) {
+            if(cls.isAssignableFrom(type)) {
+                type = cls;
+                break;
+            }
+        }
+        return type;
     }
 
     @Override

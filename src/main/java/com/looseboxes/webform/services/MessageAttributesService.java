@@ -101,6 +101,7 @@ public class MessageAttributesService {
                 LOG.warn("{} {}",prefix, errors.get(0));
             }else{
                 final Object log = errors.stream()
+                        .map(err -> err == null ? "error" : err.toString())
                         .collect(Collectors.joining("\n"+prefix, prefix, ""));
                 LOG.warn("{}", log);
             }
