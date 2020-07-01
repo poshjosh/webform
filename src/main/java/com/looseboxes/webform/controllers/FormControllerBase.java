@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.context.request.WebRequest;
 
 /**
  * @author hp
@@ -133,13 +134,29 @@ public class FormControllerBase<T>{
     public FormConfigBean findFormConfig(HttpServletRequest request, String formid) {
         final FormConfigBean formConfig = 
                 (FormConfigBean)request.getSession().getAttribute(formid);
+        return this.checkNotNull(formConfig);
+    }
+
+    /**
+     * @see #findFormConfig(javax.servlet.http.HttpServletRequest, java.lang.String) 
+     * @param request
+     * @param formid
+     * @return 
+     */
+    public FormConfigBean findFormConfig(WebRequest request, String formid) {
+        final FormConfigBean formConfig = 
+                (FormConfigBean)request.getAttribute(formid, WebRequest.SCOPE_SESSION);
+        return this.checkNotNull(formConfig);
+    }
+    
+    private FormConfigBean checkNotNull(FormConfigBean formConfig) {
+        log.trace("Found: {}", formConfig);
         if(formConfig == null) {
             throw new InvalidRouteException();
         }
-        log.trace("Found: {}", formConfig);
         return formConfig;
     }
-    
+
     public Optional<String> getTargetAfterSubmit(FormConfig formConfig) {
         final String targetOnCompletion = formConfig.getTargetOnCompletion();
         return targetOnCompletion == null ? Optional.empty() : 
