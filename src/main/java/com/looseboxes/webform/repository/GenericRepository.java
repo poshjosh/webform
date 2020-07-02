@@ -33,7 +33,7 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     public GenericRepository(Class<E> entityType, JpaObjectFactory jpa) {
         this.entityType = Objects.requireNonNull(entityType);
         this.jpa = Objects.requireNonNull(jpa);
-        LOG.debug("Entity type: {}", entityType);
+        LOG.trace("Entity type: {}", entityType);
     }
 
     @Override

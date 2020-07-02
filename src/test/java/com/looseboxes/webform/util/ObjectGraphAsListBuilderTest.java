@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -134,7 +134,7 @@ public class ObjectGraphAsListBuilderTest {
 
     private void shouldReturnListOfSize(
             int expectedOutputSize, ObjectGraphAsListBuilder builder, 
-            Object bean, Predicate test) {
+            Object bean, BiPredicate test) {
         if(expectedOutputSize > levelDepth) {
             expectedOutputSize = levelDepth;
         }
@@ -146,8 +146,8 @@ public class ObjectGraphAsListBuilderTest {
         assertThat(result, is(expResult));
     }
 
-    private Predicate<Field> withTestToAcceptEntities() {
-        return (field) -> field.getType().getAnnotation(TypeToAccept.class) != null;
+    private BiPredicate<Field, Object> withTestToAcceptEntities() {
+        return (field, fieldValue) -> field.getType().getAnnotation(TypeToAccept.class) != null;
     }
     
     private UserGroup givenEntityWithNullValues() {

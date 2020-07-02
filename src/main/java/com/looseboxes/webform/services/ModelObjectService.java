@@ -1,6 +1,5 @@
 package com.looseboxes.webform.services;
 
-import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.Form;
 import com.bc.webform.FormBuilder;
 import com.bc.webform.FormMember;
@@ -17,7 +16,6 @@ import com.looseboxes.webform.web.FormConfigBean;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
-import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
 import java.util.Map;
@@ -39,10 +37,13 @@ public class ModelObjectService{
     @Autowired private FormBuilder<Object, Field, Object> formBuilder;
     @Autowired private EntityConfigurerService modelObjectConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
-    @Autowired private TypeFromNameResolver typeFromNameResolver;
-    @Autowired private EntityRepositoryProvider entityRepositoryProvider;
 
     public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest) {
+        
+        return this.onBeginForm(formRequest, this.getModelObject(formRequest));
+    }
+    
+    private <T> T getModelObject(FormRequest<T> formRequest) {
         
         final T modelobject;
         
@@ -54,21 +55,33 @@ public class ModelObjectService{
         //
         final boolean newForm = formConfig.getFormid() == null;
         if(newForm) {
-            
-            modelobject = this.configureModelObject(
-                    (T)this.modelObjectProvider.getModel(formConfig), formRequest);
-            
-            formConfig.setFormid(this.generateFormId());
-            
+            modelobject = (T)this.modelObjectProvider.getModel(formConfig);
         }else{
             modelobject = null;
+        }
+        
+        return modelobject;
+    }
+    
+    public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest, T modelobject) {
+        
+        final FormConfigBean formConfig = formRequest.getFormConfig();
+
+        final boolean newForm = formConfig.getFormid() == null;
+
+        if(newForm) {
+            formConfig.setFormid(this.generateFormId());
+        }
+        
+        if(modelobject != null) {
+            modelobject = this.configureModelObject(modelobject, formRequest);
         }
         
         return this.updateForm(formRequest, ! newForm, modelobject);
     }
     
     /**
-     * Apply custom configurations to the modelobject.
+     * Apply custom configurations to the model object.
      * @param modelobject 
      * @param formRequest
      * @return  
@@ -92,22 +105,6 @@ public class ModelObjectService{
     public <T> FormRequest<T> onSubmitForm(FormRequest<T> formRequest) {
         
         return this.updateForm(formRequest, true, null);
-    }
-    
-    public <S, T> FormRequest<T> updateRequest(FormRequest<S> formRequest, T modelobject) {
-    
-        Class<T> modeltype = (Class<T>)modelobject.getClass();
-        String modelname = this.typeFromNameResolver.getName(modeltype);
-        String modelid = this.entityRepositoryProvider.forEntity(modeltype)
-                .getIdOptional(modelobject)
-                .map((id) -> id == null ? null : id.toString()).orElse(null);
-
-        FormRequest<T> formRequestUpdate = 
-                this.updateRequest(formRequest, modelname, modelid);
-        
-        modelobject = this.configureModelObject(modelobject, formRequestUpdate);
-        
-        return this.updateForm(formRequestUpdate, false, modelobject);
     }
     
     public <S, T> FormRequest<T> updateRequest(
