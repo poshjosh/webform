@@ -1,6 +1,6 @@
 package com.looseboxes.webform.form;
 
-import com.looseboxes.webform.entity.EntityRepository;
+import com.looseboxes.webform.repository.EntityRepository;
 import com.bc.webform.functions.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.convert.TypeDescriptor;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import java.util.Locale;
 
 /**

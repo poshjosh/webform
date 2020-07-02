@@ -8,7 +8,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import com.looseboxes.webform.util.PropertySearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
 

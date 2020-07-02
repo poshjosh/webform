@@ -1,4 +1,4 @@
-package com.looseboxes.webform.entity;
+package com.looseboxes.webform.configurers;
 
 import java.util.Optional;
 
@@ -10,19 +10,19 @@ public interface EntityConfigurerService {
     <T> Optional<EntityConfigurer<T>> getConfigurer(Class<T> type);
     
     /**
-     * Add the specified {@link com.looseboxes.webform.entity.EntityConfigurer EntityConfigurer}
+     * Add the specified {@link com.looseboxes.webform.configurers.EntityConfigurer EntityConfigurer}
      * for the specified type.
      * 
-     * If a {@link com.looseboxes.webform.entity.EntityConfigurer EntityConfigurer} 
+     * If a {@link com.looseboxes.webform.configurers.EntityConfigurer EntityConfigurer} 
      * already exists, builds and returns a composed instance otherwise adds
      * the specified instance and returns it.
      * 
      * @param <T>
      * @param type The type of model object to apply the added 
-     * {@link com.looseboxes.webform.entity.EntityConfigurer EntityConfigurer} to
-     * @param configurer The {@link com.looseboxes.webform.entity.EntityConfigurer EntityConfigurer}
+     * {@link com.looseboxes.webform.configurers.EntityConfigurer EntityConfigurer} to
+     * @param configurer The {@link com.looseboxes.webform.configurers.EntityConfigurer EntityConfigurer}
      * to add
-     * @return The composite {@link com.looseboxes.webform.entity.EntityConfigurer EntityConfigurer}
+     * @return The composite {@link com.looseboxes.webform.configurers.EntityConfigurer EntityConfigurer}
      * composed of all the configurers added fo the specified type.
      */
     default <T> EntityConfigurer<T> addConfigurer(

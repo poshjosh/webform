@@ -17,13 +17,8 @@ import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.HttpSessionAttributes;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.looseboxes.webform.services.ResponseService;
-import com.looseboxes.webform.web.WebValidator;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.WebRequest;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.form.FormConfigDTO, java.lang.String)} 
@@ -38,9 +33,8 @@ import org.springframework.web.context.request.WebRequest;
  */
 public class FormControllerRest<T> extends FormControllerBase<T>{
     
-    private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
+//    private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
     
-    @Autowired private WebValidator webValidator;
     @Autowired private ResponseService responseService;
     
     public FormControllerRest() { }
@@ -125,32 +119,17 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
     public ResponseEntity<Object> validateSingle(
+            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject, 
+            BindingResult bindingResult, 
             ModelMap model, 
             @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            WebRequest webRequest) {
+            HttpServletRequest request, HttpServletResponse response) {
        try{
-           
-            final WebDataBinder dataBinder = this.webValidator
-                    .validateSingle(webRequest, propertyName, propertyValue);
             
-            final BindingResult bindingResult = dataBinder.getBindingResult();
-            
-//            final FormConfig formConfig = super.onValidateSingle(modelobject, bindingResult, 
-//                    model, formid, propertyName, propertyValue, request, response);
-            log.debug("#onValidateSingle {} = {}, session: {}", 
-                    propertyName, propertyValue, webRequest.getSessionId());
-
-            FormConfig formConfig = this.findFormConfig(webRequest, formid);
-
-//            this.log(FormStage.validateSingle, 
-//                    model, modelobject, formConfig, request, response);
-
-            final Object modelobject = dataBinder.getTarget();
-
-            formConfig = this.getService().validateSingle(modelobject, bindingResult, 
-                    model, formConfig, propertyName, propertyValue);
+            final FormConfig formConfig = super.onValidateSingle(modelobject, bindingResult, 
+                    model, formid, propertyName, propertyValue, request, response);
 
             return this.responseService.respond(
                     bindingResult, propertyName, model, formConfig);
@@ -204,6 +183,39 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             
             final FormConfig formConfig = super.onValidateSingle(modelobject, bindingResult, 
                     model, formid, propertyName, propertyValue, request, response);
+
+            return this.responseService.respond(
+                    bindingResult, propertyName, model, formConfig);
+            
+        }catch(Exception e) {
+        
+            return this.responseService.respond(e, model);
+        }
+    }
+
+    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
+    public ResponseEntity<Object> validateSingle(
+            ModelMap model, 
+            @RequestParam(name = Params.FORMID, required = true) String formid, 
+            @RequestParam(name = "propertyName", required = true) String propertyName, 
+            @RequestParam(name = "propertyValue", required = true) String propertyValue,
+            WebRequest webRequest) {
+       try{
+           
+            final WebDataBinder dataBinder = this.webValidator
+                    .validateSingle(webRequest, propertyName, propertyValue);
+            
+            final BindingResult bindingResult = dataBinder.getBindingResult();
+            
+            log.debug("#onValidateSingle {} = {}, session: {}", 
+                    propertyName, propertyValue, webRequest.getSessionId());
+
+            FormConfig formConfig = this.findFormConfig(webRequest, formid);
+
+            final Object modelobject = dataBinder.getTarget();
+
+            formConfig = this.getService().validateSingle(modelobject, bindingResult, 
+                    model, formConfig, propertyName, propertyValue);
 
             return this.responseService.respond(
                     bindingResult, propertyName, model, formConfig);

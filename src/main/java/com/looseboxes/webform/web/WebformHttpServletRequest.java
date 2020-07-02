@@ -17,6 +17,12 @@ public class WebformHttpServletRequest extends WebHttpServletRequest implements 
     }
 
     @Override
+    public WebformHttpServletRequest copy() {
+        return new WebformHttpServletRequest(
+                getHttpServletRequest(), getModelMap(), getAttributeService());
+    }
+
+    @Override
     public FormAttributeService getAttributeService() {
         return (FormAttributeService)super.getAttributeService();
     }

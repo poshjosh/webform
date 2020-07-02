@@ -40,7 +40,7 @@ public class FormService<T> {
         
         formRequest = modelObjectService.onBeginForm(formRequest);
         
-        log.debug("{}", formRequest);
+        log.trace("{}", formRequest);
         
         //////////////////////////// IMPORTANT NOTE ////////////////////////////
         // When we didn't clear this model, the session was getting re-populated
@@ -70,7 +70,7 @@ public class FormService<T> {
         
         formRequest = modelObjectService.onValidateForm(formRequest, modelobject);
         
-        log.debug("{}", formRequest);
+        log.trace("{}", formRequest);
         
         final FormConfigBean formConfig = formRequest.getFormConfig();
 
@@ -100,7 +100,7 @@ public class FormService<T> {
         
         formRequest = modelObjectService.onSubmitForm(formRequest);
         
-        log.debug("{}", formRequest);
+        log.trace("{}", formRequest);
         
         final FormConfigBean formConfig = formRequest.getFormConfig();
 
@@ -111,7 +111,7 @@ public class FormService<T> {
         
         try{
         
-            this.formSubmitHandler.process(formConfig);
+            this.formSubmitHandler.process(formRequest);
             
             formAttributeService.removeUploadedFiles(null);
             
@@ -162,11 +162,6 @@ public class FormService<T> {
             T modelobject, BindingResult bindingResult, ModelMap model, 
             FormConfig formConfig, String propertyName, String propertyValue) {
             
-//            final Object modelobject = formConfig.getModelobject();
-
-//            final BindingResult bindingResult = 
-//                    this.validateSingle(modelobject, propertyName, propertyValue);
-
         if(bindingResult.hasFieldErrors(propertyName)) {
 
             this.messageAttributesService
@@ -175,6 +170,10 @@ public class FormService<T> {
 
         this.formValidatorService.validateModelObject(
                 bindingResult, model, formConfig, modelobject);
+
+        log.debug("{}#{} {} = {}", formConfig.getModelname(), 
+                propertyName, FormStage.validateSingle, 
+                bindingResult.hasErrors() ? "errors" : "no errors");
 
         return formConfig;
     }

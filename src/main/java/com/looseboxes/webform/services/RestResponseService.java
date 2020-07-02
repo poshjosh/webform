@@ -3,7 +3,7 @@ package com.looseboxes.webform.services;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.web.FormConfig;
 import java.net.URI;
 import java.util.Objects;
@@ -54,7 +54,8 @@ public class RestResponseService extends AbstractResponseService<Object>{
     
     private URI buildURIForRead(FormConfig formConfig) {
         final Object modelobject = formConfig.getModelobject();
-        final Object id = entityRepositoryProvider.forEntity(modelobject.getClass())
+        final Class modeltype = modelobject.getClass();
+        final Object id = entityRepositoryProvider.forEntity(modeltype)
                 .getIdOptional(modelobject).orElse(null);
         Objects.requireNonNull(id);
         URI uri = ServletUriComponentsBuilder.fromCurrentContextPath()

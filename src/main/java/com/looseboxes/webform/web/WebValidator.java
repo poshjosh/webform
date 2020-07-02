@@ -1,9 +1,9 @@
 package com.looseboxes.webform.web;
 
 import com.looseboxes.webform.HttpSessionAttributes;
+import java.util.Objects;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.support.WebRequestDataBinder;
@@ -12,16 +12,22 @@ import org.springframework.web.context.request.WebRequest;
 /**
  * @author hp
  */
-@Component
 public class WebValidator {
     
-    @Autowired private Validator validator;
+    private final ConversionService conversionService;
+    private final Validator validator;
+
+    public WebValidator(ConversionService conversionService, Validator validator) {
+        this.conversionService = Objects.requireNonNull(conversionService);
+        this.validator = Objects.requireNonNull(validator);
+    }
     
     public WebRequestDataBinder validate(WebRequest webRequest) {
         
         final Object modelobject = this.getModelObject(webRequest);
     
         final WebRequestDataBinder dataBinder = new WebRequestDataBinder(modelobject);
+        dataBinder.setConversionService(conversionService);
         
         dataBinder.setValidator(validator);
 
@@ -43,7 +49,8 @@ public class WebValidator {
         
         final WebDataBinder dataBinder = new WebDataBinder(modelobject);
         dataBinder.setAllowedFields(name);
-        
+        dataBinder.setConversionService(conversionService);
+
         dataBinder.setValidator(validator);
 
         dataBinder.bind(new MutablePropertyValues().add(name, value));

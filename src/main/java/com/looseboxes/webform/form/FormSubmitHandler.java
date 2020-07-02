@@ -1,6 +1,6 @@
 package com.looseboxes.webform.form;
 
-import com.looseboxes.webform.web.FormConfig;
+import com.looseboxes.webform.web.FormRequest;
 
 /**
  * This interface's {@link #process(com.looseboxes.webform.form.FormConfig)} 
@@ -14,5 +14,5 @@ import com.looseboxes.webform.web.FormConfig;
 @FunctionalInterface
 public interface FormSubmitHandler {
 
-    void process(FormConfig formConfig);
+    void process(FormRequest formRequest);
 }

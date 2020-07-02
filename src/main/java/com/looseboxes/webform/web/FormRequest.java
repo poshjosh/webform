@@ -12,6 +12,8 @@ public interface FormRequest<T> extends WebRequest<T>{
         return this;
     }
     
+    FormRequest<T> copy();
+    
     FormConfigBean getFormConfig();
     
     void setFormConfig(FormConfigBean formConfig);

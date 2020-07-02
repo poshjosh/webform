@@ -16,12 +16,12 @@
 
 package com.looseboxes.webform.form.validators;
 
-import com.looseboxes.webform.entity.EntityRepository;
+import com.looseboxes.webform.repository.EntityRepository;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 12, 2019 5:07:34 PM

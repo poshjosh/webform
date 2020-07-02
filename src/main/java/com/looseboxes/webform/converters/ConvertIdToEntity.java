@@ -16,7 +16,7 @@
 
 package com.looseboxes.webform.converters;
 
-import com.looseboxes.webform.entity.EntityRepository;
+import com.looseboxes.webform.repository.EntityRepository;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class ConvertIdToEntity implements Converter<String, Object> {
     public Object convert(String toConvert) {
         try{
 //            LOG.trace("Converting: {} to entity instance", toConvert);
-            final Object update = entityRepository.find(toConvert);
+            final Object update = entityRepository.findByIdOrException(toConvert);
             LOG.trace("Converted: {} to: {}", toConvert, update);
             return update;
         }catch(RuntimeException e) {

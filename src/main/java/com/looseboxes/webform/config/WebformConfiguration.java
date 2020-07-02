@@ -1,7 +1,7 @@
 package com.looseboxes.webform.config;
 
-import com.looseboxes.webform.entity.EntityConfigurerService;
-import com.looseboxes.webform.entity.EntityConfigurerServiceImpl;
+import com.looseboxes.webform.configurers.EntityConfigurerService;
+import com.looseboxes.webform.configurers.EntityConfigurerServiceImpl;
 import com.looseboxes.webform.store.EnvironmentStore;
 import com.looseboxes.webform.store.PropertyStore;
 import com.looseboxes.webform.util.PropertySearchImpl;
@@ -26,6 +26,8 @@ import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
+import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.configurers.EntityMapperServiceImpl;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
 import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
@@ -46,8 +48,7 @@ import com.looseboxes.webform.util.TextExpressionMethods;
 import com.looseboxes.webform.util.TextExpressionResolver;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.form.FormMemberUpdater;
 import com.looseboxes.webform.form.FormMemberUpdaterImpl;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
@@ -66,8 +67,18 @@ public class WebformConfiguration {
     @Autowired private Environment environment;
     
     public WebformConfiguration() { }
+
+    @Bean public EntityMapperService 
+        entityMapperService(ApplicationContext applicationContext) {
+        EntityMapperService service = new EntityMapperServiceImpl();
+        try{
+            WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
+            configurer.addEntityMappers(service);
+        }catch(NoSuchBeanDefinitionException ignored) { }
+        return service;
+    }
     
-    @Bean @Scope("singleton") protected EntityConfigurerService 
+    @Bean public EntityConfigurerService 
         entityConfigurerService(ApplicationContext applicationContext) {
         EntityConfigurerService service = new EntityConfigurerServiceImpl();
         try{

@@ -23,16 +23,89 @@ Enums are treated as HTML `<select>` element.
 
 ### Handling DTO
 
-Register the DTO for the name TypeFromNameResolver 
+To use DTOs, you need to register mappers for each DTO/Entity mapping
 
-Add an EntityMapper to be used by EntityRepositoryProvider
+```java
+@Configuration
+public class WebformConfigurerImpl implements WebformConfigurer{
+    
+    @Autowired private AuctionItemMapper auctionItemMapper;
+    
+    @Override
+    public void addEntityMappers(EntityMapperService mapperService) {
+        mapperService.setMapper(
+                AuctionItemDTO.class, AuctionItem.class, auctionItemMapper));
+    }
+}
+```
+
+You also need to use the DTO in place of entity type in `webform.properties`
+
+```
+webform.field.value.default.AuctionItemDTO.priceIncrement=1
+webform.field.value.default.AuctionItemDTO.status=0
+webform.field.type.AuctionItemDTO.status=hidden
+```
 
 ### Custom values for form fields
 
-__Update properties__
+To add some default/custom values to form fields:
 
-__Use EntityConfigurer__
+1. Using properties file. Here we are setting the default value of 
+the properties `AuctionItemDTO.priceIncrement` and `AuctionItemDTO.status`
 
-### 
+```
+webform.field.value.default.AuctionItemDTO.priceIncrement=1
+webform.field.value.default.AuctionItemDTO.status=0
+```
 
+You could use the full class name, simple class name or just property name.
 
+For example given entity `org.domain.Person` and property `dateTimeFormat`, the
+value of the property is resolved in the follow order. The first match is 
+selected.
+
+```
+form.dateTimeFormat.org.domain.Person.dateOfBirth
+ 
+form.dateTimeFormat.Person.dateOfBirth
+ 
+form.dateTimeFormat.org.domain.Person
+ 
+form.dateTimeFormat.Person
+ 
+form.dateTimeFormat.dateOfBirth
+
+form.dateTimeFormat
+```
+
+2. Add a Configurer
+
+```java
+@Configuration
+public class WebformConfigurerImpl implements WebformConfigurer{
+    
+    @Override
+    public void addEntityConfigurers(EntityConfigurerService configurerService) {
+        configurerService.addConfigurer(AccountDetails.class, new AccountDetailsConfigurer());
+        configurerService.addConfigurer(Address.class, new AddressConfigurer());
+        configurerService.addConfigurer(Auction.class, new AuctionConfigurer());
+    }
+}
+
+```
+
+And here is a sample of a Configurer:
+
+```java
+public class AddressConfigurer implements EntityConfigurer<Address>{
+
+    @Override
+    public Address configure(Address address, FormRequest<Address> formRequest) {
+        
+        // Configure the newly created Address entity here
+    
+        return address;
+    }
+}
+```

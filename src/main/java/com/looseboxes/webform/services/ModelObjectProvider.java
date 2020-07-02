@@ -1,7 +1,7 @@
 package com.looseboxes.webform.services;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.looseboxes.webform.entity.EntityRepository;
+import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
@@ -13,7 +13,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -82,7 +82,7 @@ public class ModelObjectProvider{
         
         final EntityRepository jpaRepo = entityRepositoryFactory.forEntity(modeltype);
 
-        final Object modelobject = jpaRepo.find(modelid);
+        final Object modelobject = jpaRepo.findByIdOrException(modelid);
 
         LOG.debug("{} {} = {};", modeltype.getName(), modelname, modelobject);
 

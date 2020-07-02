@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Configuration;
  * @author hp
  */
 @Configuration
-public class FileuploadConfigurationImpl extends FileuploadConfiguration{
+public class WebformFileuploadConfiguration extends FileuploadConfiguration{
 
 }

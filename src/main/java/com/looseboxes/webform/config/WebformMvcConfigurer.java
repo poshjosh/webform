@@ -44,7 +44,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import com.looseboxes.webform.entity.EntityRepositoryProvider;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
+import com.looseboxes.webform.web.WebValidator;
+import org.springframework.boot.autoconfigure.web.format.WebConversionService;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.validation.Validator;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:26:12 AM
@@ -58,7 +64,31 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     @Autowired private PropertySearch propertySearch;
     @Autowired private TypeTests typeTests;
     @Autowired private DomainClasses domainClasses;
+    @Autowired private Validator validator;
     
+    @Bean WebValidator webValidator() {
+        return new WebValidator(this.webformConversionService(), this.validator);
+    }
+    
+//    @Bean 
+        ConversionService webformConversionService() {
+        final String dateTimePattern = this.dateAndTimePatternsSupplier()
+                .getDatetimePatterns().iterator().next();
+        final WebConversionService wcs = new WebConversionService(dateTimePattern){
+            @Override
+            protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
+                GenericConverter converter = super.getConverter(sourceType, targetType);
+                log.debug("Source: {}, target: {}, converter: {}", 
+                        sourceType.getName(), targetType.getName(), converter);
+                return converter;
+            }
+        
+        };
+//        DefaultFormattingConversionService dfcs = new DefaultFormattingConversionService();
+        this.addFormatters(wcs);
+        return wcs;
+    }
+
     @Override
     public void addFormatters(FormatterRegistry registry) {
         

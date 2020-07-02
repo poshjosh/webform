@@ -1,4 +1,4 @@
-package com.looseboxes.webform.entity;
+package com.looseboxes.webform.configurers;
 
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Objects;

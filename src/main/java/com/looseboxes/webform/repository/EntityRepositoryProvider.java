@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.looseboxes.webform.entity;
+package com.looseboxes.webform.repository;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -27,5 +27,5 @@ public interface EntityRepositoryProvider {
     
     boolean isSupported(Class entityType);
     
-    <E> EntityRepository<E> forEntity(Class<E> entityType);
+    <E> EntityRepository<E, Object> forEntity(Class<E> entityType);
 }

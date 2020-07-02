@@ -1,5 +1,6 @@
 package com.looseboxes.webform.services;
 
+import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.Form;
 import com.bc.webform.FormBuilder;
 import com.bc.webform.FormMember;
@@ -14,9 +15,11 @@ import java.lang.reflect.Field;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.web.FormConfigBean;
 import org.springframework.lang.Nullable;
-import com.looseboxes.webform.entity.EntityConfigurerService;
+import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.web.FormRequest;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -36,6 +39,8 @@ public class ModelObjectService{
     @Autowired private FormBuilder<Object, Field, Object> formBuilder;
     @Autowired private EntityConfigurerService modelObjectConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
+    @Autowired private TypeFromNameResolver typeFromNameResolver;
+    @Autowired private EntityRepositoryProvider entityRepositoryProvider;
 
     public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest) {
         
@@ -59,7 +64,7 @@ public class ModelObjectService{
             modelobject = null;
         }
         
-        return this.update(formRequest, ! newForm, modelobject);
+        return this.updateForm(formRequest, ! newForm, modelobject);
     }
     
     /**
@@ -81,15 +86,49 @@ public class ModelObjectService{
     
     public <T> FormRequest<T> onValidateForm(FormRequest<T> formRequest, T modelobject) {
         
-        return this.update(formRequest, true, modelobject);
+        return this.updateForm(formRequest, true, modelobject);
     }
     
     public <T> FormRequest<T> onSubmitForm(FormRequest<T> formRequest) {
         
-        return this.update(formRequest, true, null);
+        return this.updateForm(formRequest, true, null);
     }
     
-    private <T> FormRequest<T> update(
+    public <S, T> FormRequest<T> updateRequest(FormRequest<S> formRequest, T modelobject) {
+    
+        Class<T> modeltype = (Class<T>)modelobject.getClass();
+        String modelname = this.typeFromNameResolver.getName(modeltype);
+        String modelid = this.entityRepositoryProvider.forEntity(modeltype)
+                .getIdOptional(modelobject)
+                .map((id) -> id == null ? null : id.toString()).orElse(null);
+
+        FormRequest<T> formRequestUpdate = 
+                this.updateRequest(formRequest, modelname, modelid);
+        
+        modelobject = this.configureModelObject(modelobject, formRequestUpdate);
+        
+        return this.updateForm(formRequestUpdate, false, modelobject);
+    }
+    
+    public <S, T> FormRequest<T> updateRequest(
+            FormRequest<S> formRequest, String modelname, String modelid) {
+        
+        FormConfigBean formConfig = formRequest.getFormConfig();
+        
+        String parentFormId = formConfig.getFormid();
+        
+        FormConfigBean formConfigUpdate = formConfig.writableCopy()
+                .fid(this.generateFormId())
+                .form(null).mid(modelid).modelfields(Collections.EMPTY_LIST)
+                .modelname(modelname).parentfid(parentFormId)
+                .targetOnCompletion(null);
+        
+        FormRequest<T> formRequestUpdate = formRequest.copy().formConfig(formConfigUpdate);
+        
+        return formRequestUpdate;
+    }
+    
+    private <T> FormRequest<T> updateForm(
             FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
         
         FormConfigBean formConfig = formRequest.getFormConfig();

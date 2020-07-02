@@ -177,11 +177,11 @@ public class FormControllerBase<T>{
         
         final Object existing = formConfig.getModelobject();
         final Object sessionAttr = request.getSession().getAttribute(HttpSessionAttributes.MODELOBJECT);
-        System.out.println("MOC - " + id + ", model name: " + formConfig.getModelname() + ", formid: " + 
+        System.out.println("XXXXXXXXXXXX MOC - " + id + ", model name: " + formConfig.getModelname() + ", formid: " + 
                 formConfig.getFid() + ", parent formid: " + formConfig.getParentfid());
-        System.out.println("MOC - Controller model object: " + modelobject);
-        System.out.println("MOC - FormConfig model object: " + existing);
-        System.out.println("MOC -    Session model object: " + sessionAttr);
+        System.out.println("XXXXXXXXXXXX MOC - Controller model object: " + modelobject);
+        System.out.println("XXXXXXXXXXXX MOC - FormConfig model object: " + existing);
+        System.out.println("XXXXXXXXXXXX MOC -    Session model object: " + sessionAttr);
         
         if(Print.isTraceEnabled()) {
             new Print().trace(id, model, formConfig, request, response);

@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartRequest;
  */
 public class WebHttpServletRequest<T> implements WebRequest<T>{
     
-    private final HttpServletRequest request;
+    private final HttpServletRequest httpServletRequest;
     
     private final ModelMap modelMap;
     
@@ -29,7 +29,7 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
     
     public WebHttpServletRequest(
             HttpServletRequest request, ModelMap modelMap, AttributeService attributeService) {
-        this.request = Objects.requireNonNull(request);
+        this.httpServletRequest = Objects.requireNonNull(request);
         this.modelMap = Objects.requireNonNull(modelMap);
         if(request instanceof MultipartRequest) {
             MultipartRequest multiPartRequest = (MultipartRequest)request;
@@ -58,22 +58,22 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
 
     @Override
     public String getParameter(String string) {
-        return request.getParameter(string);
+        return httpServletRequest.getParameter(string);
     }
 
     @Override
     public String[] getParameterValues(String string) {
-        return request.getParameterValues(string);
+        return httpServletRequest.getParameterValues(string);
     }
 
     @Override
     public String getSessionId() {
-        return request.getSession().getId();
+        return httpServletRequest.getSession().getId();
     }
 
     @Override
     public T getModelObject() {
-        return (T)request.getSession().getAttribute(HttpSessionAttributes.MODELOBJECT);
+        return (T)httpServletRequest.getSession().getAttribute(HttpSessionAttributes.MODELOBJECT);
     }
 
     @Override
@@ -89,5 +89,9 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
     @Override
     public AttributeService getAttributeService() {
         return attributeService;
+    }
+
+    public HttpServletRequest getHttpServletRequest() {
+        return httpServletRequest;
     }
 }

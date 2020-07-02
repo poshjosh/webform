@@ -1,4 +1,4 @@
-package com.looseboxes.webform.entity;
+package com.looseboxes.webform.configurers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,6 @@ public class EntityConfigurerServiceImpl implements EntityConfigurerService{
 
     public EntityConfigurerServiceImpl() {
         this.configurers = new HashMap();
-        System.out.println(" =  =========== Created configurer service");        
     }
 
     @Override
