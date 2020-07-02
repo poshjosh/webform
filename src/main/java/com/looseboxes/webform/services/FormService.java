@@ -158,7 +158,7 @@ public class FormService<T> {
         return result;
     }
     
-    public FormConfig validateSingle(
+    public void validateSingle(
             T modelobject, BindingResult bindingResult, ModelMap model, 
             FormConfig formConfig, String propertyName, String propertyValue) {
             
@@ -174,8 +174,6 @@ public class FormService<T> {
         log.debug("{}#{} {} = {}", formConfig.getModelname(), 
                 propertyName, FormStage.validateSingle, 
                 bindingResult.hasErrors() ? "errors" : "no errors");
-
-        return formConfig;
     }
     
     private void check(FormConfig formConfig){
