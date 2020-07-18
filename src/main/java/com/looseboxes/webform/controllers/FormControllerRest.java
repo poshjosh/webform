@@ -46,10 +46,10 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             throws FileNotFoundException{
         try{
             
-            final FormConfig formConfig = super.onBeginForm(
+            formConfigBean = super.onBeginForm(
                     model, formConfigBean, request, response);
 
-            return this.responseService.respond(formConfig);
+            return this.responseService.respond(formConfigBean);
             
         }catch(Exception e) {
         
@@ -59,18 +59,15 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
             FormStage.validate + "/" + FormStage.submit)
-    public ResponseEntity<Object> validateAndSubmit(
+    public ResponseEntity<Object> validateThenSubmit(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
             BindingResult bindingResult,
             ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         try{
             
-            formConfigBean = super.onValidateForm(
+            formConfigBean = super.onValidateThenSubmitForm(
                     modelobject, bindingResult, model, formConfigBean, request, response);
-
-            formConfigBean = super.onSubmitForm(
-                    model, formConfigBean, request, response);
             
             return this.responseService.respond(bindingResult, model, formConfigBean);
             
@@ -88,10 +85,10 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             HttpServletRequest request, HttpServletResponse response) {
         try{
             
-            final FormConfig formConfig = super.onValidateForm(
+            formConfigBean = super.onValidateForm(
                     modelobject, bindingResult, model, formConfigBean, request, response);
 
-            return this.responseService.respond(bindingResult, model, formConfig);
+            return this.responseService.respond(bindingResult, model, formConfigBean);
             
         }catch(Exception e) {
         
@@ -105,10 +102,10 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             HttpServletRequest request, HttpServletResponse response) {
         try{
             
-            final FormConfig formConfig = super.onSubmitForm(
+            formConfigBean = super.onSubmitForm(
                     model, formConfigBean, request, response);
             
-            return this.responseService.respond(formConfig);
+            return this.responseService.respond(formConfigBean);
             
         }catch(Exception e) {
 

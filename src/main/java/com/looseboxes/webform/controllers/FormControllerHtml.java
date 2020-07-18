@@ -52,6 +52,32 @@ public class FormControllerHtml<T> extends FormControllerBase<T>{
         
         return this.formEndpoints.forCrudAction(formConfigDTO.getCrudAction());
     }
+
+    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
+            FormStage.validate+"/" + FormStage.submit)
+    public String validateThenSubmitForm(
+            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
+            BindingResult bindingResult,
+            ModelMap model,
+            FormConfigBean formConfigDTO,
+            HttpServletRequest request, HttpServletResponse response) {
+        
+        formConfigDTO = formConfigDTO = super.onValidateThenSubmitForm(
+                modelobject, bindingResult, model, formConfigDTO, request, response);
+        
+        final String target;
+        
+        if (bindingResult.hasErrors()) {
+            
+            target = this.getTargetAfterValidate(bindingResult, response);
+            
+        }else{
+            
+            target = this.getTargetAfterSubmit(formConfigDTO);
+        }
+
+        return target;
+    }    
     
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/"+FormStage.validate)
     public String validateForm(
@@ -63,6 +89,11 @@ public class FormControllerHtml<T> extends FormControllerBase<T>{
         
         super.onValidateForm(
                 modelobject, bindingResult, model, formConfigDTO, request, response);
+        
+        return this.getTargetAfterValidate(bindingResult, response);
+    }    
+    
+    private String getTargetAfterValidate(BindingResult bindingResult, HttpServletResponse response) {
         
         final String target;
         
@@ -76,32 +107,30 @@ public class FormControllerHtml<T> extends FormControllerBase<T>{
             
             target = formEndpoints.getFormConfirmation();
         }
-
+        
         return target;
-    }    
+    }
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/"+FormStage.submit)
     public String submitForm(
             ModelMap model, FormConfigBean formConfigDTO,
             HttpServletRequest request, HttpServletResponse response) {
         
-        String target;
-        try{
-        
-            super.onSubmitForm(model, formConfigDTO, request, response);
-            
-            target = getTargetAfterSubmit(formConfigDTO).orElse(getSuccessEndpoint());
-            
-        }catch(RuntimeException e) {
+        super.onSubmitForm(model, formConfigDTO, request, response);
 
-            target = this.getErrorEndpoint();
-        }
+        return this.getTargetAfterSubmit(formConfigDTO);
+    } 
+    
+    private String getTargetAfterSubmit(FormConfigBean formConfigDTO) {
+        
+        final String target = getRedirectForTargetOnCompletion(
+                formConfigDTO).orElse(getSuccessEndpoint());
         
         log.debug("Target: {}", target);
         
         return target;
     } 
-    
+
     //////////////////////////////////////////////////////////////////////////
     // Exception handling
     // @see https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc

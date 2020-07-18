@@ -64,6 +64,17 @@ public class FormControllerBase<T>{
             ModelMap model, FormConfigBean formConfig,
             HttpServletRequest request, HttpServletResponse response, FormRequest formRequest){}
 
+    public FormConfigBean onValidateThenSubmitForm(
+            T modelobject, BindingResult bindingResult,
+            ModelMap model, FormConfigBean formConfig,
+            HttpServletRequest request, HttpServletResponse response) {
+        
+        formConfig = this.onValidateForm(
+                modelobject, bindingResult, model, formConfig, request, response);
+        
+        return this.onSubmitForm(model, formConfig, request, response);
+    }
+    
     public FormConfigBean onValidateForm(
             T modelobject, BindingResult bindingResult,
             ModelMap model, FormConfigBean formConfig,
@@ -229,7 +240,7 @@ public class FormControllerBase<T>{
         return formConfig;
     }
 
-    public Optional<String> getTargetAfterSubmit(FormConfig formConfig) {
+    public Optional<String> getRedirectForTargetOnCompletion(FormConfig formConfig) {
         final String targetOnCompletion = formConfig.getTargetOnCompletion();
         return targetOnCompletion == null ? Optional.empty() : 
                 Optional.of("redirect:" + targetOnCompletion);
