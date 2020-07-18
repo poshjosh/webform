@@ -91,6 +91,12 @@ public class FormService<T> {
 
         formAttributeService.modelAttributes().putAll(formParams);
         
+        // In Thymeleaf template we could not reference a variable named 'id'
+        // thus ${id}. 'Params.MODEL_ID' - refers to a variable named 'id', so
+        // we add an alias here i.e 'modelid'
+        //
+        formAttributeService.modelAttributes().put("modelid", formConfig.getId());
+        
         if ( ! bindingResult.hasErrors() && formRequest.hasFiles()) {
             
             final Collection<String> uploadedFiles = 
