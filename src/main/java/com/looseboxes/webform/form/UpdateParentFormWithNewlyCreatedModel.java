@@ -1,8 +1,8 @@
 package com.looseboxes.webform.form;
 
 import com.looseboxes.webform.web.FormConfig;
-import com.bc.webform.Form;
-import com.bc.webform.FormMember;
+import com.bc.webform.form.Form;
+import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import com.looseboxes.webform.services.FormAttributeService;

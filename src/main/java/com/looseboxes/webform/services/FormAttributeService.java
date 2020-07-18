@@ -1,6 +1,6 @@
 package com.looseboxes.webform.services;
 
-import com.bc.webform.Form;
+import com.bc.webform.form.Form;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.web.FormConfigBean;

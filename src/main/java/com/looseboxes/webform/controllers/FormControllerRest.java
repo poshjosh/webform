@@ -21,7 +21,7 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Override the {@link #getDependents(com.looseboxes.webform.form.FormConfigDTO, java.lang.String)} 
+ * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
  * method to provide dependents for a current form input.
  * 
  * For example if an Address Form has both country and region inputs, and
@@ -56,6 +56,29 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             return this.responseService.respond(e, model);
         }
     }
+
+    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
+            FormStage.validate + "/" + FormStage.submit)
+    public ResponseEntity<Object> validateAndSubmit(
+            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
+            BindingResult bindingResult,
+            ModelMap model, FormConfigBean formConfigBean,
+            HttpServletRequest request, HttpServletResponse response) {
+        try{
+            
+            formConfigBean = super.onValidateForm(
+                    modelobject, bindingResult, model, formConfigBean, request, response);
+
+            formConfigBean = super.onSubmitForm(
+                    model, formConfigBean, request, response);
+            
+            return this.responseService.respond(bindingResult, model, formConfigBean);
+            
+        }catch(Exception e) {
+        
+            return this.responseService.respond(e, model);
+        }
+    }    
     
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validate)
     public ResponseEntity<Object> validate(
@@ -81,7 +104,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             ModelMap model, FormConfigBean formConfigBean,
             HttpServletRequest request, HttpServletResponse response) {
         try{
-        
+            
             final FormConfig formConfig = super.onSubmitForm(
                     model, formConfigBean, request, response);
             

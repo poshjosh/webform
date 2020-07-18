@@ -1,6 +1,6 @@
 package com.looseboxes.webform.util;
 
-import com.bc.webform.Form;
+import com.bc.webform.form.Form;
 import com.looseboxes.webform.web.FormConfig;
 import java.util.Arrays;
 import java.util.Collection;

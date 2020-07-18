@@ -1,10 +1,10 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.FormMember;
-import com.bc.webform.FormMemberBean;
-import com.bc.webform.FormMemberBuilderForJpaEntity;
-import com.bc.webform.functions.FormInputContext;
-import com.bc.webform.functions.ReferencedFormContext;
+import com.bc.webform.form.member.FormMember;
+import com.bc.webform.form.member.FormMemberBean;
+import com.bc.webform.form.member.FormMemberBuilderForJpaEntity;
+import com.bc.webform.form.member.FormInputContext;
+import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;

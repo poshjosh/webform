@@ -29,7 +29,7 @@ import com.looseboxes.webform.converters.StringEmptyToNullConverter;
 import com.looseboxes.webform.converters.StringToDateConverter;
 import com.looseboxes.webform.converters.DomainObjectPrinterImpl;
 import com.looseboxes.webform.converters.DomainTypeToStringConverter;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;

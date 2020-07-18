@@ -1,7 +1,7 @@
 package com.looseboxes.webform.form;
 
 import com.looseboxes.webform.repository.EntityRepository;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DomainObjectPrinter;

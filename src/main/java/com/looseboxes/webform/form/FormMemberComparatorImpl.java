@@ -1,7 +1,7 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.FormMember;
-import com.bc.webform.PreferMandatory;
+import com.bc.webform.form.member.FormMember;
+import com.bc.webform.form.PreferMandatory;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;
@@ -72,7 +72,7 @@ public class FormMemberComparatorImpl
     /**
      * A smaller number implies a higher priority
      * @param member
-     * @return The priority of the {@link com.bc.webform.FormMember}
+     * @return The priority of the {@link com.bc.webform.form.member.FormMember}
      */
     public int getPriority(FormMember member) {
        

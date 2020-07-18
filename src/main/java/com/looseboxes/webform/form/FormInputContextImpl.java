@@ -1,6 +1,6 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.functions.FormInputContextForJpaEntity;
+import com.bc.webform.form.member.FormInputContextForJpaEntity;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;

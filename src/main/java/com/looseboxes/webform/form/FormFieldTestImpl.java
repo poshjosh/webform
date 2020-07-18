@@ -3,7 +3,7 @@ package com.looseboxes.webform.form;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import com.bc.webform.functions.IsFormFieldTestForJpaEntity;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;

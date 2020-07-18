@@ -1,9 +1,9 @@
 package com.looseboxes.webform.form;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
-import com.bc.webform.Form;
-import com.bc.webform.functions.ReferencedFormContext;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.form.Form;
+import com.bc.webform.form.member.ReferencedFormContext;
+import com.bc.webform.TypeTests;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;

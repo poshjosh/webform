@@ -1,6 +1,6 @@
 package com.looseboxes.webform.converters;
 
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import java.util.Locale;
 import java.util.Objects;
 import org.slf4j.Logger;

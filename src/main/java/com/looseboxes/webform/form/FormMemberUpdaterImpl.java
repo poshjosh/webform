@@ -1,9 +1,9 @@
 package com.looseboxes.webform.form;
 
 import com.looseboxes.webform.web.FormConfig;
-import com.bc.webform.Form;
-import com.bc.webform.FormMember;
-import com.bc.webform.functions.FormInputContext;
+import com.bc.webform.form.Form;
+import com.bc.webform.form.member.FormMember;
+import com.bc.webform.form.member.FormInputContext;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import java.lang.reflect.Field;
 import java.util.Objects;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.looseboxes.webform.web;
+package com.looseboxes.webform.retiring;
 
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.config.WebformMvcConfigurer;

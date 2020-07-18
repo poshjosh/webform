@@ -1,8 +1,8 @@
 package com.looseboxes.webform.services;
 
-import com.bc.webform.Form;
-import com.bc.webform.FormBuilder;
-import com.bc.webform.FormMember;
+import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBuilder;
+import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
@@ -35,7 +35,7 @@ public class ModelObjectService{
     
     @Autowired private ModelObjectProvider modelObjectProvider;
     @Autowired private FormBuilder<Object, Field, Object> formBuilder;
-    @Autowired private EntityConfigurerService modelObjectConfigurerService;
+    @Autowired private EntityConfigurerService entityConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
 
     public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest) {
@@ -92,7 +92,7 @@ public class ModelObjectService{
 
         // Custom configuration for the newly created model object
         //
-        return modelObjectConfigurerService.getConfigurer(type)
+        return entityConfigurerService.getConfigurer(type)
                         .map((configurer) -> configurer.configure(modelobject, formRequest))
                         .orElse(modelobject);
     }
@@ -116,7 +116,7 @@ public class ModelObjectService{
         
         FormConfigBean formConfigUpdate = formConfig.writableCopy()
                 .fid(this.generateFormId())
-                .form(null).mid(modelid).modelfields(Collections.EMPTY_LIST)
+                .form(null).id(modelid).modelfields(Collections.EMPTY_LIST)
                 .modelname(modelname).parentfid(parentFormId)
                 .targetOnCompletion(null);
         
@@ -146,7 +146,7 @@ public class ModelObjectService{
                 formAttributeService.getSessionAttribute(formid, null) :
                 formAttributeService.getSessionAttributeOrException(formid);
         
-        log.debug("Existing params: {}\nexisting form: {}", existingFormConfig,
+        log.debug("Existing form config: {}\nexisting form: {}", existingFormConfig,
                 (existingFormConfig==null?null:existingFormConfig.getForm()));
 
         if(existingForm && existingFormConfig == null) {
@@ -188,7 +188,7 @@ public class ModelObjectService{
         return FORM_ID_PREFIX + Long.toHexString(System.currentTimeMillis());
     }
 
-    private <T> Form<T> newForm(Form<T> parentForm, String id, String name, T domainObject) {
+    public <T> Form<T> newForm(Form<T> parentForm, String id, String name, T domainObject) {
         Objects.requireNonNull(id);
         Objects.requireNonNull(name);
         Objects.requireNonNull(domainObject);

@@ -16,7 +16,7 @@
 
 package com.looseboxes.webform.web;
 
-import com.bc.webform.Form;
+import com.bc.webform.form.Form;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.HttpSessionAttributes;
@@ -47,7 +47,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
 
     private String fid;
 
-    private String mid;
+    private String id;
 
     private List<String> modelfields;
     
@@ -139,11 +139,11 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     }
     
     public FormConfigBean modelid(String arg) {
-        return this.mid(arg);
+        return this.id(arg);
     }
 
-    public FormConfigBean mid(String arg) {
-        this.mid = arg;
+    public FormConfigBean id(String arg) {
+        this.id = arg;
         return this;
     }
 
@@ -243,7 +243,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
             case FORMID: 
                 return this.fid((fid == null || overwrite) ? value : fid);
             case MODELID: 
-                return this.mid((mid == null || overwrite) ? value : mid);
+                return this.id((id == null || overwrite) ? value : id);
             case TARGET_ON_COMPLETION: 
                 return this.targetOnCompletion(
                         (targetOnCompletion == null || overwrite) ? value : targetOnCompletion);
@@ -264,7 +264,8 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         map.put(Params.MODELFIELDS, getModelfields());
         map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
         map.put(HttpSessionAttributes.FORM, getForm());
-        return Collections.unmodifiableMap(map);
+        final Map<String, Object> result = Collections.unmodifiableMap(map);
+        return result;
     }
     
     public void validate(FormConfig target) {
@@ -350,21 +351,21 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     }
 
     @Override
-    public String getMid() {
-        return mid;
+    public String getId() {
+        return id;
     }
     
-    public void setMid(String modelid) {
-        this.mid = modelid;
+    public void setId(String modelId) {
+        this.id = modelId;
     }
     
     @Override
     public String getModelid() {
-        return this.getMid();
+        return this.getId();
     }
 
     public void setModelid(String modelid) {
-        this.setMid(modelid);
+        this.setId(modelid);
     }
 
     @Override
@@ -401,7 +402,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         hash = 41 * hash + Objects.hashCode(this.modelname);
         hash = 41 * hash + Objects.hash(this.parentfid);
         hash = 41 * hash + Objects.hash(this.fid);
-        hash = 41 * hash + Objects.hashCode(this.mid);
+        hash = 41 * hash + Objects.hashCode(this.id);
         hash = 41 * hash + Objects.hashCode(this.modelfields);
         hash = 41 * hash + Objects.hash(this.targetOnCompletion);
         hash = 41 * hash + Objects.hashCode(this.form);
@@ -432,7 +433,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         if (!Objects.equals(this.fid, other.fid)) {
             return false;
         }
-        if (!Objects.equals(this.mid, other.mid)) {
+        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         if (!Objects.equals(this.modelfields, other.modelfields)) {
@@ -450,9 +451,9 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     @Override
     public String toString() {
         return "FormConfigBean{" + "action=" + action +
-                ", parentFormid=" + parentfid +
-                ", modelname=" + modelname + ", formid=" + fid + 
-                ", modelfields=" + modelfields + ", targetOnCompletion=" +
+                ", parent form id=" + parentfid + ", form id=" + fid + 
+                ", model name=" + modelname + ", model id=" + id + 
+                ", model fields=" + modelfields + ", target on completion=" +
                 targetOnCompletion + ", form=" + 
                 (form == null ? null : form.getName()) + '}';
     }

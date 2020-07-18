@@ -1,7 +1,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.reflection.ReflectionUtil;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DateToStringConverter;

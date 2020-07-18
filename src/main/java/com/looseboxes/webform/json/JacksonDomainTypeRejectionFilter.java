@@ -1,6 +1,6 @@
 package com.looseboxes.webform.json;
 
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.TypeTests;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMember;

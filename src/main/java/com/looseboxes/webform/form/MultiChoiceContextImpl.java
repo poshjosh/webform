@@ -1,7 +1,7 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.functions.MultiChoiceContextForPojo;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.form.member.MultiChoiceContextForPojo;
+import com.bc.webform.TypeTests;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
 import java.util.Collections;
 import java.util.HashMap;

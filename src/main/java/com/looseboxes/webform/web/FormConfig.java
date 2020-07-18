@@ -16,7 +16,7 @@
 
 package com.looseboxes.webform.web;
 
-import com.bc.webform.Form;
+import com.bc.webform.form.Form;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
 import static com.looseboxes.webform.HttpSessionAttributes.FORM;
@@ -62,7 +62,7 @@ public interface FormConfig{
      * @return String. The id of the model which the form of this config relates to
      * @see #getModelid() 
      */
-    String getMid();
+    String getId();
     
     /**
      * @return String. The name of the enum returned by {@link #getCrudAction()}
@@ -92,9 +92,9 @@ public interface FormConfig{
     String getFormid();
 
     /**
-     * Alias for {@link #getMid()}
+     * Alias for {@link #getId()}
      * @return the id of the model object for which a form will be displayed
-     * @see #getMid() 
+     * @see #getId() 
      */
     @JsonIgnore
     String getModelid();

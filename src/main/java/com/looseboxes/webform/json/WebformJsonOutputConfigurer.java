@@ -1,8 +1,8 @@
 package com.looseboxes.webform.json;
 
-import com.bc.webform.Form;
-import com.bc.webform.FormMember;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.form.Form;
+import com.bc.webform.form.member.FormMember;
+import com.bc.webform.TypeTests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.util.List;

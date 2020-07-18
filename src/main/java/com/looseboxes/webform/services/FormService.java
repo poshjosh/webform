@@ -55,6 +55,12 @@ public class FormService<T> {
         model.clear();
         model.putAll(formConfig.toMap());
         
+        // In Thymeleaf template we could not reference a variable named 'id'
+        // thus ${id}. 'Params.MODEL_ID' - refers to a variable named 'id', so
+        // we add an alias here i.e 'modelid'
+        //
+        model.put("modelid", formConfig.getId());
+        
         formRequest.getAttributeService().setSessionAttribute(formConfig);
         formRequest.getAttributeService().sessionAttributes().put(
                 HttpSessionAttributes.MODELOBJECT, formConfig.getModelobject());

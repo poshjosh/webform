@@ -1,7 +1,7 @@
 package com.looseboxes.webform.json;
 
-import com.bc.webform.Form;
-import com.bc.webform.functions.TypeTests;
+import com.bc.webform.form.Form;
+import com.bc.webform.TypeTests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
