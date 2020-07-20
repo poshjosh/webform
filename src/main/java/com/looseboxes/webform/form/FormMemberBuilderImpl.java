@@ -16,28 +16,21 @@ import java.util.Objects;
 public class FormMemberBuilderImpl extends FormMemberBuilderForJpaEntity{
 
     private final PropertySearch propertySearch;
-    private final FormInputContext<Object, Field, Object> formInputContext;
-    private final ReferencedFormContext referencedFormContext;
     
     public FormMemberBuilderImpl(
             PropertySearch propertySearch, 
             FormInputContext<Object, Field, Object> formInputContext,
             ReferencedFormContext referencedFormContext) {
+        
         this.propertySearch = Objects.requireNonNull(propertySearch);
-        this.formInputContext = Objects.requireNonNull(formInputContext);
-        this.referencedFormContext = Objects.requireNonNull(referencedFormContext);
+        
+        this.referencedFormContext(referencedFormContext);
+        
+        this.formInputContext(formInputContext);
     }
     
     @Override
     public FormMember<Field, Object> build() {
-        
-        if(this.getReferencedFormContext() == null) {
-            this.referencedFormContext(this.referencedFormContext);
-        }
-        
-        if(this.getFormInputContext() == null) {
-            this.formInputContext(formInputContext);
-        }
         
         final FormMember<Field, Object> forUpdate = super.build();
         

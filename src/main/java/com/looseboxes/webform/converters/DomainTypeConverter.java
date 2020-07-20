@@ -54,13 +54,16 @@ public class DomainTypeConverter implements GenericConverter{
         try{
             final Class srcType = sourceType.getType();
             final Class tgtType = targetType.getType();
-            LOG.trace("Converting {} to {}", source, tgtType);
+//            LOG.trace("Converting {} to {}", sourceType, targetType);
+            final Object target;
             if(this.supportedTypes.contains(srcType)) {
-                return this.domainTypeToStringConverter.convert(source);
+                target = this.domainTypeToStringConverter.convert(source);
             }else{
-                return this.idToDomainTypeConverterFactory
+                target = this.idToDomainTypeConverterFactory
                         .getConverter(tgtType).convert(source.toString());
             }
+            LOG.trace("Converted {} to: {}", source, target);
+            return target;
         }catch(RuntimeException e) {
             LOG.warn("Unexpected exception", e);
             throw e;

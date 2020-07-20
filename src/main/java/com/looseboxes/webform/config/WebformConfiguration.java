@@ -30,6 +30,7 @@ import com.looseboxes.webform.configurers.EntityMapperService;
 import com.looseboxes.webform.configurers.EntityMapperServiceImpl;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
+import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
 import com.looseboxes.webform.form.MultiChoiceContextImpl;
@@ -92,7 +93,20 @@ public class WebformConfiguration {
         return new MessageAttributesImpl();
     }
     
-    @Bean public FormBuilder formBuilder(
+    @Bean public FormBuilderProvider formBuilderProvider(
+            @Autowired PropertySearch propertySearch,
+            @Autowired DateToStringConverter dateToStringConverter,
+            @Autowired TemporalToStringConverter temporalToStringConverter,
+            @Autowired DomainTypeToIdConverter entityToIdConverter,
+            @Autowired TypeFromNameResolver typeFromNameResolver) {
+        
+        // We need each call to return a new FormBuilder
+        // builders may only be used once
+        return () -> this.newFormBuilder(propertySearch, dateToStringConverter, 
+                temporalToStringConverter, entityToIdConverter, typeFromNameResolver);
+    }
+
+    public FormBuilder newFormBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
@@ -102,15 +116,17 @@ public class WebformConfiguration {
                 .sourceFieldsProvider(this.formFieldTest(propertySearch))
                 .formMemberComparator(this.formMemberComparator(propertySearch))
                 .formMemberBuilder(
-                        this.formMemberBuilder(
+                        this.newFormMemberBuilder(
                                 propertySearch, dateToStringConverter, 
                                 temporalToStringConverter, entityToIdConverter,
                                 typeFromNameResolver)
                 );
                 
     }
-    
-    @Bean public FormMemberBuilder<Object, Field, Object> formMemberBuilder(
+
+    // We need each call to return a new FormMemberBuilder
+    // builders may only be used once
+    public FormMemberBuilder<Object, Field, Object> newFormMemberBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,

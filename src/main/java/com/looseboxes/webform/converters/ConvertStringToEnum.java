@@ -30,7 +30,6 @@ public class ConvertStringToEnum<T extends Enum> implements Converter<String, T>
     public T convert(String toConvert) {
         Exception exception = null;
         try{
-            LOG.trace("Converting: {} to enum instance", toConvert);
             
             T update;
             try{
