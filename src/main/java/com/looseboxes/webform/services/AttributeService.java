@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ui.ModelMap;
 import com.looseboxes.webform.store.AttributeStore;
 import com.looseboxes.webform.store.AttributeStoreProvider;
-import com.looseboxes.webform.store.Store;
 import com.looseboxes.webform.store.StoreDelegate;
 import java.util.Objects;
 import javax.servlet.http.HttpSession;
@@ -23,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.store.UnbackedStoreException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author hp
@@ -47,15 +48,7 @@ public class AttributeService
     public AttributeService(
             AttributeStoreProvider provider, 
             @Nullable StoreDelegate delegate) {
-        super(delegate == null ? 
-                new Store[0] : 
-                new Store[]
-                {
-                    provider.forModel(delegate.getModelMap()),
-                    provider.forRequest(delegate.getRequest()),
-                    provider.forSession(delegate.getRequest().getSession())
-                }
-        );
+        super(delegate == null ? Collections.EMPTY_LIST : (List)provider.all(delegate));
         this.attributeStoreProvider = Objects.requireNonNull(provider);
         this.storeDelegate = delegate;
     }

@@ -5,6 +5,7 @@
  */
 package com.looseboxes.webform.store;
 
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.springframework.ui.ModelMap;
@@ -14,6 +15,8 @@ import org.springframework.ui.ModelMap;
  * @author hp
  */
 public interface AttributeStoreProvider {
+    
+    List<AttributeStore> all(StoreDelegate delegate);
 
     AttributeStore<ModelMap> forModel(ModelMap model);
 

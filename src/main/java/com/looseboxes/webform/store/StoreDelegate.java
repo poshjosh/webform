@@ -1,6 +1,5 @@
 package com.looseboxes.webform.store;
 
-import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.ui.ModelMap;
 
@@ -14,8 +13,8 @@ public final class StoreDelegate {
     private final HttpServletRequest request;
 
     public StoreDelegate(ModelMap modelMap, HttpServletRequest request) {
-        this.modelMap = Objects.requireNonNull(modelMap);
-        this.request = Objects.requireNonNull(request);
+        this.modelMap = modelMap;
+        this.request = request;
     }
 
     public ModelMap getModelMap() {

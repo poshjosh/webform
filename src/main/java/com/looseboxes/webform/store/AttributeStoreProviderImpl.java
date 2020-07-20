@@ -1,5 +1,8 @@
 package com.looseboxes.webform.store;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -23,6 +26,19 @@ public class AttributeStoreProviderImpl implements AttributeStoreProvider {
         this.requestStore = Objects.requireNonNull(requestStore);
         this.modelStore = Objects.requireNonNull(modelStore);
         this.sessionStore = Objects.requireNonNull(sessionStore);
+    }
+    
+    @Override
+    public List<AttributeStore> all(StoreDelegate delegate) {
+        final List<AttributeStore> list = new ArrayList(3);
+        if(delegate.getModelMap() != null){
+            list.add(this.forModel(delegate.getModelMap()));
+        }
+        if(delegate.getRequest() != null) {
+            list.add(this.forRequest(delegate.getRequest()));
+            list.add(this.forSession(delegate.getRequest().getSession()));
+        }
+        return Collections.unmodifiableList(list);
     }
     
     @Override
