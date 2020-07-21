@@ -1,24 +1,21 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.Params;
-import com.looseboxes.webform.web.FormConfig;
-import com.looseboxes.webform.web.FormConfigBean;
-import java.io.FileNotFoundException;
+import com.looseboxes.webform.web.FormConfigDTO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.looseboxes.webform.FormStage;
-import com.looseboxes.webform.HttpSessionAttributes;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.looseboxes.webform.services.ResponseService;
 import java.util.Map;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.WebRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import com.looseboxes.webform.FormStages;
+import com.looseboxes.webform.web.ResponseHandler;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
@@ -33,93 +30,75 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 public class FormControllerRest<T> extends FormControllerBase<T>{
     
-//    private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
+    private final Logger log = LoggerFactory.getLogger(FormControllerRest.class);
     
-    @Autowired private ResponseService responseService;
+    @Autowired private ResponseHandler<FormConfigDTO, ResponseEntity<FormConfigDTO>> responseService;
     
     public FormControllerRest() { }
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
-    public ResponseEntity<Object> begin(
-            ModelMap model, FormConfigBean formConfigBean,
-            HttpServletRequest request, HttpServletResponse response) 
-            throws FileNotFoundException{
+    public ResponseEntity<FormConfigDTO> begin(
+            FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
-            formConfigBean = super.onBeginForm(
-                    model, formConfigBean, request, response);
+            formConfig = super.onBeginForm(formConfig, request);
 
-            return this.responseService.respond(formConfigBean);
+            return this.responseService.respond(formConfig);
             
         }catch(Exception e) {
         
-            return this.responseService.respond(e, model);
+            return this.responseService.respond(formConfig, e);
         }
     }
 
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
-            FormStage.validate + "/" + FormStage.submit)
-    public ResponseEntity<Object> validateThenSubmit(
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
-            BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfigBean,
-            HttpServletRequest request, HttpServletResponse response) {
+            FormStages.validate + "/" + FormStages.submit)
+    public ResponseEntity<FormConfigDTO> validateThenSubmit(FormConfigDTO formConfig,
+            HttpServletRequest request, WebRequest webRequest) {
         try{
             
-            formConfigBean = super.onValidateThenSubmitForm(
-                    modelobject, bindingResult, model, formConfigBean, request, response);
+            formConfig = super.onValidateThenSubmitForm(formConfig, request, webRequest);
             
-            return this.responseService.respond(bindingResult, model, formConfigBean);
+            return this.responseService.respond(formConfig);
             
         }catch(Exception e) {
         
-            return this.responseService.respond(e, model);
+            return this.responseService.respond(formConfig, e);
         }
     }    
     
-    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validate)
-    public ResponseEntity<Object> validate(
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject,
-            BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfigBean,
-            HttpServletRequest request, HttpServletResponse response) {
+    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.validate)
+    public ResponseEntity<FormConfigDTO> validate(FormConfigDTO formConfig,
+            HttpServletRequest request, WebRequest webRequest) {
         try{
             
-            formConfigBean = super.onValidateForm(
-                    modelobject, bindingResult, model, formConfigBean, request, response);
+            formConfig = super.onValidateForm(formConfig, request, webRequest);
 
-            return this.responseService.respond(bindingResult, model, formConfigBean);
+            return this.responseService.respond(formConfig);
             
         }catch(Exception e) {
         
-            return this.responseService.respond(e, model);
+            return this.responseService.respond(formConfig, e);
         }
     }    
 
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.submit)
-    public ResponseEntity<Object> submit(
-            ModelMap model, FormConfigBean formConfigBean,
-            HttpServletRequest request, HttpServletResponse response) {
+    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.submit)
+    public ResponseEntity<FormConfigDTO> submit(
+            FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
-            formConfigBean = super.onSubmitForm(
-                    model, formConfigBean, request, response);
+            formConfig = super.onSubmitForm(formConfig, request);
             
-            return this.responseService.respond(formConfigBean);
+            return this.responseService.respond(formConfig);
             
         }catch(Exception e) {
 
-            return responseService.respond(e, model);
+            return responseService.respond(formConfig, e);
         }
     } 
 
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
+    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.dependents)
     public ResponseEntity<Object> dependents(
-            // Without the @Valid annotation the modelobject properties were not set
-            // With the @Valid annotation the property values must be valid or error:
-            // InvocableHandlerMethod: Could not resolve parameter [0] in {METHOD_SIGNATURE}: org.springframework.validation.BeanPropertyBindingResult: 3 errors
-//            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            ModelMap model, 
             @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             @RequestParam(name = "propertyValue", required = true) String propertyValue,
@@ -127,47 +106,47 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
         try{
             
             final Map<String, Map> result = super.onGetDependents(
-                    model, formid, propertyName, propertyValue, request, response);
+                    formid, propertyName, propertyValue, request);
             
             return ResponseEntity.ok(result);
             
         }catch(Exception e) {
             
-            return this.responseService.respond(e, model);
+            log.warn("", e);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
-    public ResponseEntity<Object> validateSingle(
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject, 
-            BindingResult bindingResult, 
-            ModelMap model, 
+    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.validateSingle)
+    public ResponseEntity<FormConfigDTO> validateSingle(
             @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 
             @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
-       try{
+            HttpServletRequest request) {
+       
+        FormConfigDTO formConfig = null;
+        try{
             
-            final FormConfig formConfig = super.onValidateSingle(modelobject, bindingResult, 
-                    model, formid, propertyName, propertyValue, request, response);
+            formConfig = super.onValidateSingle(
+                    formid, propertyName, propertyValue, request);
 
-            return this.responseService.respond(
-                    bindingResult, propertyName, model, formConfig);
+            return this.responseService.respond(formConfig);
             
         }catch(Exception e) {
         
-            return this.responseService.respond(e, model);
+            return this.responseService.respond(formConfig, e);
         }
     }
     
-    public ResponseService getResponseService() {
+    public ResponseHandler getResponseService() {
         return responseService;
     }
 }
 /**
  * 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
-    public ResponseEntity<Object> dependents(
+    public ResponseEntity<FormConfigDTO> dependents(
             // Without the @Valid annotation the modelobject properties were not set
             // With the @Valid annotation the property values must be valid or error:
             // InvocableHandlerMethod: Could not resolve parameter [0] in {METHOD_SIGNATURE}: org.springframework.validation.BeanPropertyBindingResult: 3 errors
@@ -191,7 +170,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     }
     
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
-    public ResponseEntity<Object> validateSingle(
+    public ResponseEntity<FormConfigDTO> validateSingle(
             @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject, 
             BindingResult bindingResult, 
             ModelMap model, 
@@ -214,7 +193,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     }
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
-    public ResponseEntity<Object> validateSingle(
+    public ResponseEntity<FormConfigDTO> validateSingle(
             ModelMap model, 
             @RequestParam(name = Params.FORMID, required = true) String formid, 
             @RequestParam(name = "propertyName", required = true) String propertyName, 

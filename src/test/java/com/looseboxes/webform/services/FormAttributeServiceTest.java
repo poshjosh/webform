@@ -5,7 +5,7 @@ import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.TestConfig;
 import com.looseboxes.webform.store.StoreDelegate;
 import com.looseboxes.webform.web.FormConfig;
-import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigDTO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -34,7 +34,7 @@ public class FormAttributeServiceTest {
         System.out.println("getFormOrException");
         String formid = this.getRandomFormId();
         FormAttributeService instance = this.getInstance();
-        FormConfigBean formConfig = this.getFormConfigBean(formid);
+        FormConfigDTO formConfig = this.getFormConfigBean(formid);
         FormBean expResult = new FormBean();
         formConfig.setForm(expResult);
         instance.setSessionAttribute(formConfig);
@@ -77,16 +77,16 @@ public class FormAttributeServiceTest {
         assertThat(result, is(formConfig));
     }
     
-    public FormConfigBean getFormConfigBean() {
-        return new FormConfigBean().formid(this.getRandomFormId());
+    public FormConfigDTO getFormConfigBean() {
+        return new FormConfigDTO().formid(this.getRandomFormId());
     }
     
     public String getRandomFormId() {
         return "form" + Long.toHexString(System.currentTimeMillis());
     }
 
-    public FormConfigBean getFormConfigBean(String formid) {
-        return new FormConfigBean().formid(formid);
+    public FormConfigDTO getFormConfigBean(String formid) {
+        return new FormConfigDTO().formid(formid);
     }
     
     public FormAttributeService getInstance() {

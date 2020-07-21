@@ -2,6 +2,7 @@ package com.looseboxes.webform.form;
 
 import com.looseboxes.webform.web.FormConfig;
 import com.bc.jpa.spring.TypeFromNameResolver;
+import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.Errors;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.util.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 
 /**
@@ -37,19 +39,21 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
     @Override
     public void process(FormRequest formRequest) {
         
-        FormConfig formConfig = formRequest.getFormConfig();
+        FormConfigDTO formConfig = formRequest.getFormConfig();
                     
         final CRUDAction crudAction = formConfig.getCrudAction();
         switch(crudAction) {
             case create:
-                saveEntityAndChildrenIfAny.save(formRequest);
+                Object created = saveEntityAndChildrenIfAny.save(formRequest);
+                ((FormBean)formConfig.getForm()).setDataSource(created);
                 break;
                 
             case read:
                 break;
                 
             case update:
-                saveEntityAndChildrenIfAny.save(formRequest);
+                created = saveEntityAndChildrenIfAny.save(formRequest);
+                ((FormBean)formConfig.getForm()).setDataSource(created);
                 break;
                 
             case delete:

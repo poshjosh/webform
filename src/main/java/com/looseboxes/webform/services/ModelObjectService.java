@@ -1,7 +1,6 @@
 package com.looseboxes.webform.services;
 
 import com.bc.webform.form.Form;
-import com.bc.webform.form.FormBuilder;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
@@ -10,11 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.lang.reflect.Field;
 import com.looseboxes.webform.CRUDAction;
-import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigDTO;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
+import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
@@ -34,7 +33,7 @@ public class ModelObjectService{
     public static final String FORM_ID_PREFIX = "form";
     
     @Autowired private ModelObjectProvider modelObjectProvider;
-    @Autowired private FormBuilder<Object, Field, Object> formBuilder;
+    @Autowired private FormBuilderProvider formBuilderProvider;
     @Autowired private EntityConfigurerService entityConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
 
@@ -47,7 +46,7 @@ public class ModelObjectService{
         
         final T modelobject;
         
-        final FormConfigBean formConfig = formRequest.getFormConfig();
+        final FormConfigDTO formConfig = formRequest.getFormConfig();
         
         // Form id is often passed to a form at the first stage.
         // This happens when the form is being returned to after some tangential
@@ -65,7 +64,7 @@ public class ModelObjectService{
     
     public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest, T modelobject) {
         
-        final FormConfigBean formConfig = formRequest.getFormConfig();
+        final FormConfigDTO formConfig = formRequest.getFormConfig();
 
         final boolean newForm = formConfig.getFormid() == null;
 
@@ -110,25 +109,25 @@ public class ModelObjectService{
     public <S, T> FormRequest<T> updateRequest(
             FormRequest<S> formRequest, String modelname, String modelid) {
         
-        FormConfigBean formConfig = formRequest.getFormConfig();
+        FormConfigDTO formConfig = formRequest.getFormConfig();
         
         String parentFormId = formConfig.getFormid();
         
-        FormConfigBean formConfigUpdate = formConfig.writableCopy()
+        FormConfigDTO formConfigUpdate = formConfig
                 .fid(this.generateFormId())
                 .form(null).id(modelid).modelfields(Collections.EMPTY_LIST)
                 .modelname(modelname).parentfid(parentFormId)
                 .targetOnCompletion(null);
         
-        FormRequest<T> formRequestUpdate = formRequest.copy().formConfig(formConfigUpdate);
+        formRequest.setFormConfig(formConfigUpdate);
         
-        return formRequestUpdate;
+        return (FormRequest<T>)formRequest;
     }
     
     private <T> FormRequest<T> updateForm(
             FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
         
-        FormConfigBean formConfig = formRequest.getFormConfig();
+        FormConfigDTO formConfig = formRequest.getFormConfig();
         
         final CRUDAction action = formConfig.getCrudAction();
         final String formid = formConfig.getFormid();
@@ -142,7 +141,7 @@ public class ModelObjectService{
         
         final FormAttributeService formAttributeService = formRequest.getAttributeService();
         
-        FormConfigBean existingFormConfig = ! existingForm ?
+        FormConfigDTO existingFormConfig = ! existingForm ?
                 formAttributeService.getSessionAttribute(formid, null) :
                 formAttributeService.getSessionAttributeOrException(formid);
         
@@ -164,13 +163,13 @@ public class ModelObjectService{
 
         if(existingFormConfig == null) {
             
-            formRequest.setFormConfig(formConfig.writableCopy().form(form));
+            formRequest.setFormConfig(formConfig.form(form));
 
         }else{
         
             existingFormConfig.validate(formConfig);
             
-            formRequest.setFormConfig(existingFormConfig.writableCopy().form(form));
+            formRequest.setFormConfig(formConfig.form(form));
         }
         
         return formRequest;
@@ -192,7 +191,7 @@ public class ModelObjectService{
         Objects.requireNonNull(id);
         Objects.requireNonNull(name);
         Objects.requireNonNull(domainObject);
-        final Form form = this.formBuilder
+        final Form form = this.formBuilderProvider.get()
                 .applyDefaults(name)
                 .id(id)
                 .parent(parentForm)

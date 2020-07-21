@@ -2,207 +2,139 @@ package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.services.FormService;
-import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.services.FormAttributeService;
 import com.looseboxes.webform.web.FormConfig;
-import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.util.Print;
 import com.looseboxes.webform.web.FormRequest;
 import com.looseboxes.webform.web.WebformHttpServletRequest;
 import java.util.Map;
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.context.request.WebRequest;
+import com.looseboxes.webform.events.WebformEventPublisher;
 
 /**
  * @author hp
  * @param <T> The type of the model object
  */
-//@see https://stackoverflow.com/questions/30616051/how-to-post-generic-objects-to-a-spring-controller
-@SessionAttributes({HttpSessionAttributes.MODELOBJECT}) 
 public class FormControllerBase<T>{
     
     private final Logger log = LoggerFactory.getLogger(FormControllerBase.class);
     
-    @Autowired private FormService<T> service;
+    @Autowired private FormService<T> formService;
     @Autowired private FormAttributeService formAttributeService;
+    @Autowired private WebformEventPublisher eventPublisher;
 
     public FormControllerBase() { }
     
-    public FormConfigBean onBeginForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response){
-        
-        this.preBeginForm(model, formConfig, request, response);
+    public FormConfigDTO onBeginForm(FormConfigDTO formConfig, HttpServletRequest request){
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
-        this.log("showForm", model, null, formConfig, request, response);
+        this.publishStageBegunAndLog(formConfig, FormStage.BEGIN, request);
         
-        final FormRequest formRequest = this.getFormRequest(model, formConfig, request);
+        final FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        formConfig = this.service.onBeginForm(formRequest).getFormConfig();
+        formConfig = this.formService.onBeginForm(formRequest).getFormConfig();
         
-        this.postBeginForm(model, formConfig, request, response, formRequest);
+        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
 
         return formConfig;
     }
     
-    protected void preBeginForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response){}
-    
-    protected void postBeginForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response, FormRequest formRequest){}
-
-    public FormConfigBean onValidateThenSubmitForm(
-            T modelobject, BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response) {
+    public FormConfigDTO onValidateThenSubmitForm(FormConfigDTO formConfig,
+            HttpServletRequest request, WebRequest webRequest) {
         
-        formConfig = this.onValidateForm(
-                modelobject, bindingResult, model, formConfig, request, response);
+        formConfig = this.onValidateForm(formConfig, request, webRequest);
         
-        return this.onSubmitForm(model, formConfig, request, response);
+        return this.onSubmitForm(formConfig, request);
     }
     
-    public FormConfigBean onValidateForm(
-            T modelobject, BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response) {
-        
-        this.preValidateForm(modelobject, bindingResult, model, formConfig, request, response);
+    public FormConfigDTO onValidateForm(FormConfigDTO formConfig,
+            HttpServletRequest request, WebRequest webRequest) {
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
 
-        this.log(FormStage.validate, model, modelobject, formConfig, request, response);
+        this.publishStageBegunAndLog(formConfig, FormStage.VALIDATE, request);
         
-        final FormRequest formRequest = this.getFormRequest(model, formConfig, request);
+        FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        formConfig = this.service.onValidateForm(
-                modelobject, bindingResult, formRequest).getFormConfig();
+        formConfig = this.formService.onValidateForm(formRequest, webRequest).getFormConfig();
         
-        this.postValidateForm(modelobject, bindingResult, model, formConfig, request, response, formRequest);
-
+        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
+        
         return formConfig;
     }    
 
-    protected void preValidateForm(
-            T modelobject, BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response) { }
-    
-    protected void postValidateForm(
-            T modelobject, BindingResult bindingResult,
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response, FormRequest formRequest) { }
-    
-    public FormConfigBean onSubmitForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response) {
-        
-        this.preSubmitForm(model, formConfig, request, response);
+    public FormConfigDTO onSubmitForm(
+            FormConfigDTO formConfig, HttpServletRequest request) {
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
-        this.log(FormStage.submit, model, null, formConfig, request, response);
+        this.publishStageBegunAndLog(formConfig, FormStage.SUBMIT, request);
         
-        final FormRequest formRequest = this.getFormRequest(model, formConfig, request);
+        final FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        formConfig = this.service.onSubmitForm(formRequest).getFormConfig();
+        formConfig = this.formService.onSubmitForm(formRequest).getFormConfig();
         
-        this.postSubmitForm(model, formConfig, request, response, formRequest);
+        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
         
         return formConfig;
     } 
 
-    protected void preSubmitForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response) { }
-    
-    protected void postSubmitForm(
-            ModelMap model, FormConfigBean formConfig,
-            HttpServletRequest request, HttpServletResponse response, FormRequest formRequest) { }
-
-    public Map<String, Map> onGetDependents(
-            ModelMap model, String formid, 
+    public Map<String, Map> onGetDependents(String formid, 
             String propertyName, String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request) {
 
-        this.preGetDependents(model, formid, propertyName, propertyValue, request, response);
-        
         log.debug("#onGetDependents {} = {}, session: {}", 
                 propertyName, propertyValue, request.getSession().getId());
 
-        final FormConfigBean formConfig = this.findFormConfig(request, formid);
-
-        this.log(FormStage.dependents, model, null, formConfig, request, response);
-
-        final Map<String, Map> dependents = service.dependents(model, formConfig, 
-                propertyName, propertyValue, request.getLocale());
+        final FormConfigDTO formConfig = this.findFormConfig(request, formid);
         
-        this.postGetDependents(model, formid, propertyName, propertyValue, request, response, formConfig, dependents);
+        this.publishStageBegunAndLog(formConfig, FormStage.DEPENDENTS, request);
+
+        final Map<String, Map> dependents = formService.dependents(
+                formConfig, propertyName, propertyValue, request.getLocale());
+        
+        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
         
         return dependents;
     }
     
-    protected void preGetDependents(
-                ModelMap model, String formid, 
-                String propertyName, String propertyValue,
-                HttpServletRequest request, HttpServletResponse response) { }    
-    
-    protected void postGetDependents(
-                ModelMap model, String formid, 
-                String propertyName, String propertyValue,
-                HttpServletRequest request, HttpServletResponse response,
-                FormConfigBean formConfig, Map<String, Map> dependents) { }    
-
-    public FormConfig onValidateSingle(
-            T modelobject, BindingResult bindingResult, ModelMap model, 
-            String formid, String propertyName, String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
+    public FormConfigDTO onValidateSingle(String formid, 
+            String propertyName, String propertyValue,
+            HttpServletRequest request) {
             
-        this.preValidateSingle(modelobject, bindingResult, model, formid, 
-                propertyName, propertyValue, request, response);
-        
         log.debug("#onValidateSingle {} = {}, session: {}", 
                 propertyName, propertyValue, request.getSession().getId());
 
-        FormConfigBean formConfig = this.findFormConfig(request, formid);
+        FormConfigDTO formConfig = this.findFormConfig(request, formid);
+        
+        this.publishStageBegunAndLog(formConfig, FormStage.VALIDATE_SINGLE, request);
+        
+        this.formService.validateSingle(formConfig, propertyName, propertyValue);
+        
+        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
 
-        this.log(FormStage.validateSingle, 
-                model, modelobject, formConfig, request, response);
-        
-        this.service.validateSingle(modelobject, bindingResult, 
-                model, formConfig, propertyName, propertyValue);
-        
-        this.postValidateSingle(modelobject, bindingResult, model, formid, 
-                propertyName, propertyValue, request, response, formConfig);
-        
         return formConfig;
     }
     
-    protected void preValidateSingle(
-            T modelobject, BindingResult bindingResult, ModelMap model, 
-            String formid, String propertyName, String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) { }
+    protected void publishStageBegunAndLog(FormConfigDTO formConfig, 
+            FormStage stage, HttpServletRequest request) {
+        
+        formConfig.setFormStage(stage);
+    
+        this.eventPublisher.publishFormStageBegunEvent(formConfig, stage);
 
-    protected void postValidateSingle(
-            T modelobject, BindingResult bindingResult, ModelMap model, 
-            String formid, String propertyName, String propertyValue,
-            HttpServletRequest request, HttpServletResponse response, FormConfig formConfig) { }
+        this.log(stage, formConfig, request);
+    }
     
     /**
-     * Return a valid {@link com.looseboxes.webform.web.FormConfigBean} for
+     * Return a valid {@link com.looseboxes.webform.web.FormConfigDTO} for
      * the formid argument.
      * 
      * The formConfig passed via the request is not initialized with a 
@@ -214,10 +146,11 @@ public class FormControllerBase<T>{
      * @param formid
      * @return 
      */
-    public FormConfigBean findFormConfig(HttpServletRequest request, String formid) {
-        final FormConfigBean formConfig = 
-                (FormConfigBean)request.getSession().getAttribute(formid);
-        return this.checkNotNull(formConfig);
+    public FormConfigDTO findFormConfig(HttpServletRequest request, String formid) {
+        final FormConfigDTO formConfig = 
+                (FormConfigDTO)request.getSession().getAttribute(formid);
+        return this.checkNotNull(formConfig, "Attribute not found. Form having id: " + 
+                formid + ", sessionId: " + request.getSession().getId());
     }
 
     /**
@@ -226,54 +159,36 @@ public class FormControllerBase<T>{
      * @param formid
      * @return 
      */
-    public FormConfigBean findFormConfig(WebRequest request, String formid) {
-        final FormConfigBean formConfig = 
-                (FormConfigBean)request.getAttribute(formid, WebRequest.SCOPE_SESSION);
-        return this.checkNotNull(formConfig);
+    public FormConfigDTO findFormConfig(WebRequest request, String formid) {
+        final FormConfigDTO formConfig = 
+                (FormConfigDTO)request.getAttribute(formid, WebRequest.SCOPE_SESSION);
+        return this.checkNotNull(formConfig, "Attribute not found. Form having id: " + 
+                formid + ", sessionId: " + request.getSessionId());
     }
     
-    private FormConfigBean checkNotNull(FormConfigBean formConfig) {
+    private FormConfigDTO checkNotNull(FormConfigDTO formConfig, String message) {
         log.trace("Found: {}", formConfig);
         if(formConfig == null) {
-            throw new InvalidRouteException();
+            throw new InvalidRouteException(message);
         }
         return formConfig;
     }
 
-    public Optional<String> getRedirectForTargetOnCompletion(FormConfig formConfig) {
-        final String targetOnCompletion = formConfig.getTargetOnCompletion();
-        return targetOnCompletion == null ? Optional.empty() : 
-                Optional.of("redirect:" + targetOnCompletion);
-    }    
-    
-
-    public FormRequest getFormRequest(
-            ModelMap model, FormConfigBean formConfig, HttpServletRequest request) {
+    public FormRequest getFormRequest(FormConfigDTO formConfig, HttpServletRequest request) {
         final FormRequest formRequest = new WebformHttpServletRequest(
-                request, model, this.formAttributeService).formConfig(formConfig);
+                request, this.formAttributeService).formConfig(formConfig);
         return formRequest;
     }
     
-    protected void log(String id, ModelMap model, 
-            Object modelobject, FormConfig formConfig,
-            HttpServletRequest request, HttpServletResponse response){
-        if(log.isDebugEnabled()) {
-            final Object existing = formConfig.getModelobject();
-            final Object sessionAttr = request.getSession().getAttribute(HttpSessionAttributes.MODELOBJECT);
-            System.out.println("================== REMOVE ME =====================");
-            System.out.println("FormControllerBase -> " + id + ", model name: " + formConfig.getModelname() + ", formid: " + 
-                    formConfig.getFid() + ", parent formid: " + formConfig.getParentfid());
-            System.out.println("FormControllerBase -> Controller model object: " + modelobject);
-            System.out.println("FormControllerBase -> FormConfig model object: " + existing);
-            System.out.println("FormControllerBase ->    Session model object: " + sessionAttr);
-            System.out.println("==================================================");
-        }
+    protected void log(FormStage formStage, FormConfig formConfig, HttpServletRequest request){
         if(Print.isTraceEnabled()) {
-            new Print().trace(id, model, formConfig, request, response);
+            new Print().trace(formStage, formConfig, request);
+        }else{
+            log.debug("Session id: {}\n{}", request.getSession().getId(), formConfig);
         }
     }
 
     public FormService getService() {
-        return service;
+        return formService;
     }
 }

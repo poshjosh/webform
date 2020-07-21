@@ -8,7 +8,6 @@ import org.springframework.beans.PropertyAccessorFactory;
 import com.looseboxes.webform.util.PropertySearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
 
@@ -20,14 +19,9 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
     private static final Logger LOG = LoggerFactory.getLogger(DomainObjectPrinterImpl.class);
     
     private final PropertySearch propertyAccess;
-    
-    private final EntityRepositoryProvider repoFactory;
 
-    public DomainObjectPrinterImpl(
-            PropertySearch propertyAccess,
-            EntityRepositoryProvider repoFactory) {
+    public DomainObjectPrinterImpl(PropertySearch propertyAccess) {
         this.propertyAccess = Objects.requireNonNull(propertyAccess);
-        this.repoFactory = Objects.requireNonNull(repoFactory);
     }
     
     @Override
@@ -64,13 +58,7 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
             }
 
             if(output == null) {
-
                 output = object.toString();
-//                final Object id = repoFactory.forEntity(type)
-//                        .getIdOptional(object).orElse(null);
-//                if(id != null) {
-//                    output = id.toString();
-//                }
             }
         }
 

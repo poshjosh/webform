@@ -19,8 +19,8 @@ package com.looseboxes.webform.web;
 import com.bc.webform.form.Form;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
-import static com.looseboxes.webform.HttpSessionAttributes.FORM;
 import com.looseboxes.webform.Params;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +29,8 @@ import java.util.Map;
  */
 public interface FormConfig{
     
+    String FORM = "form";
+    
     static String [] names() {
         final String [] paramNames = Params.names();
         final String [] allNames = new String[paramNames.length + 1];
@@ -36,12 +38,8 @@ public interface FormConfig{
         allNames[paramNames.length] = FORM;
         return allNames;
     }
-
-    class Builder extends FormConfigBean{}
     
     FormConfig copy();
-    
-    FormConfigBean writableCopy();
     
     /**
      * Alias for {@link #getFormid()}
@@ -110,6 +108,8 @@ public interface FormConfig{
     String getTargetOnCompletion();
     
     Form<Object> getForm();
+    
+    Collection<String> getUploadedFiles();
     
     Map<String, Object> toMap();
 }

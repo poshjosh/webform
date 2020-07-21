@@ -2,24 +2,23 @@ package com.looseboxes.webform.web;
 
 import com.looseboxes.webform.services.FormAttributeService;
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.ui.ModelMap;
 
 /**
  * @author hp
  */
 public class WebformHttpServletRequest extends WebHttpServletRequest implements FormRequest{
     
-    private FormConfigBean formConfig;
+    private FormConfigDTO formConfig;
 
     public WebformHttpServletRequest(
-            HttpServletRequest request, ModelMap modelMap, FormAttributeService attributeService) {
-        super(request, modelMap, attributeService);
+            HttpServletRequest request, FormAttributeService attributeService) {
+        super(request, attributeService);
     }
 
     @Override
     public WebformHttpServletRequest copy() {
         return new WebformHttpServletRequest(
-                getHttpServletRequest(), getModelMap(), getAttributeService());
+                getHttpServletRequest(), getAttributeService());
     }
 
     @Override
@@ -28,18 +27,18 @@ public class WebformHttpServletRequest extends WebHttpServletRequest implements 
     }
     
     @Override
-    public WebformHttpServletRequest formConfig(FormConfigBean formConfig) {
+    public WebformHttpServletRequest formConfig(FormConfigDTO formConfig) {
         this.setFormConfig(formConfig);
         return this;
     }
 
     @Override
-    public FormConfigBean getFormConfig() {
+    public FormConfigDTO getFormConfig() {
         return formConfig;
     }
 
     @Override
-    public void setFormConfig(FormConfigBean formConfig) {
+    public void setFormConfig(FormConfigDTO formConfig) {
         this.formConfig = formConfig;
     }
 }

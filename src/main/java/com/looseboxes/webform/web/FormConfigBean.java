@@ -1,26 +1,16 @@
-/*
- * Copyright 2019 NUROX Ltd.
- *
- * Licensed under the NUROX Ltd Software License (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.looseboxes.com/legal/licenses/software.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.looseboxes.webform.web;
 
 import com.bc.webform.form.Form;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.Params;
+import static com.looseboxes.webform.Params.ACTION;
+import static com.looseboxes.webform.Params.FORMID;
+import static com.looseboxes.webform.Params.MODELFIELDS;
+import static com.looseboxes.webform.Params.MODELID;
+import static com.looseboxes.webform.Params.MODELNAME;
+import static com.looseboxes.webform.Params.PARENT_FORMID;
+import static com.looseboxes.webform.Params.TARGET_ON_COMPLETION;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,9 +23,9 @@ import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author Chinomso Bassey Ikwuagwu on Apr 21, 2019 5:11:48 PM
+ * @author hp
  */
-public class FormConfigBean implements Serializable, FormConfig, Params {
+public class FormConfigBean  implements Serializable, FormConfig, Params {
 
     @NotNull
     private String action;
@@ -55,8 +45,10 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     
     private Form<Object> form;
     
+    private Collection<String> uploadedFiles;
+    
     private boolean buildAttempted;
-
+    
     public FormConfigBean() { }
     
     public FormConfigBean(FormConfig form) { 
@@ -74,6 +66,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         this.modelname(arg.getModelname());
         this.parentFormid(arg.getParentFormid());
         this.targetOnCompletion(arg.getTargetOnCompletion());
+        this.uploadedFiles(arg.getUploadedFiles());
     }
 
     public FormConfig build() {
@@ -92,12 +85,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     }
 
     @Override
-    public FormConfig copy() {
-        return this.writableCopy();
-    }
-
-    @Override
-    public FormConfigBean writableCopy() {
+    public FormConfigBean copy() {
         return new FormConfigBean(this);
     }
     
@@ -181,6 +169,12 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         return this;
     }
     
+    
+    public FormConfigBean uploadedFiles(Collection<String> files) {
+        this.uploadedFiles = files;
+        return this;
+    }
+    
     public FormConfig setAllIfAbsent(Map<String, Object> map) {
         map.forEach((k, v) -> {
             this.setObject(k, v, false);
@@ -217,7 +211,19 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
                         return this.modelfields(value.toString());
                     }
                 }
-            case HttpSessionAttributes.FORM: 
+            case UPLOADED_FILES: 
+                if(value instanceof Collection) {
+                    return this.uploadedFiles((Collection<String>)value);
+                }else if(value instanceof String[]){
+                    return this.uploadedFiles(Arrays.asList((String[])value));
+                }else{
+                    if(value == null){
+                        return this.uploadedFiles(null);
+                    }else{
+                        return this.uploadedFiles(Collections.singletonList(value.toString()));
+                    }
+                }
+            case FormConfig.FORM: 
                 return this.form(form == null || overwrite ? (Form)value : form);
             default: 
                 return setString(name, value == null ? (String)value : value.toString(), overwrite);
@@ -254,7 +260,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
 
     @Override
     public Map<String, Object> toMap() {
-        final Map<String, Object> map = new HashMap<>(8, 1.0f);
+        final Map<String, Object> map = new HashMap<>(16, 0.75f);
         // We add action NOT crudAction
         map.put(Params.ACTION, getAction());
         map.put(Params.MODELNAME, getModelname());
@@ -263,21 +269,22 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         map.put(Params.MODELID, getModelid());
         map.put(Params.MODELFIELDS, getModelfields());
         map.put(Params.TARGET_ON_COMPLETION, getTargetOnCompletion());
-        map.put(HttpSessionAttributes.FORM, getForm());
+        map.put(Params.UPLOADED_FILES, getUploadedFiles());
+        map.put(FormConfig.FORM, getForm());
         final Map<String, Object> result = Collections.unmodifiableMap(map);
         return result;
     }
     
     public void validate(FormConfig target) {
+        //@related(FormConfig.fields) to front-end javascript/react
         this.validate(Params.ACTION, this.getCrudAction(), target.getCrudAction());
         this.validate(Params.FORMID, this.getFormid(), target.getFormid());
         this.validate(Params.MODELNAME, this.getModelname(), target.getModelname());
         this.validate(Params.MODELID, this.getModelid(), target.getModelid());
-        // This is changes with each request
-//        this.validate(existing.getModelobject(), fromHttpRequest.getModelobject());
         this.validate(Params.MODELFIELDS, this.getModelfields(), target.getModelfields());
         this.validate(Params.PARENT_FORMID, this.getParentFormid(), target.getParentFormid());
         this.validate(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion(), target.getTargetOnCompletion());
+        this.validate(Params.UPLOADED_FILES, this.getUploadedFiles(), target.getUploadedFiles());
     }
     
     private void validate(String name, Object expected, Object found) {
@@ -289,11 +296,11 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
     
     @Override
     public String getAction() {
-        return this.getCrudAction().name();
+        return action;
     }
     
     public void setAction(String crudAction) {
-        this.setCrudAction(CRUDAction.valueOf(crudAction));
+        this.action = crudAction;
     }
 
     @Override
@@ -395,6 +402,21 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         return this.form;
     }
 
+    public Collection<String> removeUploadedFiles() {
+        final Collection<String> result = this.getUploadedFiles();
+        this.setUploadedFiles(null);
+        return result;
+    }
+    
+    public void setUploadedFiles(Collection<String> uploadedFiles) {
+        this.uploadedFiles = uploadedFiles;
+    }
+
+    @Override
+    public Collection<String> getUploadedFiles() {
+        return uploadedFiles;
+    }
+
     @Override
     public int hashCode() {
         int hash = 3;
@@ -405,6 +427,7 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         hash = 41 * hash + Objects.hashCode(this.id);
         hash = 41 * hash + Objects.hashCode(this.modelfields);
         hash = 41 * hash + Objects.hash(this.targetOnCompletion);
+        hash = 41 * hash + Objects.hash(this.uploadedFiles);
         hash = 41 * hash + Objects.hashCode(this.form);
         return hash;
     }
@@ -442,6 +465,9 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
         if (!Objects.equals(this.targetOnCompletion, other.targetOnCompletion)) {
             return false;
         }
+        if (!Objects.equals(this.uploadedFiles, other.uploadedFiles)) {
+            return false;
+        }
         if (!Objects.equals(this.form, other.form)) {
             return false;
         }
@@ -454,7 +480,8 @@ public class FormConfigBean implements Serializable, FormConfig, Params {
                 ", parent form id=" + parentfid + ", form id=" + fid + 
                 ", model name=" + modelname + ", model id=" + id + 
                 ", model fields=" + modelfields + ", target on completion=" +
-                targetOnCompletion + ", form=" + 
-                (form == null ? null : form.getName()) + '}';
+                targetOnCompletion + ", uploaded files=" + uploadedFiles + 
+                ", form: " + form + '}';
     }
 }
+

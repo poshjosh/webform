@@ -20,8 +20,6 @@ import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.bc.webform.TypeTests;
 import com.bc.webform.TypeTestsImpl;
-import com.looseboxes.webform.MessageAttributes;
-import com.looseboxes.webform.MessageAttributesImpl;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
@@ -53,6 +51,7 @@ import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.form.FormMemberUpdater;
 import com.looseboxes.webform.form.FormMemberUpdaterImpl;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.web.BindingResultErrorCollector;
 import com.looseboxes.webform.util.PropertySuffixes;
 
 /**
@@ -68,7 +67,11 @@ public class WebformConfiguration {
     @Autowired private Environment environment;
     
     public WebformConfiguration() { }
-
+    
+    @Bean public BindingResultErrorCollector bindingResultErrorCollector() {
+        return new BindingResultErrorCollector();
+    }
+    
     @Bean public EntityMapperService 
         entityMapperService(ApplicationContext applicationContext) {
         EntityMapperService service = new EntityMapperServiceImpl();
@@ -87,10 +90,6 @@ public class WebformConfiguration {
             configurer.addEntityConfigurers(service);
         }catch(NoSuchBeanDefinitionException ignored) { }
         return service;
-    }
-    
-    @Bean public MessageAttributes messageAttributes() {
-        return new MessageAttributesImpl();
     }
     
     @Bean public FormBuilderProvider formBuilderProvider(

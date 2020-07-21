@@ -3,7 +3,7 @@ package com.looseboxes.webform.services;
 import com.bc.webform.form.Form;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.web.FormConfig;
-import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.store.AttributeStoreProvider;
 import com.looseboxes.webform.store.StoreDelegate;
 import java.util.Objects;
@@ -51,11 +51,11 @@ public class FormAttributeService extends AttributeService{
         return form;
     }  
     
-    public FormConfigBean getSessionAttributeOrException(String formid) {
+    public FormConfigDTO getSessionAttributeOrException(String formid) {
         
         Objects.requireNonNull(formid);
         
-        final FormConfigBean formConfig = getSessionAttribute(formid, null);
+        final FormConfigDTO formConfig = getSessionAttribute(formid, null);
         
         if(formConfig == null) {
             throw new InvalidRouteException("FormConfig not found for: " + formid);
@@ -64,14 +64,14 @@ public class FormAttributeService extends AttributeService{
         return formConfig;
     }
 
-    public FormConfigBean getSessionAttribute(
-            String formid, FormConfigBean resultIfNone) {
+    public FormConfigDTO getSessionAttribute(
+            String formid, FormConfigDTO resultIfNone) {
         final String attributeName = formid;
         Objects.requireNonNull(attributeName);
         final Object value = this.sessionAttributes()
                 .getOrDefault(attributeName, null);
         LOG.trace("Got {} = {}", attributeName, value);
-        return value == null ? resultIfNone : (FormConfigBean)value;
+        return value == null ? resultIfNone : (FormConfigDTO)value;
     }
 
     public void removeSessionAttribute(String formid) {

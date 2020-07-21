@@ -1,7 +1,7 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.Params;
-import com.looseboxes.webform.web.FormConfigBean;
+import com.looseboxes.webform.web.FormConfigDTO;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +21,13 @@ public final class FormParamsUtil {
      * 
      * The FormConfigBean passed by Spring to the controller methods was not
      * being updated with parameters from query e.g <code>?user=jane&age=23</code>
-     * 
-     * This method manually updates those parameters in the FormConfigBean
+ 
+ This method manually updates those parameters in the FormConfigDTO
      * @param formConfig
      * @param request 
      */
     public static void updateFormConfigWithFormParamsFromRequest(
-            FormConfigBean formConfig, HttpServletRequest request) {
+            FormConfigDTO formConfig, HttpServletRequest request) {
         LOG.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
                 formConfig, request.getQueryString());
         final String [] names = Params.names();

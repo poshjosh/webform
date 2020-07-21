@@ -28,13 +28,14 @@ public interface Params {
     String MODELFIELDS = "modelfields";
     String PARENT_FORMID = "parentfid";
     String TARGET_ON_COMPLETION = "targetOnCompletion";
+    String UPLOADED_FILES = "uploadedFiles";
     
     static boolean isMultiValue(String name) {
-        return MODELFIELDS.equals(name);
+        return MODELFIELDS.equals(name) || UPLOADED_FILES.equals(name);
     }
     
     static String [] names() {
-        return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, 
-            MODELNAME, PARENT_FORMID, TARGET_ON_COMPLETION};
+        return new String[]{ACTION, MODELFIELDS, FORMID, MODELID, MODELNAME,
+            PARENT_FORMID, TARGET_ON_COMPLETION, UPLOADED_FILES};
     }
 }

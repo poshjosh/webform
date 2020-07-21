@@ -23,6 +23,7 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.convert.TypeDescriptor;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import java.util.Locale;
+import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair;
 
 /**
  * @author hp
@@ -177,7 +178,8 @@ public class DependentsProviderImpl implements DependentsProvider {
             final int limit = this.getMaxItemsInMultiChoice();
 
             final String name = propertyName;
-            final Object value = this.domainTypeConverter.convert(
+            final Object value = ! this.isDomainTypeConvertible(String.class, propertyType.getType()) ? propertyValue :
+                    this.domainTypeConverter.convert(
                     propertyValue, TypeDescriptor.valueOf(String.class), propertyType);
 
             final int offset = 0;
@@ -209,6 +211,11 @@ public class DependentsProviderImpl implements DependentsProvider {
         }
         
         return this.ensureUnmodifiableMap(result);
+    }
+    
+    public boolean isDomainTypeConvertible(Class srcType, Class tgtType) {
+        return this.domainTypeConverter.getConvertibleTypes()
+                .contains(new ConvertiblePair(srcType, tgtType));
     }
     
     public Set<PropertyDescriptor> getDependentProperties(

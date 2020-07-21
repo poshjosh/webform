@@ -7,16 +7,16 @@ import com.looseboxes.webform.services.FormAttributeService;
  */
 public interface FormRequest<T> extends WebRequest<T>{
     
-    default FormRequest formConfig(FormConfigBean formConfig) {
+    default FormRequest formConfig(FormConfigDTO formConfig) {
         setFormConfig(formConfig);
         return this;
     }
     
     FormRequest<T> copy();
     
-    FormConfigBean getFormConfig();
+    FormConfigDTO getFormConfig();
     
-    void setFormConfig(FormConfigBean formConfig);
+    void setFormConfig(FormConfigDTO formConfig);
 
     @Override
     FormAttributeService getAttributeService();

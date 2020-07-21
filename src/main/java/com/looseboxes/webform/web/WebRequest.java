@@ -1,6 +1,5 @@
 package com.looseboxes.webform.web;
 
-import com.looseboxes.webform.HttpSessionAttributes;
 import com.looseboxes.webform.services.AttributeService;
 import com.looseboxes.webform.store.AttributeStore;
 import java.util.List;
@@ -16,22 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface WebRequest<T> {
     
     String getSessionId();
-    
-    // @TODO replace all code using this deprecated method 
-    /**
-     * @return The ModelMap for the web request
-     * @deprecated Do not access the ModelMap directly, rather call method 
-     * {@link #modelAttributes()} and use the returned 
-     * {@link com.looseboxes.webform.store.AttributeStore AttributeStore}
-     */
-    @Deprecated
-    ModelMap getModelMap();
-    
-    default T getModelObject() {
-        return (T)this.getAttributeService()
-                .sessionAttributes()
-                .getOrDefault(HttpSessionAttributes.MODELOBJECT, null);
-    }
     
     String getParameter(String name);
     

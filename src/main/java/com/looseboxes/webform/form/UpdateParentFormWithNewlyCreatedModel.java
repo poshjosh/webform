@@ -1,11 +1,11 @@
 package com.looseboxes.webform.form;
 
-import com.looseboxes.webform.web.FormConfig;
 import com.bc.webform.form.Form;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import com.looseboxes.webform.services.FormAttributeService;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -28,7 +28,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
     
     public boolean updateParent(FormRequest formRequest) {
         
-        FormConfig formConfig = formRequest.getFormConfig();
+        FormConfigDTO formConfig = formRequest.getFormConfig();
     
         boolean updated = false;
         
@@ -49,7 +49,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
                 
                 final FormAttributeService formAttributeService = formRequest.getAttributeService();
 
-                FormConfig parentFormConfig = formAttributeService
+                FormConfigDTO parentFormConfig = formAttributeService
                         .getSessionAttributeOrException(parentFormId);
 
                 if(parentFormConfig != null) {
@@ -73,7 +73,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
     }
     
     
-    public FormConfig updateParent(FormConfig formConfig, FormConfig parentFormConfig) 
+    public FormConfigDTO updateParent(FormConfigDTO formConfig, FormConfigDTO parentFormConfig) 
             throws FormMemberNotFoundException{
         
         LOG.trace("#updateParent({})", formConfig);
@@ -94,7 +94,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
         
         final FormMember parentMember = getParentMemberCorrespondingToForm(parent, form);
         
-        final FormConfig parentFormConfigUpdate = this.formMemberUpdater.update(
+        final FormConfigDTO parentFormConfigUpdate = this.formMemberUpdater.update(
                 parentFormConfig, parentMember.getName(), formConfig.getModelobject());
         
         return parentFormConfigUpdate;

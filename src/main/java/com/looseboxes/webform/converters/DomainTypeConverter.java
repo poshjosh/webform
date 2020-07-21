@@ -38,12 +38,17 @@ public class DomainTypeConverter implements GenericConverter{
     private Set<ConvertiblePair> toConvertiblePairs(Set<Class> supportedTypes) {
         final Set<ConvertiblePair> result = new HashSet<>(supportedTypes.size() * 2, 1.0f);
         for(Class cls : supportedTypes) {
-            result.add(new ConvertiblePair(String.class, cls));
-            result.add(new ConvertiblePair(cls, String.class));
+            this.addConvertiblePairs(result, cls);
         }
         return result;
     }
 
+    private Set<ConvertiblePair> addConvertiblePairs(Set<ConvertiblePair> addTo, Class cls) {
+        addTo.add(new ConvertiblePair(String.class, cls));
+        addTo.add(new ConvertiblePair(cls, String.class));
+        return addTo;
+    }
+    
     @Override
     public Set<ConvertiblePair> getConvertibleTypes() {
         return convertibleTypes;

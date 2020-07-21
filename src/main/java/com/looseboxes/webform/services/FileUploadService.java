@@ -4,7 +4,7 @@ import com.bc.fileupload.UploadFileResponse;
 import com.bc.fileupload.services.FileStorageHandler;
 import com.bc.reflection.ReflectionUtil;
 import com.looseboxes.webform.Errors;
-import com.looseboxes.webform.web.WebRequest;
+import com.looseboxes.webform.web.FormRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class FileUploadService {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
     }
     
-    public Collection<String> upload(WebRequest<Object> webRequest) {
+    public Collection<String> upload(FormRequest<Object> webRequest) {
         
         final Collection<String> output;
         
@@ -49,7 +49,7 @@ public class FileUploadService {
         
             final List result = new ArrayList<>();
             final String id = webRequest.getSessionId();
-            final Object modelobject = webRequest.getModelObject();
+            final Object modelobject = webRequest.getFormConfig().getModelobject();
             final Map<String, List<MultipartFile>> multiValueFiles = webRequest.getMultiValueFiles();
 
             final Function<UploadFileResponse, String> toFileName = 

@@ -5,8 +5,8 @@
  */
 package com.looseboxes.webform.form;
 
-import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
+import com.looseboxes.webform.web.FormConfigDTO;
 
 /**
  *
@@ -14,6 +14,6 @@ import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
  */
 public interface FormMemberUpdater {
 
-    FormConfig update(FormConfig formConfig, String memberName, Object memberValue) 
+    FormConfigDTO update(FormConfigDTO formConfig, String memberName, Object memberValue) 
             throws FormMemberNotFoundException;
 }

@@ -1,12 +1,10 @@
 package com.looseboxes.webform.services;
 
-import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
+import com.looseboxes.webform.web.FormConfigDTO;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -17,25 +15,16 @@ import org.springframework.validation.Validator;
 @Service
 public class FormValidatorService<T>{
     
-    @Autowired private FormValidatorFactory formValidatorFactory;
-    @Autowired private MessageAttributesService messageAttributesService;
-    
-    public void validateModelObject(
-            BindingResult bindingResult, ModelMap model, FormConfig formConfig) {
-        
-        final T modelobject = (T)Objects.requireNonNull(formConfig.getModelobject());
-        
-        this.validateModelObject(bindingResult, model, formConfig, modelobject);
-    }
+    private final FormValidatorFactory formValidatorFactory;
 
-    public void validateModelObject(
-            BindingResult bindingResult, ModelMap model,
-            FormConfig formConfig, T modelobject) {
+    public FormValidatorService(FormValidatorFactory formValidatorFactory) {
+        this.formValidatorFactory = Objects.requireNonNull(formValidatorFactory);
+    }
+    
+    public void validateModelObject(FormConfigDTO formConfig) {
         
-        Objects.requireNonNull(bindingResult);
-        Objects.requireNonNull(model);
-        Objects.requireNonNull(formConfig);
-        Objects.requireNonNull(modelobject);
+        final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
+        final BindingResult bindingResult = Objects.requireNonNull(formConfig.getBindingResult());
     
         final List<Validator> validators = this.formValidatorFactory
                 .getValidators(formConfig, modelobject.getClass());
@@ -43,11 +32,6 @@ public class FormValidatorService<T>{
         for(Validator validator : validators) {
 
             ValidationUtils.invokeValidator(validator, modelobject, bindingResult);
-        }
-        
-        if (bindingResult.hasErrors()) {
-            
-            this.messageAttributesService.addErrorsToModel(bindingResult, model);
         }
     }
 }

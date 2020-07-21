@@ -35,6 +35,7 @@ import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverter;
 import com.looseboxes.webform.converters.StringToTemporalConverterImpl;
+import com.looseboxes.webform.converters.TemporalConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverterImpl;
 import org.slf4j.Logger;
@@ -46,11 +47,14 @@ import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.web.WebValidator;
-import org.springframework.boot.autoconfigure.web.format.WebConversionService;
+import java.util.Date;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.validation.Validator;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:26:12 AM
@@ -72,9 +76,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     
 //    @Bean 
         ConversionService webformConversionService() {
-        final String dateTimePattern = this.dateAndTimePatternsSupplier()
-                .getDatetimePatterns().iterator().next();
-        final WebConversionService wcs = new WebConversionService(dateTimePattern){
+        final DefaultFormattingConversionService wcs = new DefaultFormattingConversionService(){
             @Override
             protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
                 GenericConverter converter = super.getConverter(sourceType, targetType);
@@ -84,7 +86,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
             }
         
         };
-//        DefaultFormattingConversionService dfcs = new DefaultFormattingConversionService();
+        
         this.addFormatters(wcs);
         return wcs;
     }
@@ -93,17 +95,28 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     public void addFormatters(FormatterRegistry registry) {
         
         log.debug("Adding formatters");
-
+        
         registry.addConverter(this.stringEmptyToNullConverter());
-        registry.addConverter(this.multipartFileToStringConverter());
-        registry.addConverter(this.stringToDateConverter());
-        registry.addConverter(this.dateToStringConverter());
-        registry.addConverter(this.stringToTemporalConverter());
-        registry.addConverter(this.temporalToStringConverter());
+        
+        replaceConverter(registry, MultipartFile.class, String.class, multipartFileToStringConverter());
+        
+        replaceConverter(registry, String.class, Date.class, stringToDateConverter());
+        
+        replaceConverter(registry, Date.class, String.class, dateToStringConverter());
+        
+        registry.addConverter(this.temporalConverter());
+        
         registry.addConverter(this.domainTypeConverter());
-
+        
         registry.addPrinter(this.domainObjectPrinter());
-//        registry.addConverterFactory(this.idToDomainTypeConverterFactory());
+    }
+    
+    public <S, T> void replaceConverter(FormatterRegistry registry, 
+            Class<S> sourceType, Class<T> targetType, 
+            Converter<? super S, ? extends T> converter){
+        registry.removeConvertible(sourceType, targetType);
+        registry.addConverter(sourceType, targetType, converter);
+        
     }
     
     @Bean public DomainTypeConverter domainTypeConverter() {
@@ -114,6 +127,11 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
         return genericConverter;
     }
     
+    @Bean public TemporalConverter temporalConverter() {
+        return new TemporalConverter(
+                this.temporalToStringConverter(), this.stringToTemporalConverter());
+    }
+    
     @Bean public DomainTypeToStringConverter domainTypeToStringConverter() {
         return new DomainTypeToStringConverter(this.typeTests,
                 this.domainObjectPrinter(),
@@ -122,8 +140,7 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     }
     
     @Bean public DomainObjectPrinter domainObjectPrinter() {
-        return new DomainObjectPrinterImpl(
-                this.propertySearch, this.repoFactory);
+        return new DomainObjectPrinterImpl(this.propertySearch);
     }
     
     @Bean public StringEmptyToNullConverter stringEmptyToNullConverter() {
@@ -162,3 +179,22 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
         return new DomainTypeToIdConverter(this.repoFactory);
     }
 }
+/**
+ * 
+ * 
+        StringToTemporalConverter stringToTemporalConverter = this.stringToTemporalConverter();
+        replaceConverter(registry, String.class, Instant.class, stringToTemporalConverter.instantInstance());
+        replaceConverter(registry, String.class, LocalDate.class, stringToTemporalConverter.localDateInstance());
+        replaceConverter(registry, String.class, LocalDateTime.class, stringToTemporalConverter.localDateTimeInstance());
+        replaceConverter(registry, String.class, LocalTime.class, stringToTemporalConverter.localTimeInstance());
+        replaceConverter(registry, String.class, ZonedDateTime.class, stringToTemporalConverter.zonedDateTimeInstance());
+        
+        TemporalToStringConverter temporalToStringConverter = this.temporalToStringConverter();
+        replaceConverter(registry, Instant.class, String.class, temporalToStringConverter);
+        replaceConverter(registry, LocalDate.class, String.class, temporalToStringConverter);
+        replaceConverter(registry, LocalDateTime.class, String.class, temporalToStringConverter);
+        replaceConverter(registry, LocalTime.class, String.class, temporalToStringConverter);
+        replaceConverter(registry, ZonedDateTime.class, String.class, temporalToStringConverter);
+        
+ * 
+ */
