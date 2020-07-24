@@ -182,7 +182,7 @@ public class DependentsProviderImpl implements DependentsProvider {
         Objects.requireNonNull(propertyName);
         Objects.requireNonNull(propertyValue);
         
-        LOG.debug("Property: {} = {}, modelobject: {}", propertyName, propertyValue, modelobject);
+        LOG.trace("Property: {} = {}, modelobject: {}", propertyName, propertyValue, modelobject);
         
         Map<PropertyDescriptor, List> result = null;
         
@@ -199,11 +199,16 @@ public class DependentsProviderImpl implements DependentsProvider {
         if( ! dependentTypes.isEmpty()) {
         
             final int limit = this.getMaxItemsInMultiChoice();
+            
+            final boolean convertible = isDomainTypeConvertible(String.class, propertyType.getType());
 
             final String name = propertyName;
-            final Object value = ! this.isDomainTypeConvertible(String.class, propertyType.getType()) ? propertyValue :
+            final Object value = ! convertible ? propertyValue :
                     this.domainTypeConverter.convert(
                     propertyValue, TypeDescriptor.valueOf(String.class), propertyType);
+            
+            LOG.trace("Convertible: {}, output type: {}, src type: String, target type: {}", 
+                    convertible, (value==null?null:value.getClass()), propertyType.getType());
 
             final int offset = 0;
 
@@ -214,7 +219,7 @@ public class DependentsProviderImpl implements DependentsProvider {
                 final EntityRepository repo = this.entityRepositoryProvider.forEntity(dependentType);
 
                 LOG.debug("SELECT ALL FROM {} WHERE {} = {}, RETURN RECORDS {} - {}", 
-                        dependentType, name, value, offset, limit);
+                        dependentType.getSimpleName(), name, value, offset, limit);
 
                 final List dependentEntities = repo.findAllBy(
                         name, value, offset, limit);
@@ -246,7 +251,7 @@ public class DependentsProviderImpl implements DependentsProvider {
         
         final Class propertyType = selectedType == null ? null : selectedType.getType();
         
-        LOG.debug("Property name: {}, type: {}, type descriptor: {}", 
+        LOG.trace("Property name: {}, type: {}, type descriptor: {}", 
                 selectedName, propertyType, selectedType);
 
         Set<PropertyDescriptor> result = null;
@@ -294,7 +299,7 @@ public class DependentsProviderImpl implements DependentsProvider {
             }
         }
         
-        LOG.debug("{}#{} has dependent types: {}", 
+        LOG.trace("{}#{} has dependent types: {}", 
                 beanType.getName(), selectedName, result);
         
         return result == null ? Collections.EMPTY_SET : Collections.unmodifiableSet(result);
@@ -309,7 +314,7 @@ public class DependentsProviderImpl implements DependentsProvider {
                 break;
             }
         }
-        LOG.debug("Has field of type: {}, object type: {}, field type: {}",
+        LOG.trace("Has field of type: {}, object type: {}, field type: {}",
                 result, objectType, fieldType);
         return result;
     }

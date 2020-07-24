@@ -123,11 +123,13 @@ public class WebformConfiguration {
     @Bean public FormMemberBuilder<Object, Field, Object> newFormMemberBuilder(
             @Autowired PropertySearch propertySearch,
             @Autowired FormInputContext<Object, Field, Object> formInputContext,
+            @Autowired MultiChoiceContext<Object, Field> multiChoiceContext,
             @Autowired TypeFromNameResolver typeFromNameResolver) {
         
         return new FormMemberBuilderImpl(
                 propertySearch, 
                 formInputContext, 
+                multiChoiceContext,
                 this.referencedFormContext(typeFromNameResolver)
                 
         );

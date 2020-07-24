@@ -4,6 +4,7 @@ import com.bc.webform.form.member.FormMember;
 import com.bc.webform.form.member.FormMemberBean;
 import com.bc.webform.form.member.FormMemberBuilderForJpaEntity;
 import com.bc.webform.form.member.FormInputContext;
+import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
@@ -20,13 +21,14 @@ public class FormMemberBuilderImpl extends FormMemberBuilderForJpaEntity{
     public FormMemberBuilderImpl(
             PropertySearch propertySearch, 
             FormInputContext<Object, Field, Object> formInputContext,
+            MultiChoiceContext<Object, Field> multiChoiceContext,
             ReferencedFormContext referencedFormContext) {
+        
+        super(formInputContext, multiChoiceContext);
         
         this.propertySearch = Objects.requireNonNull(propertySearch);
         
         this.referencedFormContext(referencedFormContext);
-        
-        this.formInputContext(formInputContext);
     }
     
     @Override
