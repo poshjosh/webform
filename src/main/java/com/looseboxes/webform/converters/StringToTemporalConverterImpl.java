@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
 import java.util.Objects;
 import java.util.Set;
@@ -26,36 +27,91 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
     }
     
     private final DateAndTimePatternsSupplier patternSupplier;
-    private final Set<String> patterns;
+    private final Type type;
 
     public StringToTemporalConverterImpl(DateAndTimePatternsSupplier patternSupplier) {
-        this(patternSupplier, Type.ZONED_DATETIME);
+        this(patternSupplier, null);
     }
     
     private StringToTemporalConverterImpl(
             DateAndTimePatternsSupplier patternSupplier, Type type) {
         this.patternSupplier = Objects.requireNonNull(patternSupplier);
-        this.patterns = this.getPatterns(type);
+        this.type = type;
     }
 
     @Override
     public T convert(String from) {
-        for(String pattern : patterns) {
-            final T t = this.convert(from, pattern);
-            LOG.trace("Converted {} to {}", from, t);
-            return t;
+        final T converted;
+        if(type != null) {
+            converted = this.convert(from, type);
+        }else{
+            converted = this.convert(from, Type.values());
         }
-        throw new UnsupportedOperationException("Unable to convert: " + from +
-                " to a temporal type using any of: " + patterns);
+        LOG.trace("Converted {} to: {}", from, converted);
+        return converted;
+    }
+
+    private T convert(String text, Type[]types) throws DateTimeParseException{
+        T converted = null;
+        DateTimeParseException exception = null;
+        for(Type type : types) {
+            try{
+                converted = this.convert(text, type);
+                break;
+            }catch(DateTimeParseException e) {
+                if(exception == null) {
+                    exception = e;
+                }else{
+                    exception.addSuppressed(e);
+                }
+            }
+        }
+        if(converted == null && exception != null) {
+            throw exception;
+        }
+        return converted;
     }
     
-    public T convert(String text, String pattern) {
-        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
-        return this.convert(text, fmt);
+    private T convert(String text, Type type) throws DateTimeParseException{
+        T converted = null;
+        DateTimeParseException exception = null;
+        Set<String> patterns = this.getPatterns(type);
+        for(String pattern : patterns) {
+            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
+            try{
+                converted = this.convert(type, text, fmt);
+                break;
+            }catch(DateTimeParseException e) {
+                if(exception == null) {
+                    exception = e;
+                }else{
+                    exception.addSuppressed(e);
+                }
+            }
+        }
+        if(converted == null && exception != null) {
+            throw exception;
+        }
+        return converted;
     }
     
-    public T convert(String text, DateTimeFormatter fmt) {
-        return (T)ZonedDateTime.parse(text, fmt);
+    private T convert(Type type, String text, DateTimeFormatter fmt) {
+        Temporal result;
+        switch(type) {
+            case LOCAL_DATETIME: 
+                result = LocalDateTime.parse(text, fmt); break;
+            case ZONED_DATETIME: 
+                result = ZonedDateTime.parse(text, fmt); break;
+            case INSTANT: 
+                result = Instant.parse(text); break;
+            case LOCAL_DATE: 
+                result = LocalDate.parse(text, fmt); break;
+            case LOCAL_TIME: 
+                result = LocalTime.parse(text, fmt); break;
+            default: 
+                throw Errors.unexpectedElement(type, Type.values());
+        }        
+        return (T)result;
     }
 
     @Override
@@ -91,15 +147,16 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
             case INSTANT: 
                 patterns = patternSupplier.getDatetimePatterns();
                 break;
-                
+
             case LOCAL_DATE: 
                 patterns = patternSupplier.getDatePatterns(); 
                 break;
-            
+
             case LOCAL_TIME: 
                 patterns = patternSupplier.getTimePatterns(); 
                 break;
-            default: throw Errors.unexpected(type, (Object[])Type.values());
+            default: 
+                throw Errors.unexpectedElement(type, Type.values());
         }        
         LOG.trace("Type: {}, Patterns: {}", type,patterns);
         return patterns;
