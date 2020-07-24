@@ -1,5 +1,6 @@
 package com.looseboxes.webform.controllers;
 
+import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.services.FormService;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.WebRequest;
 import com.looseboxes.webform.events.WebformEventPublisher;
+import java.util.List;
 
 /**
  * @author hp
@@ -86,7 +88,7 @@ public class FormControllerBase<T>{
         return formConfig;
     } 
 
-    public Map<String, Map> onGetDependents(String formid, 
+    public Map<String, List<SelectOption>> onGetDependents(String formid, 
             String propertyName, String propertyValue,
             HttpServletRequest request) {
 
@@ -97,7 +99,7 @@ public class FormControllerBase<T>{
         
         this.publishStageBegunAndLog(formConfig, FormStage.DEPENDENTS, request);
 
-        final Map<String, Map> dependents = formService.dependents(
+        final Map<String, List<SelectOption>> dependents = formService.dependents(
                 formConfig, propertyName, propertyValue, request.getLocale());
         
         this.eventPublisher.publishFormStageCompletedEvent(formConfig);

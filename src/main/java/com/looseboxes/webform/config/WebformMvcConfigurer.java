@@ -75,12 +75,16 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     }
     
 //    @Bean 
-        ConversionService webformConversionService() {
+    public ConversionService webformConversionService() {
+        final DomainTypeConverter domainTypeConverter = this.domainTypeConverter();
         final DefaultFormattingConversionService wcs = new DefaultFormattingConversionService(){
             @Override
             protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
                 GenericConverter converter = super.getConverter(sourceType, targetType);
-                log.debug("Source: {}, target: {}, converter: {}", 
+                if(domainTypeConverter.isConvertible(sourceType.getType(), targetType.getType())) {
+                    converter = domainTypeConverter;
+                }
+                log.trace("Source: {}, target: {}, converter: {}", 
                         sourceType.getName(), targetType.getName(), converter);
                 return converter;
             }

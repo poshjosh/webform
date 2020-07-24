@@ -51,7 +51,7 @@ public class ModelObjectProvider{
             case delete: 
                 object = this.getModel(modelname, modelid); 
                 break;
-            default: throw Errors.unexpected(crudAction, (Object[])CRUDAction.values());
+            default: throw Errors.unexpectedElement(crudAction, CRUDAction.values());
         }
         return object;
     }

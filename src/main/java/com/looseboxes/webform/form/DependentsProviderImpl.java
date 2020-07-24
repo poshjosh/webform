@@ -2,6 +2,8 @@ package com.looseboxes.webform.form;
 
 import com.looseboxes.webform.repository.EntityRepository;
 import com.bc.webform.TypeTests;
+import com.bc.webform.choices.SelectOption;
+import com.bc.webform.choices.SelectOptionImpl;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
@@ -22,8 +24,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.convert.TypeDescriptor;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
+import java.util.ArrayList;
 import java.util.Locale;
-import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair;
+import java.util.Map.Entry;
 
 /**
  * @author hp
@@ -60,14 +63,14 @@ public class DependentsProviderImpl implements DependentsProvider {
      * @return The dependents for the field/property of the model object
      */
     @Override
-    public Map<String, Map> getChoicesForDependents(
+    public Map<String, List<SelectOption>> getChoicesForDependents(
             Object modelobject, String propertyName, 
             String propertyValue, Locale locale) {
     
         final Map<PropertyDescriptor, List> dependents = this.getDependents(
                 modelobject, propertyName, propertyValue);
         
-        final Map<String, Map> result;
+        final Map<String, List<SelectOption>> result;
         
         if(dependents == null || dependents.isEmpty()) {
             
@@ -75,25 +78,45 @@ public class DependentsProviderImpl implements DependentsProvider {
             
         }else{
             
-            result = new HashMap(dependents.size(), 1.0f);
+            if(dependents.size() == 1) {
 
-            dependents.forEach((propertyDescriptor, entityList) -> {
-                final Map choices = new HashMap(entityList.size(), 1.0f);
-                final Class entityType = propertyDescriptor.getPropertyType();
-                final EntityRepository repo = entityRepositoryProvider.forEntity(entityType);
-                for(Object entity : entityList) {
-                    final Object key = repo.getIdOptional(entity).orElse(null);
-                    Objects.requireNonNull(key);
-                    final Object val = domainObjectPrinter.print(entity, locale);
-                    Objects.requireNonNull(val);
-                    choices.put(key, val);
-                }
-                final String name = propertyDescriptor.getName();
-                result.put(name, choices);
-            });
+                Entry<PropertyDescriptor, List> entry = dependents.entrySet().iterator().next();
+                
+                final List<SelectOption> choices =
+                        getSelectOptions(entry.getKey(), entry.getValue(), locale);
+                
+                result = Collections.singletonMap(entry.getKey().getName(), choices);
+                
+            }else{
+            
+                final Map<String, List<SelectOption>> map = new HashMap(dependents.size(), 1.0f);
+                dependents.forEach((propertyDescriptor, entityList) -> {
+                    final List<SelectOption> choices = 
+                            getSelectOptions(propertyDescriptor, entityList, locale);
+                    final String name = propertyDescriptor.getName();
+                    map.put(name, choices);
+                });
+                
+                result = Collections.unmodifiableMap(map);
+            }
         }
         
         return result;
+    }
+    
+    public List<SelectOption> getSelectOptions(
+            PropertyDescriptor propertyDescriptor, List entityList, Locale locale) {
+        final List<SelectOption> options = new ArrayList(entityList.size());
+        final Class entityType = propertyDescriptor.getPropertyType();
+        final EntityRepository repo = entityRepositoryProvider.forEntity(entityType);
+        for(Object entity : entityList) {
+            final Object id = repo.getIdOptional(entity).orElse(null);
+            Objects.requireNonNull(id);
+            final String displayValue = domainObjectPrinter.print(entity, locale);
+            Objects.requireNonNull(displayValue);
+            options.add(new SelectOptionImpl(id, displayValue));
+        }
+        return options;
     }
     
     /**
@@ -214,8 +237,7 @@ public class DependentsProviderImpl implements DependentsProvider {
     }
     
     public boolean isDomainTypeConvertible(Class srcType, Class tgtType) {
-        return this.domainTypeConverter.getConvertibleTypes()
-                .contains(new ConvertiblePair(srcType, tgtType));
+        return this.domainTypeConverter.isConvertible(srcType, tgtType);
     }
     
     public Set<PropertyDescriptor> getDependentProperties(

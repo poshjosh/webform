@@ -1,5 +1,6 @@
 package com.looseboxes.webform.form;
 
+import com.bc.webform.choices.SelectOption;
 import java.beans.PropertyDescriptor;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +19,7 @@ public interface DependentsProvider {
      * @param locale The locale to use in printing the dependents
      * @return The dependents for the field/property of the model object
      */
-    Map<String, Map> getChoicesForDependents(
+    Map<String, List<SelectOption>> getChoicesForDependents(
             Object modelobject, String propertyName, 
             String propertyValue, Locale locale);
     

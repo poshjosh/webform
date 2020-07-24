@@ -27,16 +27,15 @@ public class DomainTypeToIdConverter implements Converter<Object, Object>{
         }else{
             
             final Class sourceType = source.getClass();
-            
-            if(repoFactory.isSupported(sourceType)) {
+
+            if(sourceType.isEnum()) {
+                update = ((Enum)source).ordinal();
+            }else if(repoFactory.isSupported(sourceType)) {
                 
                 final Object id = repoFactory.forEntity(sourceType)
                         .getIdOptional(source).orElse(null);
-                if(id != null) {
-                    update = id;
-                }else{
-                    update = null;
-                }
+                
+                update = id == null ? null : id;
             }else{
                 update = null;
             }

@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractWebformJpaConfiguration extends AbstractJpaConfiguration{
     
-    @Autowired private TypeTests typeTests;
     @Autowired private EntityMapperService entityMapperService;
     
     @Bean public ObjectGraphAsListBuilder objectGraphListBuilder() {
@@ -33,11 +32,12 @@ public abstract class AbstractWebformJpaConfiguration extends AbstractJpaConfigu
     }
     
     @Bean public SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny(
-            ModelObjectService modelObjectService) {
+            @Autowired TypeTests typeTests,
+            @Autowired ModelObjectService modelObjectService) {
         return new SaveEntityAndChildrenIfAny(
                 this.typeFromNameResolver(), 
                 this.entityRepositoryProvider(),
-                this.typeTests,
+                typeTests,
                 this.entityMapperService,
                 this.objectGraphListBuilder(),
                 modelObjectService
@@ -45,9 +45,9 @@ public abstract class AbstractWebformJpaConfiguration extends AbstractJpaConfigu
     }
     
     @Bean public FormSubmitHandler formSubmitHandler(
-            ModelObjectService modelObjectService) {
+            @Autowired SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny) {
         return new FormSubmitHandlerImpl(
-                this.saveEntityAndChildrenIfAny(modelObjectService),
+                saveEntityAndChildrenIfAny,
                 this.typeFromNameResolver(), 
                 this.entityRepositoryProvider()
         );

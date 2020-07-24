@@ -37,6 +37,12 @@ public class Errors {
                 ", but expected: " + Arrays.toString(expected));
     }
     
+    public static final <T> RuntimeException unexpectedElement(Object found, T[]expected) {
+        return new IllegalArgumentException(
+                "Unexpected " + found.getClass().getName() + ", found: " + found + 
+                ", but expected: " + Arrays.toString(expected));
+    }
+
     public static final RuntimeException unexpectedModelName(String expected, String found) {
         return new IllegalArgumentException("Model name, expected: " + expected + 
                 ", found: " + found + ". May be caused by filling multiple forms simultaenously");

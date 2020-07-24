@@ -62,7 +62,7 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
                 break;
                 
             default:
-                throw Errors.unexpected(crudAction, (Object[])CRUDAction.values());
+                throw Errors.unexpectedElement(crudAction, CRUDAction.values());
         }   
     }
     

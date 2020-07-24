@@ -1,5 +1,6 @@
 package com.looseboxes.webform.services;
 
+import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.web.BindingResultErrorCollector;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.web.FormConfig;
@@ -23,6 +24,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.context.request.WebRequest;
 import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.util.StringUtils;
+import java.util.List;
 
 /**
  * @author hp
@@ -117,12 +119,12 @@ public class FormService<T> {
         return formRequest;
     } 
 
-    public Map<String, Map> dependents(FormConfig formConfig,
+    public Map<String, List<SelectOption>> dependents(FormConfig formConfig,
             String propertyName, String propertyValue, Locale locale) {
 
         final Object modelobject = formConfig.getModelobject();
 
-        final Map<String, Map> result = this.dependentsProvider
+        final Map<String, List<SelectOption>> result = this.dependentsProvider
                 .getChoicesForDependents(modelobject, propertyName, propertyValue, locale);
 
         log.debug("{}#{} {} = {}", formConfig.getModelname(), 

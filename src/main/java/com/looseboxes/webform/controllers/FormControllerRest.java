@@ -1,5 +1,6 @@
 package com.looseboxes.webform.controllers;
 
+import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.web.FormConfigDTO;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.web.ResponseHandler;
+import java.util.List;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
@@ -105,7 +107,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             HttpServletRequest request, HttpServletResponse response) {
         try{
             
-            final Map<String, Map> result = super.onGetDependents(
+            final Map<String, List<SelectOption>> result = super.onGetDependents(
                     formid, propertyName, propertyValue, request);
             
             return ResponseEntity.ok(result);

@@ -32,7 +32,7 @@ public class HtmResponseHandler implements ResponseHandler<FormConfigDTO, String
             case BEGIN: result = formEndpoints.forCrudAction(formConfig.getCrudAction()); break;
             case VALIDATE: result = getTargetAfterValidate(formConfig.getBindingResult()); break;
             case SUBMIT: result = getTargetAfterSubmit(formConfig); break;
-            default: throw Errors.unexpected(formStage, (Object[])FormStage.values());
+            default: throw Errors.unexpectedElement(formStage, FormStage.values());
         }
         return result;
     }

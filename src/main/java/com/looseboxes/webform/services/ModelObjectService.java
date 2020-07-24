@@ -1,5 +1,6 @@
 package com.looseboxes.webform.services;
 
+import com.bc.webform.choices.SelectOption;
 import com.bc.webform.form.Form;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.Params;
@@ -17,7 +18,7 @@ import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -207,7 +208,7 @@ public class ModelObjectService{
         if(log.isDebugEnabled()) {
             final Function<FormMember, String> mapper = (ff) -> {
                 final Object value = ff.getValue();
-                final Map choices = ff.getChoices();
+                final List<SelectOption> choices = ff.getChoices();
                 return ff.getName() + '=' + 
                         (choices==null||choices.isEmpty() ? value : 
                         (String.valueOf(value) + ", " + choices.size() + " choice(s)"));

@@ -34,7 +34,7 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
         if(object == null) {
             output = "";
         }else if(object instanceof Enum){
-            output = ((Enum)object).name();
+            output = object.toString();
         }else{
             
             final Class type = object.getClass();

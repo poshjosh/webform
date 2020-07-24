@@ -31,7 +31,9 @@ public class DomainTypeToStringConverter implements Converter<Object, String> {
         if(source == null) {
             output = "";
         }else{
-            if(this.typeTests.isDomainType(source.getClass())) {
+            if(source instanceof Enum) {
+                output = source.toString();
+            }else if(this.typeTests.isDomainType(source.getClass())) {
                 output = this.printer.print(source, locale);
             }else{
                 output = source.toString();

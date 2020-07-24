@@ -1,5 +1,6 @@
 package com.looseboxes.webform.config;
 
+import com.bc.jpa.spring.DomainClasses;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.configurers.EntityConfigurerServiceImpl;
 import com.looseboxes.webform.store.EnvironmentStore;
@@ -20,7 +21,9 @@ import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.bc.webform.TypeTests;
 import com.bc.webform.TypeTestsImpl;
+import com.bc.webform.form.member.MultiChoiceContextForPojo;
 import com.looseboxes.webform.WebformDefaults;
+import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
@@ -31,7 +34,6 @@ import com.looseboxes.webform.form.DependentsProviderImpl;
 import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
-import com.looseboxes.webform.form.MultiChoiceContextImpl;
 import java.lang.reflect.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +55,11 @@ import com.looseboxes.webform.form.FormMemberUpdaterImpl;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.web.BindingResultErrorCollector;
 import com.looseboxes.webform.util.PropertySuffixes;
+import java.util.Locale;
+import java.util.function.BiFunction;
+import javax.persistence.EnumType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author hp
@@ -62,9 +69,10 @@ import com.looseboxes.webform.util.PropertySuffixes;
 @PropertySource("classpath:webform.properties")
 public class WebformConfiguration {
     
-//    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
+    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
     
     @Autowired private Environment environment;
+    @Autowired private ApplicationContext applicationContext;
     
     public WebformConfiguration() { }
     
@@ -94,47 +102,28 @@ public class WebformConfiguration {
     
     @Bean public FormBuilderProvider formBuilderProvider(
             @Autowired PropertySearch propertySearch,
-            @Autowired DateToStringConverter dateToStringConverter,
-            @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter,
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
+            @Autowired FormMemberBuilder<Object, Field, Object> formMemberBuilder) {
         
         // We need each call to return a new FormBuilder
         // builders may only be used once
-        return () -> this.newFormBuilder(propertySearch, dateToStringConverter, 
-                temporalToStringConverter, entityToIdConverter, typeFromNameResolver);
+        return () -> this.newFormBuilder(propertySearch, formMemberBuilder);
     }
 
-    public FormBuilder newFormBuilder(
+    public FormBuilder<Object, Field, Object> newFormBuilder(
             @Autowired PropertySearch propertySearch,
-            @Autowired DateToStringConverter dateToStringConverter,
-            @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter,
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
-        return new FormBuilderForJpaEntity()
+            @Autowired FormMemberBuilder<Object, Field, Object> formMemberBuilder) {
+
+        return new FormBuilderForJpaEntity(formMemberBuilder, this.typeTests())
                 .sourceFieldsProvider(this.formFieldTest(propertySearch))
-                .formMemberComparator(this.formMemberComparator(propertySearch))
-                .formMemberBuilder(
-                        this.newFormMemberBuilder(
-                                propertySearch, dateToStringConverter, 
-                                temporalToStringConverter, entityToIdConverter,
-                                typeFromNameResolver)
-                );
-                
+                .formMemberComparator(this.formMemberComparator(propertySearch));
     }
 
     // We need each call to return a new FormMemberBuilder
     // builders may only be used once
-    public FormMemberBuilder<Object, Field, Object> newFormMemberBuilder(
+    @Bean public FormMemberBuilder<Object, Field, Object> newFormMemberBuilder(
             @Autowired PropertySearch propertySearch,
-            @Autowired DateToStringConverter dateToStringConverter,
-            @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter entityToIdConverter,
+            @Autowired FormInputContext<Object, Field, Object> formInputContext,
             @Autowired TypeFromNameResolver typeFromNameResolver) {
-        
-        final FormInputContext<Object, Field, Object> formInputContext = 
-                formInputContext(propertySearch, dateToStringConverter, 
-                        temporalToStringConverter, entityToIdConverter);
         
         return new FormMemberBuilderImpl(
                 propertySearch, 
@@ -156,7 +145,7 @@ public class WebformConfiguration {
     }
 
     @Bean public FormMemberUpdater formMemberUpdater(
-            @Autowired FormInputContext formInputContext) {
+            @Autowired FormInputContext<Object, Field, Object> formInputContext) {
         return new FormMemberUpdaterImpl(formInputContext);
     }
     
@@ -164,7 +153,8 @@ public class WebformConfiguration {
             @Autowired PropertySearch propertySearch,
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter domainTypeToIdConverter) {
+            @Autowired DomainTypeToIdConverter domainTypeToIdConverter,
+            @Autowired DomainTypeConverter domainTypeConverter) {
         
         return new FormInputContextWithDefaultValuesFromProperties(
                 this.typeTests(),
@@ -172,7 +162,8 @@ public class WebformConfiguration {
                 this.propertyExpressionsResolver(),
                 dateToStringConverter,
                 temporalToStringConverter,
-                domainTypeToIdConverter);
+                domainTypeToIdConverter,
+                domainTypeConverter);
     }
 
     @Bean public TextExpressionResolver propertyExpressionsResolver() {
@@ -187,9 +178,17 @@ public class WebformConfiguration {
     
     @Bean public MultiChoiceContext<Object, Field> multiChoiceContext(
             @Autowired DomainObjectPrinter printer) {
-        return new MultiChoiceContextImpl(
+        
+        final String enumTypeString = environment.getProperty(WebformProperties.ENUM_TYPE);
+        log.debug("Enum type: {}", enumTypeString);
+        final EnumType enumType = EnumType.valueOf(enumTypeString.toUpperCase(Locale.ENGLISH));
+        
+        final BiFunction<Enum, Locale, Object> format = (en, loc) -> printer.print(en, loc);
+        
+        return new MultiChoiceContextForPojo(
                 this.typeTests(),
-                printer,
+                enumType,
+                format,
                 WebformDefaults.LOCALE
         );
     }
@@ -218,7 +217,8 @@ public class WebformConfiguration {
     }
     
     @Bean public TypeTests typeTests() {
-        return new TypeTestsImpl();
+        final DomainClasses domainClasses = (applicationContext.getBean(DomainClasses.class));
+        return new TypeTestsImpl().withDomainTest(domainClasses);
     }
     
     @Bean public PropertySearch propertySearch(

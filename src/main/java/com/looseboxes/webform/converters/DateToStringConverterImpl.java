@@ -69,7 +69,7 @@ public class DateToStringConverterImpl implements DateToStringConverter {
             case DATE: patterns = patternSupplier.getDatePatterns(); break;
             case TIME: patterns = patternSupplier.getTimePatterns(); break;
             case DATETIME: patterns = patternSupplier.getDatetimePatterns(); break;
-            default: throw Errors.unexpected(type, (Object[])Type.values());
+            default: throw Errors.unexpectedElement(type, Type.values());
         }        
         LOG.trace("Type: {}, Patterns: {}", type,patterns);
         return patterns;

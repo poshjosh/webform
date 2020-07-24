@@ -61,7 +61,7 @@ public class RestResponseHandler implements ResponseHandler<FormConfigDTO, Respo
                     result = ResponseEntity.noContent().build();
                     break;
                 default:
-                    throw Errors.unexpected(action, (Object[])CRUDAction.values());
+                    throw Errors.unexpectedElement(action, CRUDAction.values());
             }
         }
         

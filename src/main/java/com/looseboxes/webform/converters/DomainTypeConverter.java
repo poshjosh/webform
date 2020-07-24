@@ -29,6 +29,7 @@ public class DomainTypeConverter implements GenericConverter{
             Converter<Object, String> domainTypeToStringConverter,
             IdToDomainTypeConverterFactory idToDomainTypeConverterFactory) {
         this.supportedTypes = Collections.unmodifiableSet(supportedTypes);
+        LOG.debug("Supported types: {}", supportedTypes);
         this.convertibleTypes = Collections
                 .unmodifiableSet(this.toConvertiblePairs(supportedTypes));
         this.domainTypeToStringConverter = Objects.requireNonNull(domainTypeToStringConverter);
@@ -73,5 +74,33 @@ public class DomainTypeConverter implements GenericConverter{
             LOG.warn("Unexpected exception", e);
             throw e;
         }
+    }
+
+    
+    public boolean isConvertible(Class srcType, Class tgtType) {
+// DIDN'T WORK        
+//        ConvertiblePair cp = new ConvertiblePair(srcType, tgtType);
+//        final boolean supported = this.convertibleTypes.contains(cp);
+//        LOG.debug("Supported: {}, candidate: {}, collection: {}",
+//                supported, cp, this.convertibleTypes);
+// DIDN'T WORK
+//        final boolean supported = 
+//                (supportedTypes.contains(srcType) && String.class.equals(tgtType))
+//                || (supportedTypes.contains(tgtType) && String.class.equals(srcType));
+        final boolean supported = 
+                (containsName(srcType.getName()) && String.class.equals(tgtType))
+                || (containsName(tgtType.getName()) && String.class.equals(srcType));
+            LOG.trace("Supported: {}. {} -> {}", supported, srcType.getName(), tgtType.getName());
+        return supported;
+    }
+    
+    private boolean containsName(String typeName) {
+        for(Class cls : supportedTypes) {
+            if(cls.getName().equals(typeName)) {
+                return true;
+            }
+        }
+        return false;
+//        return supportedTypes.stream().filter((cls) -> cls.getName().equals(typeName)).findAny().isPresent();
     }
 }
