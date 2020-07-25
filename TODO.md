@@ -1,24 +1,24 @@
-- Remove deprecated method com.looseboxes.webform.web.WebRequest#getModelMap()
+__FormMember dependents should be updated when the value of the FormMember is changed__
 
-  Read the comments on the method and refactor to code to remove them method.
-  Basically ModelMap should be accessed via AttributeStores.
+Where there are chained dependents for example:
 
-- Cater for returning messages from api on success
+```
+model -> brand -> product_subcategory -> product_category
+```
 
-  Currently, messages can only be returned from the api on error.
+Given a form with say Product form will all the above fields. 
+When a product_category is selected, product_subcategory field is populated with values.
+When a product_subcategory is selected, brand field is populated with values.
+When a brand is selected, model field is populated with values.
 
-  On success, the response body is a FormConfig object
-  To return messages on success, we may have to use a ResponseBody object for both
-  success and error messages.
-  ResponseBody{
-      boolean error;
-      String messages;
-  }
+When the earlier selected product_category is changed, the selections for 
+product_subcategory, brand and model still remain even though now out of context.
 
-  Remember it is response body so do not duplicate info in response like 
-  http status code and message.
+__Clear all related selection each time a field with dependents if clicked__
 
-  Also check HTTP specifications/standards if we could rather use headers or 
-  other means to send messages.
+- It could be on return from the dependents call to the api
 
+- A dependents graph could be built, e.g:
 
+When product_subcategory is populated for product_category -> `category.subcategory`
+When brand is populated for product_subcategory -> `category.subcategory.brand`
