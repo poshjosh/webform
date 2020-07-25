@@ -34,6 +34,7 @@ public final class FormParamsUtil {
         for(String name : names) {
             final Object value = getParameter(request, name);
             if(value != null) {
+//                LOG.trace("Setting: {} to {}", name, value);
                 formConfig.setIfAbsent(name, value);
             }
         }
@@ -57,11 +58,14 @@ public final class FormParamsUtil {
     private static Object getParameter(HttpServletRequest request, String name) {
         final Object value;
         if(Params.isMultiValue(name)) {
-            value = request.getParameterValues(name);
+            final String [] values = request.getParameterValues(name);
+            value = values;
+//            LOG.trace("HttpServletRequest parameter: {} = {}", 
+//                    name, (values==null?null:Arrays.toString(values)));
         }else{
             value = getSingleParameterOrNull(request, name);
+//            LOG.trace("HttpServletRequest parameter: {} = {}", name, value);
         }
-        LOG.trace("HttpServletRequest parameter: {} = {}", name, value);
         return value;
     }
     

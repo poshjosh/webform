@@ -114,6 +114,7 @@ public class DependentsProviderImpl implements DependentsProvider {
             Objects.requireNonNull(id);
             final String displayValue = domainObjectPrinter.print(entity, locale);
             Objects.requireNonNull(displayValue);
+            LOG.trace("Select option. {} = {} for {}", displayValue, id, entity);
             options.add(new SelectOptionImpl(id, displayValue));
         }
         return options;
@@ -193,8 +194,10 @@ public class DependentsProviderImpl implements DependentsProvider {
         
         final TypeDescriptor propertyType = beanWrapper.getPropertyTypeDescriptor(propertyName);
         
+        final Class modeltype = modelobject.getClass();
+        
         final Set<PropertyDescriptor> dependentTypes = this.getDependentProperties(
-                modelobject.getClass(), beanProperties, propertyType, propertyName);
+                modeltype, beanProperties, propertyType, propertyName);
         
         if( ! dependentTypes.isEmpty()) {
         
@@ -215,6 +218,11 @@ public class DependentsProviderImpl implements DependentsProvider {
             for(PropertyDescriptor dependentProperty : dependentTypes) {
 
                 final Class dependentType = dependentProperty.getPropertyType();
+                
+                if(modeltype.getName().equals(dependentType.getName())) {
+                    // Here is a self Reference e.g Product.isRelatedTo (of type Product)
+                    continue;
+                }
 
                 final EntityRepository repo = this.entityRepositoryProvider.forEntity(dependentType);
 

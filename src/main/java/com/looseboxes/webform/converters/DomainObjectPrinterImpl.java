@@ -27,7 +27,7 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
     @Override
     public String print(Object object, Locale locale) {
         
-        LOG.trace("Converting {} to java.lang.String");
+        LOG.trace("Converting {} to java.lang.String for locale {}", object, locale);
         
         String output = null;
         
@@ -41,6 +41,9 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
 
             final List<String> defaultFieldNames = propertyAccess
                     .findAll(WebformProperties.DEFAULT_FIELDS, type);
+            
+            LOG.trace("Default field names to display: {}, for type: {}", 
+                    defaultFieldNames, type.getName());
 
             final BeanWrapper bean = PropertyAccessorFactory.forBeanPropertyAccess(object);
 
@@ -51,6 +54,7 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
                 }
 
                 final Object value = bean.getPropertyValue(fieldName);
+                LOG.trace("Found {} = {} for {}", fieldName, value, object);
                 if(value != null) {
                     output = value.toString();
                     break;
