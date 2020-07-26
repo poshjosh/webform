@@ -16,7 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.WebRequest;
 import com.looseboxes.webform.events.WebformEventPublisher;
+import com.looseboxes.webform.services.ModelObjectService;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpSession;
 
 /**
  * @author hp
@@ -177,8 +182,15 @@ public class FormControllerBase<T>{
     protected void log(FormStage formStage, FormRequest formRequest, HttpServletRequest request){
         if(Print.isTraceEnabled()) {
             new Print().trace(formStage, formRequest.getFormConfig(), request);
-        }else{
-            log.debug("Session id: {}\n{}", request.getSession().getId(), formRequest.getFormConfig());
+        }else if(log.isDebugEnabled()){
+            HttpSession session = request.getSession();
+            final Enumeration<String> en = session.getAttributeNames();
+            final String formAttributeNames = Collections.list(en).stream()
+                    .filter((name) -> name.startsWith(ModelObjectService.FORM_ID_PREFIX))
+//                    .map((name) -> session.getAttribute(name))
+                    .collect(Collectors.joining(", "));
+            log.debug("Session id: {}, form attribute names: {}", session.getId(), formAttributeNames);
+            log.debug("{}", formRequest.getFormConfig());
         }
     }
 
