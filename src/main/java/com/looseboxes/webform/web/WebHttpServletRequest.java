@@ -4,6 +4,7 @@ import com.looseboxes.webform.services.AttributeService;
 import com.looseboxes.webform.store.StoreDelegate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,11 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
             this.multiValueFiles = Collections.EMPTY_MAP;
         }
         this.attributeService = attributeService.wrap(new StoreDelegate(null, request));
+    }
+
+    @Override
+    public Locale getLocale() {
+        return this.httpServletRequest.getLocale();
     }
 
     @Override

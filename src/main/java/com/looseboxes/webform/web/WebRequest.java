@@ -3,6 +3,7 @@ package com.looseboxes.webform.web;
 import com.looseboxes.webform.services.AttributeService;
 import com.looseboxes.webform.store.AttributeStore;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -37,6 +38,8 @@ public interface WebRequest<T> {
     boolean hasFiles();
     
     Map<String, MultipartFile> getFiles();
+    
+    Locale getLocale();
     
     Map<String, List<MultipartFile>> getMultiValueFiles();
 }
