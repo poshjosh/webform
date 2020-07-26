@@ -1,6 +1,6 @@
 package com.looseboxes.webform.events;
 
-import com.looseboxes.webform.web.FormConfigDTO;
+import com.looseboxes.webform.web.FormRequest;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -8,15 +8,15 @@ import org.springframework.context.ApplicationEvent;
  */
 public class FormStageCompletedEvent extends ApplicationEvent{
     
-    private final FormConfigDTO formConfig;
+    private final FormRequest formRequest;
 
-    public FormStageCompletedEvent(Object source, FormConfigDTO formConfig) {
+    public FormStageCompletedEvent(Object source, FormRequest formRequest) {
         super(source);
-        this.formConfig = formConfig;
+        this.formRequest = formRequest;
     }
 
-    public FormConfigDTO getFormConfig() {
-        return formConfig;
+    public FormRequest getFormRequest() {
+        return formRequest;
     }
 }
 

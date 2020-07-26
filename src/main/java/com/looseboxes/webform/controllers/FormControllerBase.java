@@ -5,7 +5,6 @@ import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.services.FormService;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
 import com.looseboxes.webform.services.FormAttributeService;
-import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.util.Print;
 import com.looseboxes.webform.web.FormRequest;
@@ -37,13 +36,13 @@ public class FormControllerBase<T>{
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
-        this.publishStageBegunAndLog(formConfig, FormStage.BEGIN, request);
-        
         final FormRequest formRequest = this.getFormRequest(formConfig, request);
+        
+        this.publishStageBegunAndLog(formRequest, FormStage.BEGIN, request);
         
         formConfig = this.formService.onBeginForm(formRequest).getFormConfig();
         
-        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
+        this.eventPublisher.publishFormStageCompletedEvent(formRequest);
 
         return formConfig;
     }
@@ -61,13 +60,13 @@ public class FormControllerBase<T>{
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
 
-        this.publishStageBegunAndLog(formConfig, FormStage.VALIDATE, request);
-        
         FormRequest formRequest = this.getFormRequest(formConfig, request);
+        
+        this.publishStageBegunAndLog(formRequest, FormStage.VALIDATE, request);
         
         formConfig = this.formService.onValidateForm(formRequest, webRequest).getFormConfig();
         
-        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
+        this.eventPublisher.publishFormStageCompletedEvent(formRequest);
         
         return formConfig;
     }    
@@ -77,13 +76,13 @@ public class FormControllerBase<T>{
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
-        this.publishStageBegunAndLog(formConfig, FormStage.SUBMIT, request);
-        
         final FormRequest formRequest = this.getFormRequest(formConfig, request);
+        
+        this.publishStageBegunAndLog(formRequest, FormStage.SUBMIT, request);
         
         formConfig = this.formService.onSubmitForm(formRequest).getFormConfig();
         
-        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
+        this.eventPublisher.publishFormStageCompletedEvent(formRequest);
         
         return formConfig;
     } 
@@ -97,12 +96,8 @@ public class FormControllerBase<T>{
 
         final FormConfigDTO formConfig = this.findFormConfig(request, formid);
         
-        this.publishStageBegunAndLog(formConfig, FormStage.DEPENDENTS, request);
-
         final Map<String, List<SelectOption>> dependents = formService.dependents(
                 formConfig, propertyName, propertyValue, request.getLocale());
-        
-        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
         
         return dependents;
     }
@@ -116,23 +111,20 @@ public class FormControllerBase<T>{
 
         FormConfigDTO formConfig = this.findFormConfig(request, formid);
         
-        this.publishStageBegunAndLog(formConfig, FormStage.VALIDATE_SINGLE, request);
-        
         this.formService.validateSingle(formConfig, propertyName, propertyValue);
-        
-        this.eventPublisher.publishFormStageCompletedEvent(formConfig);
 
         return formConfig;
     }
     
-    protected void publishStageBegunAndLog(FormConfigDTO formConfig, 
+    protected void publishStageBegunAndLog(
+            FormRequest formRequest, 
             FormStage stage, HttpServletRequest request) {
         
-        formConfig.setFormStage(stage);
+        formRequest.getFormConfig().setFormStage(stage);
     
-        this.eventPublisher.publishFormStageBegunEvent(formConfig, stage);
+        this.eventPublisher.publishFormStageBegunEvent(formRequest, stage);
 
-        this.log(stage, formConfig, request);
+        this.log(stage, formRequest, request);
     }
     
     /**
@@ -182,11 +174,11 @@ public class FormControllerBase<T>{
         return formRequest;
     }
     
-    protected void log(FormStage formStage, FormConfig formConfig, HttpServletRequest request){
+    protected void log(FormStage formStage, FormRequest formRequest, HttpServletRequest request){
         if(Print.isTraceEnabled()) {
-            new Print().trace(formStage, formConfig, request);
+            new Print().trace(formStage, formRequest.getFormConfig(), request);
         }else{
-            log.debug("Session id: {}\n{}", request.getSession().getId(), formConfig);
+            log.debug("Session id: {}\n{}", request.getSession().getId(), formRequest.getFormConfig());
         }
     }
 
