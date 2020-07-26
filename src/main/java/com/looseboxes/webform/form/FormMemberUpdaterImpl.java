@@ -4,11 +4,13 @@ import com.bc.webform.choices.SelectOption;
 import com.bc.webform.form.Form;
 import com.bc.webform.form.member.FormMember;
 import com.bc.webform.form.member.FormInputContext;
+import com.bc.webform.form.member.FormMemberBean;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import com.looseboxes.webform.web.FormConfigDTO;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,22 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
     public FormMemberUpdaterImpl(
             FormInputContext<Object, Field, Object> formInputContext) {
         this.formInputContext = Objects.requireNonNull(formInputContext);
+    }
+
+    @Override
+    public FormConfigDTO update(
+            FormConfigDTO formConfig, String memberName, 
+            UnaryOperator<FormMemberBean> updater) throws FormMemberNotFoundException{
+        
+        final FormMember formMember = this.getFormMember(formConfig, memberName);
+        
+        final FormMember formMemberUpdate = updater.apply(formMember.writableCopy());
+        
+        this.replaceFormMember(formConfig, formMemberUpdate);
+        
+        LOG.debug("After updating value in form member and data source\n{}", formConfig);
+        
+        return formConfig;
     }
     
     @Override
@@ -59,7 +77,8 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         
         final FormMember formMember = this.getFormMember(formConfig, memberName);
 
-        final FormMember formMemberUpdate = formMember.writableCopy().choices(choices);
+        final FormMember formMemberUpdate = formMember.writableCopy()
+                .choices(choices).multiChoice(true);
         
         LOG.debug("Updated {}#{} choices to {}", formConfig.getForm().getName(), memberName, choices);
 
