@@ -5,8 +5,10 @@
  */
 package com.looseboxes.webform.form;
 
+import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import com.looseboxes.webform.web.FormConfigDTO;
+import java.util.List;
 
 /**
  *
@@ -14,6 +16,10 @@ import com.looseboxes.webform.web.FormConfigDTO;
  */
 public interface FormMemberUpdater {
 
-    FormConfigDTO update(FormConfigDTO formConfig, String memberName, Object memberValue) 
+    FormConfigDTO setValue(FormConfigDTO formConfig, String memberName, Object memberValue) 
+            throws FormMemberNotFoundException;
+    
+    FormConfigDTO setChoices(
+            FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
             throws FormMemberNotFoundException;
 }

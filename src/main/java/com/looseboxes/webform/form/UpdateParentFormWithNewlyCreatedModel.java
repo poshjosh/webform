@@ -94,7 +94,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
         
         final FormMember parentMember = getParentMemberCorrespondingToForm(parent, form);
         
-        final FormConfigDTO parentFormConfigUpdate = this.formMemberUpdater.update(
+        final FormConfigDTO parentFormConfigUpdate = this.formMemberUpdater.setValue(
                 parentFormConfig, parentMember.getName(), formConfig.getModelobject());
         
         return parentFormConfigUpdate;
