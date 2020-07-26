@@ -25,30 +25,13 @@ public class ReferencedFormContextImpl implements ReferencedFormContext<Object, 
     }
 
     @Override
-    public boolean isReferencedType(Object formDataSource, Field dataSourceField) {
-        final Class fieldType = dataSourceField.getType();
+    public boolean isReferencedType(Form<Object> form, Field field) {
+        final Class fieldType = field.getType();
         return ! typeTests.isEnumType(fieldType) && typeTests.isDomainType(fieldType);
     }
 
     @Override
-    public Optional<Form> createReferencedForm(
-            Form form, Object formDataSource, Field dataSourceField) {
-//        FormBuilder<Object, Field, Object> b;
-//        final Form<Object> refForm = b.applyDefaults(dataSourceField.getName())
-//                .dataSource(dataSourceField.getDeclaringClass().newInstance())
-//                .formMemberBuilder(formFieldBuilder)
-//                .formMemberComparator(comparator)
-//                .formMemberTest(test)
-//                .id(id)
-//                .parent(form)
-//                .sourceFieldsProvider(sourceFieldsProvider)
-//                .build();
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<String> getReferencedFormHref(
-            Form form, Object formDataSource, Field field) {
+    public Optional<String> getReferencedFormHref(Form<Object> form, Field field) {
         final String name = this.typeFromNameResolver.getName(field.getType());
         final StringBuilder b = new StringBuilder()
                 .append('/').append(CRUDAction.create)
