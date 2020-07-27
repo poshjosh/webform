@@ -34,10 +34,10 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         
         @Override
         public FormMemberBean apply(FormMemberBean formMember) {
-            
-            final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
 
             final Object modelobject = Objects.requireNonNull(formMember.getForm().getDataSource());
+            
+            final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
             
             this.formInputContext.setValue(modelobject, field, value);
 
@@ -96,13 +96,13 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
             FormConfigDTO formConfig, String memberName, 
             UnaryOperator<FormMemberBean> updater) throws FormMemberNotFoundException{
         
+        LOG.debug("Before: {}", formConfig.getForm());
+        
         final FormMember formMember = this.getFormMember(formConfig, memberName);
         
         final FormMember formMemberUpdate = updater.apply(formMember.writableCopy());
         
         this.replaceFormMember(formConfig, formMemberUpdate);
-        
-        LOG.debug("Before: {}", formConfig.getForm());
         
         final Form form = formFactory.newForm(
                 formConfig.getForm().getParent(), 
