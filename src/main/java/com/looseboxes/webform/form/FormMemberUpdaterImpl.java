@@ -21,11 +21,74 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
     
     private static final Logger LOG = LoggerFactory.getLogger(FormMemberUpdaterImpl.class);
     
+    private static final class SetValue implements UnaryOperator<FormMemberBean>{
+
+        private final FormInputContext<Object, Field, Object> formInputContext;
+        
+        private final Object value;
+
+        public SetValue(FormInputContext<Object, Field, Object> formInputContext, Object value) {
+            this.formInputContext = Objects.requireNonNull(formInputContext);
+            this.value = value;
+        }
+        
+        @Override
+        public FormMemberBean apply(FormMemberBean formMember) {
+            
+            final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
+
+            final Object modelobject = Objects.requireNonNull(formMember.getForm().getDataSource());
+            
+            this.formInputContext.setValue(modelobject, field, value);
+
+            return formMember.value(value);
+        }
+    }
+
+    private static final class SetChoices implements UnaryOperator<FormMemberBean>{
+        
+        private final List<SelectOption> choices;
+
+        public SetChoices(List<SelectOption> choices) {
+            this.choices = choices;
+        }
+        
+        @Override
+        public FormMemberBean apply(FormMemberBean formMember) {
+            return formMember.choices(choices);
+        }
+    }
+    
     private final FormInputContext<Object, Field, Object> formInputContext;
+    
+    private final FormFactory formFactory;
 
     public FormMemberUpdaterImpl(
-            FormInputContext<Object, Field, Object> formInputContext) {
+            FormInputContext<Object, Field, Object> formInputContext,
+            FormFactory formFactory) {
         this.formInputContext = Objects.requireNonNull(formInputContext);
+        this.formFactory = Objects.requireNonNull(formFactory);
+    }
+
+    @Override
+    public FormConfigDTO setValue(
+            FormConfigDTO formConfig, String memberName, Object memberValue) 
+            throws FormMemberNotFoundException{
+        
+        final UnaryOperator<FormMemberBean> updater = 
+                new SetValue(this.formInputContext, memberValue);
+        
+        return this.update(formConfig, memberName, updater);
+    }
+    
+    @Override
+    public FormConfigDTO setChoices(
+            FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
+            throws FormMemberNotFoundException{
+
+        final UnaryOperator<FormMemberBean> updater = new SetChoices(choices);
+        
+        return this.update(formConfig, memberName, updater);
     }
 
     @Override
@@ -39,52 +102,17 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         
         this.replaceFormMember(formConfig, formMemberUpdate);
         
-        LOG.debug("After updating value in form member and data source\n{}", formConfig);
+        LOG.debug("Before: {}", formConfig.getForm());
         
-        return formConfig;
-    }
-    
-    @Override
-    public FormConfigDTO setValue(
-            FormConfigDTO formConfig, String memberName, Object memberValue) 
-            throws FormMemberNotFoundException{
-        
-        final Object modelobject = this.checkFormConfig(formConfig);
-        
-        final FormMember formMember = this.getFormMember(formConfig, memberName);
+        final Form form = formFactory.newForm(
+                formConfig.getForm().getParent(), 
+                formConfig.getForm().getId(), 
+                formConfig.getModelname(), 
+                formConfig.getModelobject());
 
-        final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
+        formConfig.setForm(form);
         
-        this.formInputContext.setValue(modelobject, field, memberValue);
-        
-        LOG.debug("Updated {}#{} to {}", formConfig.getForm().getName(), memberName, memberValue);
-        
-        final FormMember formMemberUpdate = formMember.writableCopy().value(memberValue);
-        
-        this.replaceFormMember(formConfig, formMemberUpdate);
-        
-        LOG.debug("After updating value in form member and data source\n{}", formConfig);
-        
-        return formConfig;
-    }
-
-    @Override
-    public FormConfigDTO setChoices(
-            FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
-            throws FormMemberNotFoundException{
-
-        this.checkFormConfig(formConfig);
-        
-        final FormMember formMember = this.getFormMember(formConfig, memberName);
-
-        final FormMember formMemberUpdate = formMember.writableCopy()
-                .choices(choices).multiChoice(true);
-        
-        LOG.debug("Updated {}#{} choices to {}", formConfig.getForm().getName(), memberName, choices);
-
-        this.replaceFormMember(formConfig, formMemberUpdate);
-        
-        LOG.debug("After updating form member choices\n{}", formConfig);
+        LOG.debug(" After: {}", formConfig.getForm());
         
         return formConfig;
     }
