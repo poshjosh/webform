@@ -1,8 +1,6 @@
 package com.looseboxes.webform.services;
 
-import com.bc.webform.choices.SelectOption;
 import com.bc.webform.form.Form;
-import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
@@ -14,14 +12,10 @@ import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.web.FormConfigDTO;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
-import com.looseboxes.webform.form.FormBuilderProvider;
+import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.validation.ValidationException;
 
 /**
@@ -35,7 +29,7 @@ public class ModelObjectService{
     public static final String FORM_ID_PREFIX = "form";
     
     @Autowired private ModelObjectProvider modelObjectProvider;
-    @Autowired private FormBuilderProvider formBuilderProvider;
+    @Autowired private FormFactory formFactory;
     @Autowired private EntityConfigurerService entityConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
 
@@ -161,7 +155,7 @@ public class ModelObjectService{
             modelobject = (T)existingFormConfig.getModelobject();
         }
 
-        final Form form = this.newForm(parentForm, formid, modelname, modelobject);
+        final Form form = formFactory.newForm(parentForm, formid, modelname, modelobject);
 
         if(existingFormConfig == null) {
             
@@ -204,37 +198,5 @@ public class ModelObjectService{
      */
     public String generateFormId() {
         return FORM_ID_PREFIX + Long.toHexString(System.currentTimeMillis());
-    }
-
-    public <T> Form<T> newForm(Form<T> parentForm, String id, String name, T domainObject) {
-        Objects.requireNonNull(id);
-        Objects.requireNonNull(name);
-        Objects.requireNonNull(domainObject);
-        final Form form = this.formBuilderProvider.get()
-                .applyDefaults(name)
-                .id(id)
-                .parent(parentForm)
-                .dataSource(domainObject)
-                .build();
-
-        this.logFormFields(form);
-
-        return (Form<T>)form;
-    }
-    
-    private void logFormFields(Form form) {
-        if(log.isDebugEnabled()) {
-            final Function<FormMember, String> mapper = (ff) -> {
-                final Object value = ff.getValue();
-                final List<SelectOption> choices = ff.getChoices();
-                return ff.getName() + '=' + 
-                        (choices==null||choices.isEmpty() ? value : 
-                        (String.valueOf(value) + ", " + choices.size() + " choice(s)"));
-            };
-            log.debug("Form fields:{}", 
-                    form.getMembers().stream()
-                            .map(mapper)
-                            .collect(Collectors.joining(", ")));
-        }
     }
 }

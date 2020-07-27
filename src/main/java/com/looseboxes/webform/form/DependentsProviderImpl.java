@@ -3,7 +3,6 @@ package com.looseboxes.webform.form;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.bc.webform.TypeTests;
 import com.bc.webform.choices.SelectOption;
-import com.bc.webform.choices.SelectOptionImpl;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DomainObjectPrinter;
@@ -39,19 +38,20 @@ public class DependentsProviderImpl implements DependentsProvider {
     private final EntityRepositoryProvider entityRepositoryProvider;
     private final TypeTests typeTests;
     private final DomainTypeConverter domainTypeConverter;
-    private final DomainObjectPrinter domainObjectPrinter;
+    private final EntityToSelectOptionConverter entityToSelectOptionConverter;
 
     public DependentsProviderImpl(
             PropertySearch propertySearch, 
             EntityRepositoryProvider entityRepositoryProvider, 
             TypeTests typeTests,
             DomainTypeConverter domainTypeConverter,
-            DomainObjectPrinter domainObjectPrinter) {
+            DomainObjectPrinter domainObjectPrinter,
+            EntityToSelectOptionConverter entityToSelectOptionConverter) {
         this.propertySearch = Objects.requireNonNull(propertySearch);
         this.entityRepositoryProvider = Objects.requireNonNull(entityRepositoryProvider);
         this.typeTests = Objects.requireNonNull(typeTests);
         this.domainTypeConverter = Objects.requireNonNull(domainTypeConverter);
-        this.domainObjectPrinter = Objects.requireNonNull(domainObjectPrinter);
+        this.entityToSelectOptionConverter = Objects.requireNonNull(entityToSelectOptionConverter);
     }
 
     /**
@@ -107,15 +107,9 @@ public class DependentsProviderImpl implements DependentsProvider {
     public List<SelectOption> getSelectOptions(
             PropertyDescriptor propertyDescriptor, List entityList, Locale locale) {
         final List<SelectOption> options = new ArrayList(entityList.size());
-        final Class entityType = propertyDescriptor.getPropertyType();
-        final EntityRepository repo = entityRepositoryProvider.forEntity(entityType);
         for(Object entity : entityList) {
-            final Object id = repo.getIdOptional(entity).orElse(null);
-            Objects.requireNonNull(id);
-            final String displayValue = domainObjectPrinter.print(entity, locale);
-            Objects.requireNonNull(displayValue);
-            LOG.trace("Select option. {} = {} for {}", displayValue, id, entity);
-            options.add(new SelectOptionImpl(id, displayValue));
+            final SelectOption option = entityToSelectOptionConverter.apply(entity, locale);
+            options.add(option);
         }
         return options;
     }

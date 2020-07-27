@@ -53,9 +53,10 @@ public class DomainObjectPrinterImpl implements DomainObjectPrinter{
                     continue;
                 }
 
-                final Object value = bean.getPropertyValue(fieldName);
-                LOG.trace("Found {} = {} for {}", fieldName, value, object);
+                final Object value = ! bean.isReadableProperty(fieldName) ? 
+                        null :  bean.getPropertyValue(fieldName);
                 if(value != null) {
+                    LOG.trace("Found {} = {} for {}", fieldName, value, object);
                     output = value.toString();
                     break;
                 }

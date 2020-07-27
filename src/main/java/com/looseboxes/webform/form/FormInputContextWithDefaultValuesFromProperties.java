@@ -5,6 +5,7 @@ import com.bc.webform.TypeTests;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DateToStringConverter;
+import com.looseboxes.webform.converters.DomainObjectPrinter;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import com.looseboxes.webform.util.TextExpressionResolver;
+import java.util.Locale;
 import org.springframework.core.convert.TypeDescriptor;
 
 /**
@@ -34,6 +36,7 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
     private final TemporalToStringConverter temporalToStringConverter;
     private final DomainTypeToIdConverter domainTypeToIdConverter;
     private final DomainTypeConverter domainTypeConverter;
+    private final EntityToSelectOptionConverter entityToSelectOptionConverter;
 
     public FormInputContextWithDefaultValuesFromProperties(
             TypeTests typeTests,
@@ -42,7 +45,9 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
             DateToStringConverter dateToStringConverter, 
             TemporalToStringConverter temporalToStringConverter,
             DomainTypeToIdConverter entityToIdConverter,
-            DomainTypeConverter domainTypeConverter) {
+            DomainTypeConverter domainTypeConverter,
+            DomainObjectPrinter domainObjectPrinter,
+            EntityToSelectOptionConverter entityToSelectOptionConverter) {
         super(propertySearch);
         this.typeTests = Objects.requireNonNull(typeTests);
         this.propertyExpressionResolver = Objects.requireNonNull(propertyExpressionResolver);
@@ -50,6 +55,7 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
         this.temporalToStringConverter = Objects.requireNonNull(temporalToStringConverter);
         this.domainTypeToIdConverter = Objects.requireNonNull(entityToIdConverter);
         this.domainTypeConverter = Objects.requireNonNull(domainTypeConverter);
+        this.entityToSelectOptionConverter = Objects.requireNonNull(entityToSelectOptionConverter);
     }
     
     @Override
@@ -123,11 +129,12 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
     
     public Object format(Object source, Field field, Object fieldValue) {
         
-        final Object result;
+        Object result;
         
         final javax.persistence.Temporal temporal;
         
-        if(fieldValue instanceof Date && (temporal = field.getAnnotation(javax.persistence.Temporal.class)) != null) {
+        if(fieldValue instanceof Date 
+                && (temporal = field.getAnnotation(javax.persistence.Temporal.class)) != null) {
             
             final Date date = (Date)fieldValue;
             
@@ -139,11 +146,15 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
            
             result = this.getTemporalToStringConverter(t).convert(t);
             
-        }else if(this.getTypeTests().isDomainType(field.getType())) {
-            
-            result = this.domainTypeToIdConverter.convert(fieldValue);
-            
-        }else if(field.getType().isEnum()) {    
+        }else if(fieldValue != null && this.getTypeTests().isDomainType(field.getType())) {
+            try{
+                //@TODO The user's locale should be received as an argument
+                result = entityToSelectOptionConverter.apply(fieldValue, Locale.ENGLISH);
+            }catch(RuntimeException e) {
+                LOG.warn("Failed to convert to SelectOption, value: " + fieldValue, e);
+                result = fieldValue;
+            }
+        }else if(fieldValue != null && field.getType().isEnum()) {    
             
             result = this.domainTypeToIdConverter.convert(fieldValue);
             
@@ -156,8 +167,11 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
                 final Collection update = (Collection)new ReflectionUtil()
                         .newInstanceForCollectionType(fieldValue.getClass());
                 
+//                result = currentValue.stream()
+//                        .map((e) -> domainTypeToIdConverter.convert(e))
+//                        .collect(Collectors.toCollection(() -> update));
                 result = currentValue.stream()
-                        .map((e) -> domainTypeToIdConverter.convert(e))
+                        .map((e) -> this.format(source, field, e))
                         .collect(Collectors.toCollection(() -> update));
                 
                 LOG.trace("For field: {}\nConverted: {}\n       To: {}", 

@@ -31,7 +31,10 @@ import com.looseboxes.webform.configurers.EntityMapperService;
 import com.looseboxes.webform.configurers.EntityMapperServiceImpl;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
+import com.looseboxes.webform.form.EntityToSelectOptionConverter;
 import com.looseboxes.webform.form.FormBuilderProvider;
+import com.looseboxes.webform.form.FormFactory;
+import com.looseboxes.webform.form.FormFactoryImpl;
 import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
 import com.looseboxes.webform.form.FormMemberBuilderImpl;
 import java.lang.reflect.Field;
@@ -99,6 +102,10 @@ public class WebformConfiguration {
         }catch(NoSuchBeanDefinitionException ignored) { }
         return service;
     }
+        
+    @Bean public FormFactory formFactory(@Autowired FormBuilderProvider provider) {
+        return new FormFactoryImpl(provider);
+    }
     
     @Bean public FormBuilderProvider formBuilderProvider(
             @Autowired PropertySearch propertySearch,
@@ -147,8 +154,10 @@ public class WebformConfiguration {
     }
 
     @Bean public FormMemberUpdater formMemberUpdater(
-            @Autowired FormInputContext<Object, Field, Object> formInputContext) {
-        return new FormMemberUpdaterImpl(formInputContext);
+            @Autowired FormInputContext<Object, Field, Object> formInputContext,
+            @Autowired FormFactory formFactory) {
+        
+        return new FormMemberUpdaterImpl(formInputContext, formFactory);
     }
     
     @Bean public FormInputContext<Object, Field, Object> formInputContext(
@@ -156,7 +165,9 @@ public class WebformConfiguration {
             @Autowired DateToStringConverter dateToStringConverter,
             @Autowired TemporalToStringConverter temporalToStringConverter,
             @Autowired DomainTypeToIdConverter domainTypeToIdConverter,
-            @Autowired DomainTypeConverter domainTypeConverter) {
+            @Autowired DomainTypeConverter domainTypeConverter,
+            @Autowired DomainObjectPrinter domainObjectPrinter,
+            @Autowired EntityToSelectOptionConverter entityToSelectOptionConverter) {
         
         return new FormInputContextWithDefaultValuesFromProperties(
                 this.typeTests(),
@@ -165,7 +176,9 @@ public class WebformConfiguration {
                 dateToStringConverter,
                 temporalToStringConverter,
                 domainTypeToIdConverter,
-                domainTypeConverter);
+                domainTypeConverter,
+                domainObjectPrinter,
+                entityToSelectOptionConverter);
     }
 
     @Bean public TextExpressionResolver propertyExpressionsResolver() {
@@ -199,13 +212,15 @@ public class WebformConfiguration {
             @Autowired EntityRepositoryProvider repoFactory,
             @Autowired PropertySuffixes propertySuffixes,
             @Autowired DomainTypeConverter domainTypeConverter,
-            @Autowired DomainObjectPrinter domainObjectPrinter) {
+            @Autowired DomainObjectPrinter domainObjectPrinter,
+            @Autowired EntityToSelectOptionConverter entityToSelectOptionConverter) {
         return new DependentsProviderImpl(
                 this.propertySearch(propertySuffixes), 
                 repoFactory, 
                 this.typeTests(),
                 domainTypeConverter,
-                domainObjectPrinter);
+                domainObjectPrinter,
+                entityToSelectOptionConverter);
     }
     
     @Bean public FormFieldTest formFieldTest(
