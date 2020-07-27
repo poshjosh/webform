@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.validation.ValidationException;
 
 /**
  * @author hp
@@ -167,14 +168,31 @@ public class ModelObjectService{
             formRequest.setFormConfig(formConfig.form(form));
 
         }else{
-        
-            existingFormConfig.validate(formConfig);
+  
+            this.validate(existingFormConfig, formConfig);
+            
+            formConfig.merge(existingFormConfig);
             
             formRequest.setFormConfig(formConfig.form(form));
         }
         
         return formRequest;
     }   
+    
+    private void validate(FormConfigDTO existingFormConfig, FormConfigDTO receivedViaRequest) {
+//        existingFormConfig.validate(receivedViaRequest);
+        this.validateFormId(existingFormConfig, receivedViaRequest);
+    }
+    
+    private void validateFormId(FormConfigDTO existingFormConfig, FormConfigDTO receivedViaRequest) {
+//        existingFormConfig.validate(sentViaRequest);
+        if( ! existingFormConfig.getFormid().equals(receivedViaRequest.getFormid())) {
+            throw new ValidationException(
+                    "For: " + Params.FORMID + "\nExpected: " + existingFormConfig.getFormid() + 
+                            "\n   Found: " + receivedViaRequest.getFormid() + 
+                            "\nExpected: " + existingFormConfig + "\n   Found: " + receivedViaRequest);
+        }
+    }
     
     public boolean updateParentForm(FormRequest formRequest) {
         return this.parentFormUpdater.updateParent(formRequest);
