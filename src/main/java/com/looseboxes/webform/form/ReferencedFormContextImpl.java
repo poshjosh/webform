@@ -8,11 +8,15 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import com.looseboxes.webform.CRUDAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author hp
  */
 public class ReferencedFormContextImpl implements ReferencedFormContext<Object, Field>{
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ReferencedFormContextImpl.class);
     
     private final TypeTests typeTests;
     private final TypeFromNameResolver typeFromNameResolver;
@@ -27,7 +31,10 @@ public class ReferencedFormContextImpl implements ReferencedFormContext<Object, 
     @Override
     public boolean isReferencedType(Form<Object> form, Field field) {
         final Class fieldType = field.getType();
-        return ! typeTests.isEnumType(fieldType) && typeTests.isDomainType(fieldType);
+        boolean result = ! typeTests.isEnumType(fieldType) && typeTests.isDomainType(fieldType);
+        LOG.trace("Is referenced type: {}, {}.{}", 
+                result, (form==null?null:form.getName()), field.getName());
+        return result;
     }
 
     @Override
