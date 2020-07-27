@@ -69,6 +69,22 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
         this.uploadedFiles(arg.getUploadedFiles());
     }
 
+    public void merge(FormConfig arg) {
+        if(getCrudAction() == null) this.action(arg.getCrudAction());
+        if(getForm() == null) this.form(arg.getForm());
+        if(getFormid() == null) this.formid(arg.getFormid());
+        if(getModelfields() == null || getModelfields().isEmpty()) {
+            this.modelfields(arg.getModelfields() == null ? null :
+                arg.getModelfields().isEmpty() ? Collections.EMPTY_LIST :
+                Collections.unmodifiableList(arg.getModelfields()));
+        }    
+        if(getModelid() == null) this.modelid(arg.getModelid());
+        if(getModelname() == null) this.modelname(arg.getModelname());
+        if(getParentFormid() == null) this.parentFormid(arg.getParentFormid());
+        if(getTargetOnCompletion() == null) this.targetOnCompletion(arg.getTargetOnCompletion());
+        if(getUploadedFiles() == null) this.uploadedFiles(arg.getUploadedFiles());
+    }
+
     public FormConfig build() {
 
         if(buildAttempted) {
@@ -277,20 +293,21 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
     
     public void validate(FormConfig target) {
         //@related(FormConfig.fields) to front-end javascript/react
-        this.validate(Params.ACTION, this.getCrudAction(), target.getCrudAction());
-        this.validate(Params.FORMID, this.getFormid(), target.getFormid());
-        this.validate(Params.MODELNAME, this.getModelname(), target.getModelname());
-        this.validate(Params.MODELID, this.getModelid(), target.getModelid());
-        this.validate(Params.MODELFIELDS, this.getModelfields(), target.getModelfields());
-        this.validate(Params.PARENT_FORMID, this.getParentFormid(), target.getParentFormid());
-        this.validate(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion(), target.getTargetOnCompletion());
-        this.validate(Params.UPLOADED_FILES, this.getUploadedFiles(), target.getUploadedFiles());
+        this.validate(Params.ACTION, this.getCrudAction(), target.getCrudAction(), target);
+        this.validate(Params.FORMID, this.getFormid(), target.getFormid(), target);
+        this.validate(Params.MODELNAME, this.getModelname(), target.getModelname(), target);
+        this.validate(Params.MODELID, this.getModelid(), target.getModelid(), target);
+        this.validate(Params.MODELFIELDS, this.getModelfields(), target.getModelfields(), target);
+        this.validate(Params.PARENT_FORMID, this.getParentFormid(), target.getParentFormid(), target);
+        this.validate(Params.TARGET_ON_COMPLETION, this.getTargetOnCompletion(), target.getTargetOnCompletion(), target);
+        this.validate(Params.UPLOADED_FILES, this.getUploadedFiles(), target.getUploadedFiles(), target);
     }
     
-    private void validate(String name, Object expected, Object found) {
+    private void validate(String name, Object expected, Object found, FormConfig target) {
         if( ! Objects.equals(expected, found)) {
             throw new ValidationException(
-                    "For: " + name + "\nExpected: " + expected + "\n   Found: " + found);
+                    "For: " + name + "\nExpected: " + expected + "\n   Found: " + found + 
+                            "\nExpected: " + this + "\n   Found: " + target);
         }
     }
     
