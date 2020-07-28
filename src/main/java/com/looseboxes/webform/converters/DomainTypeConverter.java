@@ -23,11 +23,11 @@ public class DomainTypeConverter implements GenericConverter{
     
     private final Converter<Object, String> domainTypeToStringConverter;
     
-    private final IdToDomainTypeConverterFactory idToDomainTypeConverterFactory;
+    private final IdStringToDomainTypeConverterFactory idToDomainTypeConverterFactory;
     
     public DomainTypeConverter(Set<Class> supportedTypes,
             Converter<Object, String> domainTypeToStringConverter,
-            IdToDomainTypeConverterFactory idToDomainTypeConverterFactory) {
+            IdStringToDomainTypeConverterFactory idToDomainTypeConverterFactory) {
         this.supportedTypes = Collections.unmodifiableSet(supportedTypes);
         LOG.debug("Supported types: {}", supportedTypes);
         this.convertibleTypes = Collections

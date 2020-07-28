@@ -5,7 +5,6 @@ import com.looseboxes.webform.converters.DateToStringConverter;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.DomainTypeToStringConverter;
-import com.looseboxes.webform.converters.IdToDomainTypeConverterFactoryImpl;
 import com.looseboxes.webform.converters.MultipartFileToStringConverter;
 import com.looseboxes.webform.converters.StringEmptyToNullConverter;
 import com.looseboxes.webform.converters.StringToDateConverter;
@@ -18,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.looseboxes.webform.converters.DomainTypePrinter;
 import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
+import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactory;
 
 /**
  * @author hp
@@ -60,8 +60,8 @@ public class WebformConverterConfiguration{
         return delegate.domainTypeToIdConverter();
     }
 
-    @Bean public IdToDomainTypeConverterFactoryImpl idToDomainTypeConverterFactory() {
-        return delegate.idToDomainTypeConverterFactory();
+    @Bean public IdStringToDomainTypeConverterFactory idToDomainTypeConverterFactory() {
+        return delegate.idStringToDomainTypeConverterFactory();
     }
 
     @Bean public MultipartFileToStringConverter multipartFileToStringConverter() {

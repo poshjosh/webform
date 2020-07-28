@@ -25,13 +25,13 @@ import org.springframework.core.convert.converter.Converter;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 20, 2019 1:15:23 PM
  */
-public class ConvertIdToEntity implements Converter<String, Object> {
+public class ConvertIdStringToEntity implements Converter<String, Object> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConvertIdToEntity.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConvertIdStringToEntity.class);
 
     private final EntityRepository entityRepository;
 
-    public ConvertIdToEntity(EntityRepository entityRepository) {
+    public ConvertIdStringToEntity(EntityRepository entityRepository) {
         this.entityRepository = Objects.requireNonNull(entityRepository);
     }
     

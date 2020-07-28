@@ -26,23 +26,25 @@ import com.looseboxes.webform.repository.EntityRepositoryProvider;
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:47:27 AM
  */
-public class IdToDomainTypeConverterFactoryImpl 
-        implements IdToDomainTypeConverterFactory {
+public class IdStringToDomainTypeConverterFactoryImpl 
+        implements IdStringToDomainTypeConverterFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IdToDomainTypeConverterFactoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IdStringToDomainTypeConverterFactoryImpl.class);
  
     private final EntityRepositoryProvider repoFactory;
 
-    public IdToDomainTypeConverterFactoryImpl(
+    public IdStringToDomainTypeConverterFactoryImpl(
             EntityRepositoryProvider entityRepositoryFactory) {
         this.repoFactory = Objects.requireNonNull(entityRepositoryFactory);
     }
     
     @Override
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-        final Class type = targetType.getType();
-        final boolean supported = this.repoFactory.isSupported(type);
-        LOG.trace("Supports converting to: {} = {}", type.getName(), supported);
+        final Class srcClass = sourceType.getType();
+        final Class tgtClass = targetType.getType();
+        final boolean supported = String.class.equals(srcClass) && 
+                this.repoFactory.isSupported(tgtClass);
+        LOG.trace("Supported: {}, converting {} to {}", srcClass.getName(), tgtClass.getName());
         return supported;
     }
     
@@ -52,7 +54,7 @@ public class IdToDomainTypeConverterFactoryImpl
         if(targetType.isEnum()) {
             output = new ConvertStringToEnum(targetType); 
         }else{
-            output = new ConvertIdToEntity(repoFactory.forEntity(targetType));
+            output = new ConvertIdStringToEntity(repoFactory.forEntity(targetType));
         }
         return output;
     }

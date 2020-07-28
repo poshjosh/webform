@@ -11,7 +11,7 @@ import com.looseboxes.webform.converters.DomainTypePrinterImpl;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.DomainTypeToStringConverter;
-import com.looseboxes.webform.converters.IdToDomainTypeConverterFactoryImpl;
+import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactoryImpl;
 import com.looseboxes.webform.converters.MultipartFileToStringConverter;
 import com.looseboxes.webform.converters.StringEmptyToNullConverter;
 import com.looseboxes.webform.converters.StringToDateConverter;
@@ -28,6 +28,7 @@ import com.looseboxes.webform.converters.DomainTypePrinter;
 import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
 import com.looseboxes.webform.converters.EntityToSelectOptionConverterImpl;
 import org.springframework.context.annotation.Bean;
+import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactory;
 
 /**
  * @author hp
@@ -49,7 +50,7 @@ public class WebformConverterConfigurationSource{
         final DomainTypeConverter genericConverter = new DomainTypeConverter(
                 this.getDomainClasses().get(), 
                 this.domainTypeToStringConverter(), 
-                this.idToDomainTypeConverterFactory());
+                this.idStringToDomainTypeConverterFactory());
         return genericConverter;
     }
     
@@ -93,8 +94,8 @@ public class WebformConverterConfigurationSource{
         return new TemporalToStringConverterImpl(this.dateAndTimePatternsSupplier());
     }
 
-    @Bean public IdToDomainTypeConverterFactoryImpl idToDomainTypeConverterFactory() {
-        return new IdToDomainTypeConverterFactoryImpl(this.getEntityRepositoryProvider());
+    @Bean public IdStringToDomainTypeConverterFactory idStringToDomainTypeConverterFactory() {
+        return new IdStringToDomainTypeConverterFactoryImpl(this.getEntityRepositoryProvider());
     }
     
     @Bean public DateAndTimePatternsSupplier dateAndTimePatternsSupplier() {

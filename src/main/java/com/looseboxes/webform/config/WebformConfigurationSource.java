@@ -52,10 +52,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import com.looseboxes.webform.converters.DomainTypePrinter;
-import com.looseboxes.webform.converters.IdToDomainTypeConverterFactory;
 import com.looseboxes.webform.form.MultiChoiceContextImpl;
 import java.util.Locale;
 import org.springframework.context.annotation.Bean;
+import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactory;
 
 /**
  * @author hp
@@ -181,8 +181,8 @@ public class WebformConfigurationSource {
                 this.entityToSelectOptionConverter());
     }
     
-    private IdToDomainTypeConverterFactory idToDomainTypeConverterFactory() {
-        return applicationContext.getBean(IdToDomainTypeConverterFactory.class);
+    private IdStringToDomainTypeConverterFactory idToDomainTypeConverterFactory() {
+        return applicationContext.getBean(IdStringToDomainTypeConverterFactory.class);
     }
     
     @Bean public DependentsProvider dependentsProvider() {

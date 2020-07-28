@@ -6,7 +6,7 @@ import org.springframework.core.convert.converter.ConverterFactory;
 /**
  * @author hp
  */
-public interface IdToDomainTypeConverterFactory 
+public interface IdStringToDomainTypeConverterFactory 
         extends ConverterFactory<String, Object>, ConditionalConverter{
     
 }
