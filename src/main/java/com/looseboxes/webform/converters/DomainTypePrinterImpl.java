@@ -28,67 +28,67 @@ public class DomainTypePrinterImpl implements DomainTypePrinter{
     @Override
     public String print(Object object, Locale locale) {
         
-        LOG.trace("Converting {} to java.lang.String for locale {}", object, locale);
+        LOG.trace("Converting {} of type {} to java.lang.String for locale {}", 
+                object, (object==null?null:object.getClass().getSimpleName()), locale);
         
-        String output = null;
-        
+        final String output;
         if(object == null) {
             output = "";
         }else if(object instanceof Enum){
-            output = object.toString();
+            // toString will return null, for generic enum typs
+            output = object.toString() != null ? object.toString() : ((Enum)object).name();
         }else{
-            
-            final Class type = object.getClass();
-
-            final List<String> defaultFieldNames = propertyAccess
-                    .findAll(WebformProperties.DEFAULT_FIELDS, type);
-            
-            LOG.debug("Default field names to display: {}, for type: {}", 
-                    defaultFieldNames, type.getName());
-
-            final BeanWrapper bean = this.getBeanWrapper(object);
-
-            for(String fieldName : defaultFieldNames) {
-
-                if(StringUtils.isNullOrEmpty(fieldName)) {
-                    continue;
-                }
-                
-                final Object value;
-                
-                final String separator = ".";
-                if(fieldName.contains(separator)) {
-
-                    final List<String> path = StringArrayUtils.toList(fieldName, separator);
-
-                    value = this.getValueOrNull(bean, path);
-                    
-                }else{
-                    
-                    value = this.getValueOrNull(bean, fieldName);
-                }
-                
-                if(value != null) {
-                    
-                    output = value.toString();
-                    
-                    break;
-                }
-            }
-
-            if(output == null) {
-                
-                output = object.toString();
-            }
-        }
-
-        if(output == null) {
-            output = object == null ? "" : object.toString();
+            output = this.printFromProperties(object, object.toString());
         }
         
         LOG.trace("Converted: {} to: {}, using locale: {}", object, output, locale);
         
         return output;
+    }
+    
+    private String printFromProperties(Object object, String resultIfNone) {
+        
+        String output = null;
+        
+        final Class type = object.getClass();
+
+        final List<String> defaultFieldNames = propertyAccess
+                .findAll(WebformProperties.DEFAULT_FIELDS, type);
+
+        LOG.debug("Default field names to display: {}, for type: {}", 
+                defaultFieldNames, type.getName());
+
+        final BeanWrapper bean = this.getBeanWrapper(object);
+
+        for(String fieldName : defaultFieldNames) {
+
+            if(StringUtils.isNullOrEmpty(fieldName)) {
+                continue;
+            }
+
+            final Object value;
+
+            final String separator = ".";
+            if(fieldName.contains(separator)) {
+
+                final List<String> path = StringArrayUtils.toList(fieldName, separator);
+
+                value = this.getValueOrNull(bean, path);
+
+            }else{
+
+                value = this.getValueOrNull(bean, fieldName);
+            }
+
+            if(value != null) {
+
+                output = value.toString();
+
+                break;
+            }
+        }
+        
+        return output == null ? resultIfNone : output;
     }
     
     private Object getValueOrNull(BeanWrapper bean, List<String> path) {
