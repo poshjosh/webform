@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.looseboxes.webform.converters.DomainTypePrinter;
+import com.looseboxes.webform.form.EntityToSelectOptionConverter;
 
 /**
  * @author hp
@@ -31,6 +32,10 @@ public class WebformConverterConfiguration{
         delegate = new WebformConverterConfigurationSource(applicationContext);
     }
 
+    @Bean public EntityToSelectOptionConverter entityToSelectOptionConverter() {
+        return delegate.entityToSelectOptionConverter();
+    }
+    
     @Bean public DateAndTimePatternsSupplier dateAndTimePatternsSupplier() {
         return delegate.dateAndTimePatternsSupplier();
     }
@@ -51,8 +56,8 @@ public class WebformConverterConfiguration{
         return delegate.domainTypeToStringConverter();
     }
 
-    @Bean public DomainTypeToIdConverter entityToIdConverter() {
-        return delegate.entityToIdConverter();
+    @Bean public DomainTypeToIdConverter domainTypeToIdConverter() {
+        return delegate.domainTypeToIdConverter();
     }
 
     @Bean public IdToDomainTypeConverterFactoryImpl idToDomainTypeConverterFactory() {

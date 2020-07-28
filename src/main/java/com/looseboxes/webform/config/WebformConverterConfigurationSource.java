@@ -25,6 +25,7 @@ import com.looseboxes.webform.util.PropertySearch;
 import java.util.Objects;
 import org.springframework.context.ApplicationContext;
 import com.looseboxes.webform.converters.DomainTypePrinter;
+import com.looseboxes.webform.form.EntityToSelectOptionConverter;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -36,6 +37,11 @@ public class WebformConverterConfigurationSource{
 
     public WebformConverterConfigurationSource(ApplicationContext applicationContext) {
         this.applicationContext = Objects.requireNonNull(applicationContext);
+    }
+    
+    @Bean public EntityToSelectOptionConverter entityToSelectOptionConverter() {
+        return new EntityToSelectOptionConverter(
+                this.domainTypeToIdConverter(), this.domainTypePrinter());
     }
     
     @Bean public DomainTypeConverter domainTypeConverter() {
@@ -94,7 +100,7 @@ public class WebformConverterConfigurationSource{
         return new DateAndTimePatternsSupplierImpl(this.getPropertySearch());
     }
 
-    @Bean public DomainTypeToIdConverter entityToIdConverter() {
+    @Bean public DomainTypeToIdConverter domainTypeToIdConverter() {
         return new DomainTypeToIdConverter(this.getEntityRepositoryProvider());
     }
 
