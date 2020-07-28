@@ -55,7 +55,7 @@ public class DomainTypePrinterImpl implements DomainTypePrinter{
         final List<String> defaultFieldNames = propertyAccess
                 .findAll(WebformProperties.DEFAULT_FIELDS, type);
 
-        LOG.debug("Default field names to display: {}, for type: {}", 
+        LOG.trace("Default field names to display: {}, for type: {}", 
                 defaultFieldNames, type.getName());
 
         final BeanWrapper bean = this.getBeanWrapper(object);
