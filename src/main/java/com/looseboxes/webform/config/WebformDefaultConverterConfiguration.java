@@ -24,11 +24,11 @@ import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactory;
  */
 @Configuration
 @ConditionalOnMissingBean(WebformConverterConfigurationSource.class)
-public class WebformConverterConfiguration{
+public class WebformDefaultConverterConfiguration{
     
     private final WebformConverterConfigurationSource delegate;
 
-    public WebformConverterConfiguration(ApplicationContext applicationContext) {
+    public WebformDefaultConverterConfiguration(ApplicationContext applicationContext) {
         delegate = new WebformConverterConfigurationSource(applicationContext);
     }
 

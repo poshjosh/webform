@@ -35,13 +35,13 @@ import org.springframework.context.annotation.Bean;
 @ComponentScan(basePackages = {"com.looseboxes.webform"})
 @PropertySource("classpath:webform.properties")
 @ConditionalOnMissingBean(WebformConfigurationSource.class)
-public class WebformConfiguration{
+public class WebformDefaultConfiguration{
     
-//    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
+//    private final Logger log = LoggerFactory.getLogger(WebformDefaultConfiguration.class);
     
     private final WebformConfigurationSource delegate;
     
-    public WebformConfiguration(ApplicationContext applicationContext) { 
+    public WebformDefaultConfiguration(ApplicationContext applicationContext) { 
         delegate = new WebformConfigurationSource(applicationContext);
     }
 

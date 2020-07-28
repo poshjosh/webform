@@ -27,11 +27,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnMissingBean(WebformJpaConfigurationSource.class)
-public class WebformJpaConfiguration{
+public class WebformDefaultJpaConfiguration{
     
     private final WebformJpaConfigurationSource delegate;
     
-    public WebformJpaConfiguration(ApplicationContext context) {
+    public WebformDefaultJpaConfiguration(ApplicationContext context) {
         delegate = new WebformJpaConfigurationSource(context);
     }
 
