@@ -1,5 +1,6 @@
 package com.looseboxes.webform.form;
 
+import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.bc.webform.TypeTests;
 import com.bc.webform.choices.SelectOption;
