@@ -17,7 +17,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.looseboxes.webform.converters.DomainTypePrinter;
-import com.looseboxes.webform.form.EntityToSelectOptionConverter;
+import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
 
 /**
  * @author hp

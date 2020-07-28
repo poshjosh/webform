@@ -2,7 +2,7 @@ package com.looseboxes.webform.config;
 
 import com.bc.jpa.spring.DomainClasses;
 import com.bc.webform.TypeTests;
-import com.looseboxes.webform.WebformDefaults;
+import com.looseboxes.webform.WebformLocaleSupplier;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplier;
 import com.looseboxes.webform.converters.DateAndTimePatternsSupplierImpl;
 import com.looseboxes.webform.converters.DateToStringConverter;
@@ -25,7 +25,8 @@ import com.looseboxes.webform.util.PropertySearch;
 import java.util.Objects;
 import org.springframework.context.ApplicationContext;
 import com.looseboxes.webform.converters.DomainTypePrinter;
-import com.looseboxes.webform.form.EntityToSelectOptionConverter;
+import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
+import com.looseboxes.webform.converters.EntityToSelectOptionConverterImpl;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -40,7 +41,7 @@ public class WebformConverterConfigurationSource{
     }
     
     @Bean public EntityToSelectOptionConverter entityToSelectOptionConverter() {
-        return new EntityToSelectOptionConverter(
+        return new EntityToSelectOptionConverterImpl(
                 this.domainTypeToIdConverter(), this.domainTypePrinter());
     }
     
@@ -60,7 +61,7 @@ public class WebformConverterConfigurationSource{
     @Bean public DomainTypeToStringConverter domainTypeToStringConverter() {
         return new DomainTypeToStringConverter(this.getTypeTests(),
                 this.domainTypePrinter(),
-                WebformDefaults.LOCALE
+                WebformLocaleSupplier.getLocale(applicationContext)
         );
     }
     

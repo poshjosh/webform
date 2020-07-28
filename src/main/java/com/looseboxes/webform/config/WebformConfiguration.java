@@ -1,8 +1,8 @@
 package com.looseboxes.webform.config;
 
-import com.bc.webform.form.FormBuilder;
+import com.bc.webform.form.builder.FormBuilder;
 import com.bc.webform.form.member.FormInputContext;
-import com.bc.webform.form.member.FormMemberBuilder;
+import com.bc.webform.form.member.builder.FormMemberBuilder;
 import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.configurers.EntityConfigurerService;

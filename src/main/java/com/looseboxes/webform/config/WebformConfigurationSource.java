@@ -2,15 +2,13 @@ package com.looseboxes.webform.config;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
-import com.bc.webform.form.FormBuilder;
-import com.bc.webform.form.FormBuilderForJpaEntity;
+import com.bc.webform.form.builder.FormBuilder;
+import com.bc.webform.form.builder.FormBuilderForJpaEntity;
 import com.bc.webform.form.member.FormInputContext;
-import com.bc.webform.form.member.FormMemberBuilder;
+import com.bc.webform.form.member.builder.FormMemberBuilder;
 import com.bc.webform.form.member.MultiChoiceContext;
-import com.bc.webform.form.member.MultiChoiceContextForPojo;
 import com.bc.webform.form.member.ReferencedFormContext;
-import com.looseboxes.webform.WebformDefaults;
-import com.looseboxes.webform.WebformProperties;
+import com.looseboxes.webform.WebformLocaleSupplier;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.configurers.EntityConfigurerServiceImpl;
 import com.looseboxes.webform.configurers.EntityMapperService;
@@ -21,7 +19,7 @@ import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.DependentsProviderImpl;
-import com.looseboxes.webform.form.EntityToSelectOptionConverter;
+import com.looseboxes.webform.converters.EntityToSelectOptionConverter;
 import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.form.FormFactoryImpl;
@@ -47,16 +45,16 @@ import com.looseboxes.webform.util.TextExpressionResolver;
 import com.looseboxes.webform.util.TextExpressionResolverImpl;
 import com.looseboxes.webform.web.BindingResultErrorCollector;
 import java.lang.reflect.Field;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import javax.persistence.EnumType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import com.looseboxes.webform.converters.DomainTypePrinter;
+import com.looseboxes.webform.converters.IdToDomainTypeConverterFactory;
+import com.looseboxes.webform.form.MultiChoiceContextImpl;
+import java.util.Locale;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -151,8 +149,7 @@ public class WebformConfigurationSource {
                 temporalToStringConverter(),
                 domainTypeToIdConverter(),
                 domainTypeConverter(),
-                domainObjectPrinter(),
-                entityToSelectOptionConverter());
+                domainTypePrinter());
     }
     
     private DateToStringConverter dateToStringConverter() {
@@ -178,25 +175,14 @@ public class WebformConfigurationSource {
     }
     
     @Bean public MultiChoiceContext<Object, Field> multiChoiceContext() {
-        
-        final EnumType enumType = this.getEnumType();
-        
-        final DomainTypePrinter printer = this.domainObjectPrinter();
-        
-        final BiFunction<Enum, Locale, Object> format = (en, loc) -> printer.print(en, loc);
-        
-        return new MultiChoiceContextForPojo(
-                typeTests(),
-                enumType,
-                format,
-                WebformDefaults.LOCALE
-        );
+        Locale locale = WebformLocaleSupplier.getLocale(applicationContext);
+        return new MultiChoiceContextImpl(this.typeTests(), locale, 
+                this.idToDomainTypeConverterFactory(), 
+                this.entityToSelectOptionConverter());
     }
     
-    private EnumType getEnumType() {
-        final String enumTypeString = getEnvironment().getProperty(WebformProperties.ENUM_TYPE);
-        log.debug("Enum type: {}", enumTypeString);
-        return EnumType.valueOf(enumTypeString.toUpperCase(WebformDefaults.LOCALE));
+    private IdToDomainTypeConverterFactory idToDomainTypeConverterFactory() {
+        return applicationContext.getBean(IdToDomainTypeConverterFactory.class);
     }
     
     @Bean public DependentsProvider dependentsProvider() {
@@ -205,7 +191,7 @@ public class WebformConfigurationSource {
                 entityRepositoryProvider(), 
                 typeTests(),
                 domainTypeConverter(),
-                domainObjectPrinter(),
+                domainTypePrinter(),
                 entityToSelectOptionConverter());
     }
     
@@ -217,7 +203,7 @@ public class WebformConfigurationSource {
         return this.applicationContext.getBean(DomainTypeConverter.class);
     }
     
-    private DomainTypePrinter domainObjectPrinter() {
+    private DomainTypePrinter domainTypePrinter() {
         return this.applicationContext.getBean(DomainTypePrinter.class);
     }
     
