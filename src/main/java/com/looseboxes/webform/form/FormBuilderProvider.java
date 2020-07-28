@@ -1,6 +1,6 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.form.FormBuilder;
+import com.bc.webform.form.builder.FormBuilder;
 import java.lang.reflect.Field;
 
 /**

@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import com.looseboxes.webform.util.TextExpressionResolver;
-import java.util.Locale;
 import org.springframework.core.convert.TypeDescriptor;
 import com.looseboxes.webform.converters.DomainTypePrinter;
 
@@ -36,7 +35,6 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
     private final TemporalToStringConverter temporalToStringConverter;
     private final DomainTypeToIdConverter domainTypeToIdConverter;
     private final DomainTypeConverter domainTypeConverter;
-    private final EntityToSelectOptionConverter entityToSelectOptionConverter;
 
     public FormInputContextWithDefaultValuesFromProperties(
             TypeTests typeTests,
@@ -46,8 +44,7 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
             TemporalToStringConverter temporalToStringConverter,
             DomainTypeToIdConverter entityToIdConverter,
             DomainTypeConverter domainTypeConverter,
-            DomainTypePrinter domainObjectPrinter,
-            EntityToSelectOptionConverter entityToSelectOptionConverter) {
+            DomainTypePrinter domainObjectPrinter) {
         super(propertySearch);
         this.typeTests = Objects.requireNonNull(typeTests);
         this.propertyExpressionResolver = Objects.requireNonNull(propertyExpressionResolver);
@@ -55,7 +52,6 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
         this.temporalToStringConverter = Objects.requireNonNull(temporalToStringConverter);
         this.domainTypeToIdConverter = Objects.requireNonNull(entityToIdConverter);
         this.domainTypeConverter = Objects.requireNonNull(domainTypeConverter);
-        this.entityToSelectOptionConverter = Objects.requireNonNull(entityToSelectOptionConverter);
     }
     
     @Override
@@ -149,16 +145,9 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
            
             result = this.getTemporalToStringConverter(t).convert(t);
             
-        }else if(fieldValue != null && this.getTypeTests().isDomainType(field.getType())) {
-            try{
-                //@TODO The user's locale should be received as an argument
-                result = entityToSelectOptionConverter.apply(fieldValue, Locale.ENGLISH);
-            }catch(RuntimeException e) {
-                LOG.warn("Failed to convert to SelectOption, value: " + fieldValue, e);
-                result = fieldValue;
-            }
-        }else if(fieldValue != null && field.getType().isEnum()) {    
-            
+        }else if(fieldValue != null && 
+                (typeTests.isEnumType(field.getType()) || typeTests.isDomainType(field.getType()))) {
+
             result = this.domainTypeToIdConverter.convert(fieldValue);
             
         }else if (fieldValue instanceof Collection) {
@@ -226,7 +215,7 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
         return this.temporalToStringConverter;
     }
 
-    public boolean matches(String name, Field field) {
+    private boolean matches(String name, Field field) {
         if(name.equalsIgnoreCase(field.getName())) {
             return true;
         }

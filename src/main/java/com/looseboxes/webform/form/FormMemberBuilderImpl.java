@@ -2,7 +2,7 @@ package com.looseboxes.webform.form;
 
 import com.bc.webform.form.member.FormMember;
 import com.bc.webform.form.member.FormMemberBean;
-import com.bc.webform.form.member.FormMemberBuilderForJpaEntity;
+import com.bc.webform.form.member.builder.FormMemberBuilderForJpaEntity;
 import com.bc.webform.form.member.FormInputContext;
 import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
