@@ -1,6 +1,6 @@
 package com.looseboxes.webform.repository;
 
-import com.looseboxes.webform.configurers.EntityMapper;
+import com.looseboxes.webform.mappers.EntityMapper;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;

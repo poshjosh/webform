@@ -6,7 +6,7 @@ import com.bc.webform.form.member.builder.FormMemberBuilder;
 import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
-import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.form.DependentsProvider;
 import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.FormFactory;

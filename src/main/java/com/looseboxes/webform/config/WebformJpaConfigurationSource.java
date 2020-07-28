@@ -4,7 +4,7 @@ import com.bc.jpa.spring.JpaConfiguration;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
 import com.bc.webform.TypeTestsImpl;
-import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.form.FormSubmitHandler;
 import com.looseboxes.webform.form.FormSubmitHandlerImpl;
 import com.looseboxes.webform.form.validators.EntityUniqueColumnsValidator;

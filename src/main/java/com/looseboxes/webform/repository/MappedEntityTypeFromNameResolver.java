@@ -1,6 +1,6 @@
 package com.looseboxes.webform.repository;
 
-import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.mappers.EntityMapperService;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import java.util.Objects;
 

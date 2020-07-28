@@ -1,4 +1,4 @@
-package com.looseboxes.webform.configurers;
+package com.looseboxes.webform.mappers;
 
 import java.util.ArrayList;
 import java.util.List;

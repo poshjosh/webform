@@ -2,7 +2,7 @@ package com.looseboxes.webform.util;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
-import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
 import com.looseboxes.webform.web.FormRequest;

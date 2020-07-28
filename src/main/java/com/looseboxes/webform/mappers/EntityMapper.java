@@ -1,4 +1,4 @@
-package com.looseboxes.webform.configurers;
+package com.looseboxes.webform.mappers;
 
 /**
  * @author hp

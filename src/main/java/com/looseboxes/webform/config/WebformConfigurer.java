@@ -1,7 +1,7 @@
 package com.looseboxes.webform.config;
 
 import com.looseboxes.webform.configurers.EntityConfigurerService;
-import com.looseboxes.webform.configurers.EntityMapperService;
+import com.looseboxes.webform.mappers.EntityMapperService;
 
 /**
  * @author hp
