@@ -3,6 +3,7 @@ package com.looseboxes.webform.config;
 import com.bc.jpa.spring.AbstractJpaConfiguration;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
+import com.bc.webform.TypeTestsImpl;
 import com.looseboxes.webform.configurers.EntityMapperService;
 import com.looseboxes.webform.form.FormSubmitHandler;
 import com.looseboxes.webform.form.FormSubmitHandlerImpl;
@@ -26,6 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AbstractWebformJpaConfiguration extends AbstractJpaConfiguration{
     
     @Autowired private EntityMapperService entityMapperService;
+    
+    @Bean public TypeTests typeTests() {
+        return new TypeTestsImpl().withDomainTest(this.domainClasses());
+    }
     
     @Bean public ObjectGraphAsListBuilder objectGraphListBuilder() {
         return new ObjectAsGraphListBuilderImpl(-1);

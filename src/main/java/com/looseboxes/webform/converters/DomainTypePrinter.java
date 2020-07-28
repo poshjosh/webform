@@ -5,5 +5,5 @@ import org.springframework.format.Printer;
 /**
  * @author hp
  */
-public interface DomainObjectPrinter extends Printer<Object>{
+public interface DomainTypePrinter extends Printer<Object>{
 }

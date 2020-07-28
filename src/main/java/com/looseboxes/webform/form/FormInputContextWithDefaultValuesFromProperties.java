@@ -5,7 +5,6 @@ import com.bc.webform.TypeTests;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.converters.DateToStringConverter;
-import com.looseboxes.webform.converters.DomainObjectPrinter;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.DomainTypeToIdConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverter;
@@ -22,6 +21,7 @@ import org.springframework.core.convert.converter.Converter;
 import com.looseboxes.webform.util.TextExpressionResolver;
 import java.util.Locale;
 import org.springframework.core.convert.TypeDescriptor;
+import com.looseboxes.webform.converters.DomainTypePrinter;
 
 /**
  * @author hp
@@ -46,7 +46,7 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
             TemporalToStringConverter temporalToStringConverter,
             DomainTypeToIdConverter entityToIdConverter,
             DomainTypeConverter domainTypeConverter,
-            DomainObjectPrinter domainObjectPrinter,
+            DomainTypePrinter domainObjectPrinter,
             EntityToSelectOptionConverter entityToSelectOptionConverter) {
         super(propertySearch);
         this.typeTests = Objects.requireNonNull(typeTests);
@@ -123,6 +123,9 @@ public class FormInputContextWithDefaultValuesFromProperties extends FormInputCo
         }
         
         result = this.format(source, field, result);
+        
+        LOG.trace("Converted {} to {} for {}.{}", fieldValue, result, 
+                field.getDeclaringClass().getSimpleName(), field.getName());
         
         return result;
     }

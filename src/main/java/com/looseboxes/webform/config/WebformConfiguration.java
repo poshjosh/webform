@@ -1,68 +1,32 @@
 package com.looseboxes.webform.config;
 
-import com.bc.jpa.spring.DomainClasses;
-import com.looseboxes.webform.configurers.EntityConfigurerService;
-import com.looseboxes.webform.configurers.EntityConfigurerServiceImpl;
-import com.looseboxes.webform.store.EnvironmentStore;
-import com.looseboxes.webform.store.PropertyStore;
-import com.looseboxes.webform.util.PropertySearchImpl;
-import com.looseboxes.webform.util.PropertySearch;
-import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.form.FormBuilder;
-import com.bc.webform.form.FormBuilderForJpaEntity;
-import com.bc.webform.form.member.FormMemberBuilder;
-import com.looseboxes.webform.converters.DateToStringConverter;
-import com.looseboxes.webform.converters.DomainObjectPrinter;
-import com.looseboxes.webform.form.FormMemberComparatorImpl;
-import com.looseboxes.webform.form.FormFieldTest;
-import com.looseboxes.webform.form.FormFieldTestImpl;
 import com.bc.webform.form.member.FormInputContext;
+import com.bc.webform.form.member.FormMemberBuilder;
 import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
-import com.bc.webform.TypeTests;
-import com.bc.webform.TypeTestsImpl;
-import com.bc.webform.form.member.MultiChoiceContextForPojo;
-import com.looseboxes.webform.WebformDefaults;
-import com.looseboxes.webform.WebformProperties;
-import com.looseboxes.webform.converters.DomainTypeConverter;
-import com.looseboxes.webform.converters.DomainTypeToIdConverter;
-import com.looseboxes.webform.converters.TemporalToStringConverter;
+import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.configurers.EntityMapperService;
-import com.looseboxes.webform.configurers.EntityMapperServiceImpl;
 import com.looseboxes.webform.form.DependentsProvider;
-import com.looseboxes.webform.form.DependentsProviderImpl;
-import com.looseboxes.webform.form.EntityToSelectOptionConverter;
 import com.looseboxes.webform.form.FormBuilderProvider;
 import com.looseboxes.webform.form.FormFactory;
-import com.looseboxes.webform.form.FormFactoryImpl;
-import com.looseboxes.webform.form.FormInputContextWithDefaultValuesFromProperties;
-import com.looseboxes.webform.form.FormMemberBuilderImpl;
+import com.looseboxes.webform.form.FormFieldTest;
+import com.looseboxes.webform.form.FormMemberComparator;
+import com.looseboxes.webform.form.FormMemberUpdater;
+import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.store.PropertyStore;
+import com.looseboxes.webform.util.PropertySearch;
+import com.looseboxes.webform.util.PropertySuffixes;
+import com.looseboxes.webform.util.TextExpressionMethods;
+import com.looseboxes.webform.util.TextExpressionResolver;
+import com.looseboxes.webform.web.BindingResultErrorCollector;
 import java.lang.reflect.Field;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import com.looseboxes.webform.form.FormMemberComparator;
-import com.looseboxes.webform.util.TextExpressionMethodsImpl;
-import com.looseboxes.webform.form.ReferencedFormContextImpl;
-import com.looseboxes.webform.util.TextExpressionResolverImpl;
-import com.looseboxes.webform.util.TextExpressionMethods;
-import com.looseboxes.webform.util.TextExpressionResolver;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
-import com.looseboxes.webform.repository.EntityRepositoryProvider;
-import com.looseboxes.webform.form.FormMemberUpdater;
-import com.looseboxes.webform.form.FormMemberUpdaterImpl;
-import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
-import com.looseboxes.webform.web.BindingResultErrorCollector;
-import com.looseboxes.webform.util.PropertySuffixes;
-import java.util.Locale;
-import java.util.function.BiFunction;
-import javax.persistence.EnumType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 
 /**
  * @author hp
@@ -70,185 +34,94 @@ import org.slf4j.LoggerFactory;
 @Configuration
 @ComponentScan(basePackages = {"com.looseboxes.webform"})
 @PropertySource("classpath:webform.properties")
-public class WebformConfiguration {
+@ConditionalOnMissingBean(WebformConfigurationSource.class)
+public class WebformConfiguration{
     
-    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
+//    private final Logger log = LoggerFactory.getLogger(WebformConfiguration.class);
     
-    @Autowired private Environment environment;
-    @Autowired private ApplicationContext applicationContext;
+    private final WebformConfigurationSource delegate;
     
-    public WebformConfiguration() { }
-    
+    public WebformConfiguration(ApplicationContext applicationContext) { 
+        delegate = new WebformConfigurationSource(applicationContext);
+    }
+
     @Bean public BindingResultErrorCollector bindingResultErrorCollector() {
-        return new BindingResultErrorCollector();
-    }
-    
-    @Bean public EntityMapperService 
-        entityMapperService(ApplicationContext applicationContext) {
-        EntityMapperService service = new EntityMapperServiceImpl();
-        try{
-            WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
-            configurer.addEntityMappers(service);
-        }catch(NoSuchBeanDefinitionException ignored) { }
-        return service;
-    }
-    
-    @Bean public EntityConfigurerService 
-        entityConfigurerService(ApplicationContext applicationContext) {
-        EntityConfigurerService service = new EntityConfigurerServiceImpl();
-        try{
-            WebformConfigurer configurer = applicationContext.getBean(WebformConfigurer.class);
-            configurer.addEntityConfigurers(service);
-        }catch(NoSuchBeanDefinitionException ignored) { }
-        return service;
-    }
-        
-    @Bean public FormFactory formFactory(@Autowired FormBuilderProvider provider) {
-        return new FormFactoryImpl(provider);
-    }
-    
-    @Bean public FormBuilderProvider formBuilderProvider(
-            @Autowired PropertySearch propertySearch,
-            @Autowired FormMemberBuilder<Object, Field, Object> formMemberBuilder) {
-        
-        // We need each call to return a new FormBuilder
-        // builders may only be used once
-        return () -> this.newFormBuilder(propertySearch, formMemberBuilder);
+        return delegate.bindingResultErrorCollector();
     }
 
-    public FormBuilder<Object, Field, Object> newFormBuilder(
-            @Autowired PropertySearch propertySearch,
-            @Autowired FormMemberBuilder<Object, Field, Object> formMemberBuilder) {
-
-        return new FormBuilderForJpaEntity(formMemberBuilder, this.typeTests())
-                .sourceFieldsProvider(this.formFieldTest(propertySearch))
-                .formMemberComparator(this.formMemberComparator(propertySearch));
+    @Bean public EntityMapperService entityMapperService() {
+        return delegate.entityMapperService();
     }
 
-    // We need each call to return a new FormMemberBuilder
-    // builders may only be used once
-    @Bean public FormMemberBuilder<Object, Field, Object> newFormMemberBuilder(
-            @Autowired PropertySearch propertySearch,
-            @Autowired FormInputContext<Object, Field, Object> formInputContext,
-            @Autowired MultiChoiceContext<Object, Field> multiChoiceContext,
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
-        
-        return new FormMemberBuilderImpl(
-                propertySearch, 
-                formInputContext, 
-                multiChoiceContext,
-                this.referencedFormContext(typeFromNameResolver)
-                
-        );
+    @Bean public EntityConfigurerService entityConfigurerService() {
+        return delegate.entityConfigurerService();
     }
 
-    @Bean public ReferencedFormContext<Object, Field> referencedFormContext(
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
-        
-        return new ReferencedFormContextImpl(typeTests(), typeFromNameResolver);
-    }
-    
-    @Bean public UpdateParentFormWithNewlyCreatedModel updateParentFormWithNewlyCreatedModel(
-            FormMemberUpdater formMemberUpdater) {
-        return new UpdateParentFormWithNewlyCreatedModel(formMemberUpdater);
+    @Bean public FormFactory formFactory() {
+        return delegate.formFactory();
     }
 
-    @Bean public FormMemberUpdater formMemberUpdater(
-            @Autowired FormInputContext<Object, Field, Object> formInputContext,
-            @Autowired FormFactory formFactory) {
-        
-        return new FormMemberUpdaterImpl(formInputContext, formFactory);
-    }
-    
-    @Bean public FormInputContext<Object, Field, Object> formInputContext(
-            @Autowired PropertySearch propertySearch,
-            @Autowired DateToStringConverter dateToStringConverter,
-            @Autowired TemporalToStringConverter temporalToStringConverter,
-            @Autowired DomainTypeToIdConverter domainTypeToIdConverter,
-            @Autowired DomainTypeConverter domainTypeConverter,
-            @Autowired DomainObjectPrinter domainObjectPrinter,
-            @Autowired EntityToSelectOptionConverter entityToSelectOptionConverter) {
-        
-        return new FormInputContextWithDefaultValuesFromProperties(
-                this.typeTests(),
-                propertySearch,
-                this.propertyExpressionsResolver(),
-                dateToStringConverter,
-                temporalToStringConverter,
-                domainTypeToIdConverter,
-                domainTypeConverter,
-                domainObjectPrinter,
-                entityToSelectOptionConverter);
+    @Bean public FormBuilderProvider formBuilderProvider() {
+        return delegate.formBuilderProvider();
     }
 
-    @Bean public TextExpressionResolver propertyExpressionsResolver() {
-        return new TextExpressionResolverImpl(
-                this.propertyExpressionMethods()
-        );
+    @Bean public FormBuilder<Object, Field, Object> formBuilder() {
+        return delegate.formBuilder();
     }
-    
+
+    @Bean public FormMemberBuilder<Object, Field, Object> formMemberBuilder() {
+        return delegate.formMemberBuilder();
+    }
+
+    @Bean public ReferencedFormContext<Object, Field> referencedFormContext() {
+        return delegate.referencedFormContext();
+    }
+
+    @Bean public UpdateParentFormWithNewlyCreatedModel updateParentFormWithNewlyCreatedModel() {
+        return delegate.updateParentFormWithNewlyCreatedModel();
+    }
+
+    @Bean public FormMemberUpdater formMemberUpdater() {
+        return delegate.formMemberUpdater();
+    }
+
+    @Bean public FormInputContext<Object, Field, Object> formInputContext() {
+        return delegate.formInputContext();
+    }
+
+    @Bean public TextExpressionResolver textExpressionsResolver() {
+        return delegate.textExpressionsResolver();
+    }
+
     @Bean public TextExpressionMethods propertyExpressionMethods() {
-        return new TextExpressionMethodsImpl();
+        return delegate.propertyExpressionMethods();
     }
-    
-    @Bean public MultiChoiceContext<Object, Field> multiChoiceContext(
-            @Autowired DomainObjectPrinter printer) {
-        
-        final String enumTypeString = environment.getProperty(WebformProperties.ENUM_TYPE);
-        log.debug("Enum type: {}", enumTypeString);
-        final EnumType enumType = EnumType.valueOf(enumTypeString.toUpperCase(Locale.ENGLISH));
-        
-        final BiFunction<Enum, Locale, Object> format = (en, loc) -> printer.print(en, loc);
-        
-        return new MultiChoiceContextForPojo(
-                this.typeTests(),
-                enumType,
-                format,
-                WebformDefaults.LOCALE
-        );
+
+    @Bean public MultiChoiceContext<Object, Field> multiChoiceContext() {
+        return delegate.multiChoiceContext();
     }
-    
-    @Bean public DependentsProvider dependentsProvider(
-            @Autowired EntityRepositoryProvider repoFactory,
-            @Autowired PropertySuffixes propertySuffixes,
-            @Autowired DomainTypeConverter domainTypeConverter,
-            @Autowired DomainObjectPrinter domainObjectPrinter,
-            @Autowired EntityToSelectOptionConverter entityToSelectOptionConverter) {
-        return new DependentsProviderImpl(
-                this.propertySearch(propertySuffixes), 
-                repoFactory, 
-                this.typeTests(),
-                domainTypeConverter,
-                domainObjectPrinter,
-                entityToSelectOptionConverter);
+
+    @Bean public DependentsProvider dependentsProvider() {
+        return delegate.dependentsProvider();
     }
-    
-    @Bean public FormFieldTest formFieldTest(
-            @Autowired PropertySearch propertySearch) {
-        return new FormFieldTestImpl(propertySearch, this.typeTests());
+
+    @Bean public FormFieldTest formFieldTest() {
+        return delegate.formFieldTest();
     }
-    
-    @Bean public FormMemberComparator formMemberComparator(
-            @Autowired PropertySearch propertySearch) {
-        return new FormMemberComparatorImpl(propertySearch);
+
+    @Bean public FormMemberComparator formMemberComparator() {
+        return delegate.formMemberComparator();
     }
-    
-    @Bean public TypeTests typeTests() {
-        final DomainClasses domainClasses = (applicationContext.getBean(DomainClasses.class));
-        return new TypeTestsImpl().withDomainTest(domainClasses);
+
+    @Bean public PropertySearch propertySearch() {
+        return delegate.propertySearch();
     }
-    
-    @Bean public PropertySearch propertySearch(
-            @Autowired PropertySuffixes propertySuffixes) {
-        return new PropertySearchImpl(environmentStore(), propertySuffixes);
-    }
-    
-    @Bean public PropertySuffixes propertySuffixes(
-            @Autowired TypeFromNameResolver typeFromNameResolver) {
-        return new PropertySuffixes(typeFromNameResolver);
+
+    @Bean public PropertySuffixes propertySuffixes() {
+        return delegate.propertySuffixes();
     }
 
     @Bean public PropertyStore environmentStore() {
-        return new EnvironmentStore(this.environment);
+        return delegate.environmentStore();
     }
 }

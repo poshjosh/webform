@@ -5,7 +5,6 @@ import com.bc.webform.TypeTests;
 import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.WebformDefaults;
 import com.looseboxes.webform.WebformProperties;
-import com.looseboxes.webform.converters.DomainObjectPrinter;
 import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.util.PropertySearch;
 import java.beans.PropertyDescriptor;
@@ -26,6 +25,7 @@ import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map.Entry;
+import com.looseboxes.webform.converters.DomainTypePrinter;
 
 /**
  * @author hp
@@ -45,7 +45,7 @@ public class DependentsProviderImpl implements DependentsProvider {
             EntityRepositoryProvider entityRepositoryProvider, 
             TypeTests typeTests,
             DomainTypeConverter domainTypeConverter,
-            DomainObjectPrinter domainObjectPrinter,
+            DomainTypePrinter domainObjectPrinter,
             EntityToSelectOptionConverter entityToSelectOptionConverter) {
         this.propertySearch = Objects.requireNonNull(propertySearch);
         this.entityRepositoryProvider = Objects.requireNonNull(entityRepositoryProvider);

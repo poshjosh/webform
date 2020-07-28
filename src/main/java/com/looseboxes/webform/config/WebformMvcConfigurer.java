@@ -16,28 +16,12 @@
 
 package com.looseboxes.webform.config;
 
-import com.bc.jpa.spring.DomainClasses;
-import com.looseboxes.webform.util.PropertySearch;
-import com.looseboxes.webform.converters.DateAndTimePatternsSupplier;
-import com.looseboxes.webform.converters.DateAndTimePatternsSupplierImpl;
 import com.looseboxes.webform.converters.DateToStringConverter;
-import com.looseboxes.webform.converters.DateToStringConverterImpl;
-import com.looseboxes.webform.converters.DomainObjectPrinter;
-import com.looseboxes.webform.converters.IdToDomainTypeConverterFactoryImpl;
+import com.looseboxes.webform.converters.DomainTypeConverter;
 import com.looseboxes.webform.converters.MultipartFileToStringConverter;
 import com.looseboxes.webform.converters.StringEmptyToNullConverter;
 import com.looseboxes.webform.converters.StringToDateConverter;
-import com.looseboxes.webform.converters.DomainObjectPrinterImpl;
-import com.looseboxes.webform.converters.DomainTypeToStringConverter;
-import com.bc.webform.TypeTests;
-import com.looseboxes.webform.WebformDefaults;
-import com.looseboxes.webform.converters.DomainTypeConverter;
-import com.looseboxes.webform.converters.DomainTypeToIdConverter;
-import com.looseboxes.webform.converters.StringToTemporalConverter;
-import com.looseboxes.webform.converters.StringToTemporalConverterImpl;
 import com.looseboxes.webform.converters.TemporalConverter;
-import com.looseboxes.webform.converters.TemporalToStringConverter;
-import com.looseboxes.webform.converters.TemporalToStringConverterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +29,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.web.WebValidator;
 import java.util.Date;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
@@ -55,6 +39,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
+import com.looseboxes.webform.converters.DomainTypePrinter;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 11, 2019 1:26:12 AM
@@ -64,19 +49,15 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
 
     private final Logger log = LoggerFactory.getLogger(WebformMvcConfigurer.class);
     
-    @Autowired private EntityRepositoryProvider repoFactory;
-    @Autowired private PropertySearch propertySearch;
-    @Autowired private TypeTests typeTests;
-    @Autowired private DomainClasses domainClasses;
+    @Autowired private ApplicationContext context;
     @Autowired private Validator validator;
     
-    @Bean WebValidator webValidator() {
-        return new WebValidator(this.webformConversionService(), this.validator);
+    @Bean WebValidator webValidator(@Autowired DomainTypeConverter domainTypeConverter) {
+        return new WebValidator(webformConversionService(domainTypeConverter), this.validator);
     }
     
 //    @Bean 
-    public ConversionService webformConversionService() {
-        final DomainTypeConverter domainTypeConverter = this.domainTypeConverter();
+    public ConversionService webformConversionService(@Autowired DomainTypeConverter domainTypeConverter) {
         final DefaultFormattingConversionService wcs = new DefaultFormattingConversionService(){
             @Override
             protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -100,19 +81,19 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
         
         log.debug("Adding formatters");
         
-        registry.addConverter(this.stringEmptyToNullConverter());
+        registry.addConverter(context.getBean(StringEmptyToNullConverter.class));
         
-        replaceConverter(registry, MultipartFile.class, String.class, multipartFileToStringConverter());
+        replaceConverter(registry, MultipartFile.class, String.class, context.getBean(MultipartFileToStringConverter.class));
         
-        replaceConverter(registry, String.class, Date.class, stringToDateConverter());
+        replaceConverter(registry, String.class, Date.class, context.getBean(StringToDateConverter.class));
         
-        replaceConverter(registry, Date.class, String.class, dateToStringConverter());
+        replaceConverter(registry, Date.class, String.class, context.getBean(DateToStringConverter.class));
         
-        registry.addConverter(this.temporalConverter());
+        registry.addConverter(context.getBean(TemporalConverter.class));
         
-        registry.addConverter(this.domainTypeConverter());
+        registry.addConverter(context.getBean(DomainTypeConverter.class));
         
-        registry.addPrinter(this.domainObjectPrinter());
+        registry.addPrinter(context.getBean(DomainTypePrinter.class));
     }
     
     public <S, T> void replaceConverter(FormatterRegistry registry, 
@@ -122,83 +103,29 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
         registry.addConverter(sourceType, targetType, converter);
         
     }
-    
-    @Bean public DomainTypeConverter domainTypeConverter() {
-        final DomainTypeConverter genericConverter = new DomainTypeConverter(
-                domainClasses.get(), 
-                this.domainTypeToStringConverter(), 
-                this.idToDomainTypeConverterFactory());
-        return genericConverter;
-    }
-    
-    @Bean public TemporalConverter temporalConverter() {
-        return new TemporalConverter(
-                this.temporalToStringConverter(), this.stringToTemporalConverter());
-    }
-    
-    @Bean public DomainTypeToStringConverter domainTypeToStringConverter() {
-        return new DomainTypeToStringConverter(this.typeTests,
-                this.domainObjectPrinter(),
-                WebformDefaults.LOCALE
-        );
-    }
-    
-    @Bean public DomainObjectPrinter domainObjectPrinter() {
-        return new DomainObjectPrinterImpl(this.propertySearch);
-    }
-    
-    @Bean public StringEmptyToNullConverter stringEmptyToNullConverter() {
-        return new StringEmptyToNullConverter();
-    }
-    
-    @Bean public MultipartFileToStringConverter multipartFileToStringConverter() {
-        return new MultipartFileToStringConverter();
-    }
-    
-    @Bean public StringToDateConverter stringToDateConverter() {
-        return new StringToDateConverter(this.dateAndTimePatternsSupplier());
-    }
-    
-    @Bean public DateToStringConverter dateToStringConverter() {
-        return new DateToStringConverterImpl(this.dateAndTimePatternsSupplier());
-    }
-    
-    @Bean public StringToTemporalConverter stringToTemporalConverter() {
-        return new StringToTemporalConverterImpl(this.dateAndTimePatternsSupplier());
-    }
-    
-    @Bean public TemporalToStringConverter temporalToStringConverter() {
-        return new TemporalToStringConverterImpl(this.dateAndTimePatternsSupplier());
-    }
-
-    @Bean public IdToDomainTypeConverterFactoryImpl idToDomainTypeConverterFactory() {
-        return new IdToDomainTypeConverterFactoryImpl(this.repoFactory);
-    }
-    
-    @Bean public DateAndTimePatternsSupplier dateAndTimePatternsSupplier() {
-        return new DateAndTimePatternsSupplierImpl(this.propertySearch);
-    }
-
-    @Bean public DomainTypeToIdConverter entityToIdConverter() {
-        return new DomainTypeToIdConverter(this.repoFactory);
-    }
 }
 /**
  * 
- * 
-        StringToTemporalConverter stringToTemporalConverter = this.stringToTemporalConverter();
-        replaceConverter(registry, String.class, Instant.class, stringToTemporalConverter.instantInstance());
-        replaceConverter(registry, String.class, LocalDate.class, stringToTemporalConverter.localDateInstance());
-        replaceConverter(registry, String.class, LocalDateTime.class, stringToTemporalConverter.localDateTimeInstance());
-        replaceConverter(registry, String.class, LocalTime.class, stringToTemporalConverter.localTimeInstance());
-        replaceConverter(registry, String.class, ZonedDateTime.class, stringToTemporalConverter.zonedDateTimeInstance());
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
         
-        TemporalToStringConverter temporalToStringConverter = this.temporalToStringConverter();
-        replaceConverter(registry, Instant.class, String.class, temporalToStringConverter);
-        replaceConverter(registry, LocalDate.class, String.class, temporalToStringConverter);
-        replaceConverter(registry, LocalDateTime.class, String.class, temporalToStringConverter);
-        replaceConverter(registry, LocalTime.class, String.class, temporalToStringConverter);
-        replaceConverter(registry, ZonedDateTime.class, String.class, temporalToStringConverter);
+        log.debug("Adding formatters");
         
+        final WebformConverterConfigurationSource config = context.getBean(WebformConverterConfigurationSource.class);
+        
+        registry.addConverter(config.stringEmptyToNullConverter());
+        
+        replaceConverter(registry, MultipartFile.class, String.class, config.multipartFileToStringConverter());
+        
+        replaceConverter(registry, String.class, Date.class, config.stringToDateConverter());
+        
+        replaceConverter(registry, Date.class, String.class, config.dateToStringConverter());
+        
+        registry.addConverter(config.temporalConverter());
+        
+        registry.addConverter(config.domainTypeConverter());
+        
+        registry.addPrinter(config.domainObjectPrinter());
+    }
  * 
  */

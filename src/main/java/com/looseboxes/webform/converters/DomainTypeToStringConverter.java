@@ -15,11 +15,11 @@ public class DomainTypeToStringConverter implements Converter<Object, String> {
     private static final Logger LOG = LoggerFactory.getLogger(DomainTypeToStringConverter.class);
     
     private final TypeTests typeTests;
-    private final DomainObjectPrinter printer;
+    private final DomainTypePrinter printer;
     private final Locale locale;
 
     public DomainTypeToStringConverter(TypeTests typeTests, 
-            DomainObjectPrinter printer, Locale locale) {
+            DomainTypePrinter printer, Locale locale) {
         this.typeTests = Objects.requireNonNull(typeTests);
         this.printer = Objects.requireNonNull(printer);
         this.locale = Objects.requireNonNull(locale);
