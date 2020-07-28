@@ -36,8 +36,7 @@ public class MultiChoiceContextImpl extends MultiChoiceContextForPojo{
         if(this.getTypeTests().isDomainType(fieldType)) {
             if(fieldValue != null) {
                 final Object entity;
-                if(this.idToDomainTypeConverterFactory
-                        .matches(TypeDescriptor.valueOf(fieldValue.getClass()), TypeDescriptor.valueOf(fieldType))) {
+                if(this.shouldConvertToType(fieldValue, fieldType)) {
                     entity = this.idToDomainTypeConverterFactory.getConverter(fieldType).convert(fieldValue);
                 }else{
                     entity = fieldValue;
@@ -49,5 +48,21 @@ public class MultiChoiceContextImpl extends MultiChoiceContextForPojo{
             }
         }
         return super.getFieldValueChoice(source, field, fieldValue);
+    }
+    
+    private boolean shouldConvertToType(Object fieldValue, Class fieldType) {
+        return ! this.isAlreadyConvertedToType(fieldValue, fieldType) 
+                && this.isConvertibleToType(fieldValue, fieldType);
+    }
+    
+    private boolean isAlreadyConvertedToType(Object fieldValue, Class fieldType) {
+        final Class fieldValueType = fieldValue.getClass();
+        return fieldValueType.getName().equals(fieldType.getName()) ||
+                fieldType.isAssignableFrom(fieldValueType);
+    }
+    
+    private boolean isConvertibleToType(Object fieldValue, Class fieldType) {
+        return this.idToDomainTypeConverterFactory
+                .matches(TypeDescriptor.valueOf(fieldValue.getClass()), TypeDescriptor.valueOf(fieldType));
     }
 }
