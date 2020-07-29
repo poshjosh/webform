@@ -69,6 +69,8 @@ public class FormService<T> {
         this.validateAndAddErrors(formConfig, bindingResult);
         
         this.check(formConfig);
+        
+        log.trace("Has errors: {}, Has files: {}", bindingResult.hasErrors(), formRequest.hasFiles());
   
         if ( ! bindingResult.hasErrors() && formRequest.hasFiles()) {
             
