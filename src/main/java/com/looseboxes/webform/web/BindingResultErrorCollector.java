@@ -20,7 +20,7 @@ public class BindingResultErrorCollector {
     
     private final Logger LOG = LoggerFactory.getLogger(BindingResultErrorCollector.class);
     
-    public Collection<ValidationMessage> getErrors(BindingResult bindingResult) {
+    public Collection<FormMessage> getErrors(BindingResult bindingResult) {
     
         if (bindingResult.hasErrors()) {
 
@@ -30,18 +30,18 @@ public class BindingResultErrorCollector {
             final List<FieldError> fieldErrors = bindingResult.getFieldErrors();
             this.log(" FieldError: ", fieldErrors);
             
-            final Set<ValidationMessage> allErrors = new LinkedHashSet();
+            final Set<FormMessage> allErrors = new LinkedHashSet();
             
             if(globalErrors != null && !globalErrors.isEmpty()) {
             
-                final Function<ObjectError, ValidationMessage> mapper = this.getObjectErrorFormat();
+                final Function<ObjectError, FormMessage> mapper = this.getObjectErrorFormat();
                 
                 globalErrors.stream().map(mapper).collect(Collectors.toCollection(() -> allErrors));
             }
             
             if(fieldErrors != null) {
                 
-                final Function<FieldError, ValidationMessage> mapper = this.getFieldErrorFormat();
+                final Function<FieldError, FormMessage> mapper = this.getFieldErrorFormat();
                 
                 fieldErrors.stream().map(mapper).collect(Collectors.toCollection(() -> allErrors));
             }
@@ -54,12 +54,12 @@ public class BindingResultErrorCollector {
         }
     }
 
-    public Set<ValidationMessage> getFieldErrors(BindingResult bindingResult, String fieldName) {
+    public Set<FormMessage> getFieldErrors(BindingResult bindingResult, String fieldName) {
         return this.getFieldErrors(bindingResult, fieldName, this.getFieldErrorFormat());
     }
     
-    public Set<ValidationMessage> getFieldErrors(BindingResult bindingResult, String fieldName, 
-            Function<FieldError, ValidationMessage> converter) {
+    public Set<FormMessage> getFieldErrors(BindingResult bindingResult, String fieldName, 
+            Function<FieldError, FormMessage> converter) {
     
         if (bindingResult.hasFieldErrors(fieldName)) {
             
@@ -75,9 +75,9 @@ public class BindingResultErrorCollector {
         }
     }
 
-    public Function<ObjectError, ValidationMessage> getObjectErrorFormat() {
-        final Function<ObjectError, ValidationMessage> mapper = (objectErr) -> {
-            final ValidationMessage err = new ValidationMessage();
+    public Function<ObjectError, FormMessage> getObjectErrorFormat() {
+        final Function<ObjectError, FormMessage> mapper = (objectErr) -> {
+            final FormMessage err = new FormMessage();
             err.setMessage(objectErr.getDefaultMessage());
             err.setObjectName(objectErr.getObjectName());
             return err;
@@ -85,9 +85,9 @@ public class BindingResultErrorCollector {
         return mapper;
     }
     
-    public Function<FieldError, ValidationMessage> getFieldErrorFormat() {
-        final Function<FieldError, ValidationMessage> mapper = (fieldErr) -> {
-            final ValidationMessage err = new ValidationMessage();
+    public Function<FieldError, FormMessage> getFieldErrorFormat() {
+        final Function<FieldError, FormMessage> mapper = (fieldErr) -> {
+            final FormMessage err = new FormMessage();
             err.setFieldName(fieldErr.getField());
             err.setMessage(fieldErr.isBindingFailure() ? 
                     "invalid format" : fieldErr.getDefaultMessage());

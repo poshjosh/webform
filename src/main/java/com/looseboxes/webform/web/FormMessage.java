@@ -7,11 +7,11 @@ import java.util.Objects;
  * Encapsulates a object/field validation error.
  * 
  * The field 
- * {@link com.looseboxes.webform.util.ValidationError#rejectedValue fieldValue}
+ * {@link com.looseboxes.webform.web.FormMessage#fieldValue fieldValue}
  * is NOT considered in either the equals or hashCode methods.
  * @author hp
  */
-public class ValidationMessage implements Serializable{
+public class FormMessage implements Serializable{
     
     private String objectName;
     private String fieldName;
@@ -22,7 +22,7 @@ public class ValidationMessage implements Serializable{
         return objectName;
     }
 
-    public ValidationMessage objectName(String objectName) {
+    public FormMessage objectName(String objectName) {
         this.objectName = objectName;
         return this;
     }
@@ -35,7 +35,7 @@ public class ValidationMessage implements Serializable{
         return fieldName;
     }
 
-    public ValidationMessage fieldName(String fieldName) {
+    public FormMessage fieldName(String fieldName) {
         this.fieldName = fieldName;
         return this;
     }
@@ -48,7 +48,7 @@ public class ValidationMessage implements Serializable{
         return fieldValue;
     }
 
-    public ValidationMessage fieldValue(Object fieldValue) {
+    public FormMessage fieldValue(Object fieldValue) {
         this.fieldValue = fieldValue;
         return this;
     }
@@ -61,7 +61,7 @@ public class ValidationMessage implements Serializable{
         return message;
     }
 
-    public ValidationMessage message(String message) {
+    public FormMessage message(String message) {
         this.message = message;
         return this;
     }
@@ -91,7 +91,7 @@ public class ValidationMessage implements Serializable{
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final ValidationMessage other = (ValidationMessage) obj;
+        final FormMessage other = (FormMessage) obj;
         if (!Objects.equals(this.objectName, other.objectName)) {
             return false;
         }
@@ -109,6 +109,6 @@ public class ValidationMessage implements Serializable{
 
     @Override
     public String toString() {
-        return "BindingResultError{" + "objectName=" + objectName + ", fieldName=" + fieldName + ", rejectedValue=" + fieldValue + ", message=" + message + '}';
+        return "FormMessage{" + "objectName=" + objectName + ", fieldName=" + fieldName + ", rejectedValue=" + fieldValue + ", message=" + message + '}';
     }
 }

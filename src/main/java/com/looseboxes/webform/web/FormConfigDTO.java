@@ -40,9 +40,9 @@ public class FormConfigDTO extends FormConfigBean{
     @JsonIgnore
     private String stage;
     
-    private Set<ValidationMessage> errors;
+    private Set<FormMessage> errors;
     
-    private Set<ValidationMessage> infos;
+    private Set<FormMessage> infos;
     
     @JsonIgnore
     private BindingResult bindingResult;
@@ -61,13 +61,13 @@ public class FormConfigDTO extends FormConfigBean{
         this.removeAll(infos, fieldName);
     }
 
-    private void removeAll(Set<ValidationMessage> messages, String fieldName) {
+    private void removeAll(Set<FormMessage> messages, String fieldName) {
         if(messages == null || messages.isEmpty()) {
             return;
         }
-        final Iterator<ValidationMessage> iter = messages.iterator();
+        final Iterator<FormMessage> iter = messages.iterator();
         while(iter.hasNext()) {
-            final ValidationMessage message = iter.next();
+            final FormMessage message = iter.next();
             if(fieldName.equals(message.getFieldName())) {
                 iter.remove();
             }
@@ -96,12 +96,12 @@ public class FormConfigDTO extends FormConfigBean{
         return errors != null && ! errors.isEmpty();
     }
     
-    public FormConfigDTO addErrors(Collection<ValidationMessage> errors) {
+    public FormConfigDTO addErrors(Collection<FormMessage> errors) {
         errors.forEach((error) -> addError(error));
         return this;
     }
     
-    public FormConfigDTO setErrors(Set<ValidationMessage> errors) {
+    public FormConfigDTO setErrors(Set<FormMessage> errors) {
         this.errors = errors;
         return this;
     }
@@ -112,10 +112,10 @@ public class FormConfigDTO extends FormConfigBean{
     }
     
     public FormConfigDTO addError(String error) {
-        return this.addError(new ValidationMessage().objectName(this.getModelname()).message(error));
+        return this.addError(new FormMessage().objectName(this.getModelname()).message(error));
     }
     
-    public FormConfigDTO addError(ValidationMessage error) {
+    public FormConfigDTO addError(FormMessage error) {
         if(this.errors == null) {
             this.errors = new LinkedHashSet();
         }
@@ -123,11 +123,11 @@ public class FormConfigDTO extends FormConfigBean{
         return this;
     }
 
-    public Collection<ValidationMessage> getErrors() {
+    public Collection<FormMessage> getErrors() {
         return this.errors;
     }
     
-    public FormConfigDTO addInfos(Collection<ValidationMessage> infos) {
+    public FormConfigDTO addInfos(Collection<FormMessage> infos) {
         infos.forEach((error) -> addInfo(error));
         return this;
     }
@@ -138,10 +138,10 @@ public class FormConfigDTO extends FormConfigBean{
     }
 
     public FormConfigDTO addInfo(String info) { 
-        return this.addInfo(new ValidationMessage().objectName(this.getModelname()).message(info));
+        return this.addInfo(new FormMessage().objectName(this.getModelname()).message(info));
     }
     
-    public FormConfigDTO addInfo(ValidationMessage info) {
+    public FormConfigDTO addInfo(FormMessage info) {
         if(this.infos == null) {
             this.infos = new LinkedHashSet();
         }
@@ -149,12 +149,12 @@ public class FormConfigDTO extends FormConfigBean{
         return this;
     }
     
-    public FormConfigDTO setInfos(Set<ValidationMessage> infos) {
+    public FormConfigDTO setInfos(Set<FormMessage> infos) {
         this.infos = infos;
         return this;
     }
 
-    public Collection<ValidationMessage> getInfos() {
+    public Collection<FormMessage> getInfos() {
         return this.infos;
     }
 
