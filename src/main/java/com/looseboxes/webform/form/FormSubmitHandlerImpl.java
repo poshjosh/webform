@@ -43,20 +43,14 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
         final CRUDAction crudAction = formConfig.getCrudAction();
         switch(crudAction) {
             case create:
-                Object created = saveEntityAndChildrenIfAny.save(formRequest);
-// @TODO                
-// This has been documented to cause NullPointerException                
-//                ((FormBean)formConfig.getForm()).setDataSource(created);
+                saveEntityAndChildrenIfAny.save(formRequest);
                 break;
                 
             case read:
                 break;
                 
             case update:
-                created = saveEntityAndChildrenIfAny.save(formRequest);
-// @TODO                
-// This has been documented to cause NullPointerException                
-//                ((FormBean)formConfig.getForm()).setDataSource(created);
+                saveEntityAndChildrenIfAny.save(formRequest);
                 break;
                 
             case delete:

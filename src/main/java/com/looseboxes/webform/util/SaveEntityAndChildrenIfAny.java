@@ -2,6 +2,7 @@ package com.looseboxes.webform.util;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
+import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
@@ -71,6 +72,15 @@ public class SaveEntityAndChildrenIfAny {
             LOG.debug("Inserted: {}", child);
             
             result = child;
+        }
+
+        //@TODO
+        // This is a temporary bug fix
+        final Object dataSource = result == null ? entity : result;
+        try{
+            ((FormBean)formRequest.getFormConfig().getForm()).setDataSource(dataSource);
+        }catch(RuntimeException e) {
+            LOG.warn("Failed to set FormConfig.form.dataSource to: " + dataSource, e);
         }
         
         return result;
