@@ -99,13 +99,12 @@ public class FormService<T> {
         try{
         
             this.formSubmitHandler.process(formRequest);
-
-            if(formConfig.getForm().getParent() != null &&
-                    formConfig.getModelobject() != null) {
-
+            
+            if(formConfig.getModelobject() != null 
+                    && formConfig.getParentFormOptional().isPresent()) {
+                
                 modelObjectService.updateParentForm(formRequest);
             }
-            
         }catch(RuntimeException e) {
 
             this.deleteUploadedFiles(formConfig);

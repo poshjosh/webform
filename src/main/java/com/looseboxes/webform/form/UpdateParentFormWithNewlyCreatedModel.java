@@ -32,7 +32,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
     
         boolean updated = false;
         
-        if(formConfig.getForm().getParent() != null &&
+        if(formConfig.getParentFormOptional().isPresent() &&
                 formConfig.getModelobject() != null) {
 
             final Form<Object> form = Objects.requireNonNull(formConfig.getForm());

@@ -78,7 +78,9 @@ public class SaveEntityAndChildrenIfAny {
         // This is a temporary bug fix
         final Object dataSource = result == null ? entity : result;
         try{
-            ((FormBean)formRequest.getFormConfig().getForm()).setDataSource(dataSource);
+            formRequest.getFormConfig().getFormOptional().ifPresent((form) -> {
+                ((FormBean)form).setDataSource(dataSource);
+            });
         }catch(RuntimeException e) {
             LOG.warn("Failed to set FormConfig.form.dataSource to: " + dataSource, e);
         }
