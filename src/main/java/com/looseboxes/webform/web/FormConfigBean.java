@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
@@ -412,6 +413,14 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
 
     public void setForm(Form<Object> form) {
         this.form = form;
+    }
+    
+    public Optional<Form<Object>> getParentFormOptional() {
+        return Optional.ofNullable(form == null ? null : form.getParent());
+    }
+    
+    public Optional<Form<Object>> getFormOptional() {
+        return Optional.ofNullable(this.getForm());
     }
 
     @Override
