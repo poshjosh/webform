@@ -23,8 +23,6 @@ import org.springframework.stereotype.Component;
 public class ModelObjectProvider{
     
     private static final Logger LOG = LoggerFactory.getLogger(ModelObjectService.class);
-
-    public static final String FORM_ID_PREFIX = "form";
     
     private final EntityRepositoryProvider entityRepositoryFactory;
     private final TypeFromNameResolver typeFromNameResolver;
