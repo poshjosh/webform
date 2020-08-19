@@ -21,13 +21,14 @@ public final class FormParamsUtil {
      * 
      * The FormConfigBean passed by Spring to the controller methods was not
      * being updated with parameters from query e.g <code>?user=jane&age=23</code>
- 
- This method manually updates those parameters in the FormConfigDTO
+     * 
+     * This method manually updates those parameters in the FormConfigDTO
      * @param formConfig
      * @param request 
      */
     public static void updateFormConfigWithFormParamsFromRequest(
             FormConfigDTO formConfig, HttpServletRequest request) {
+        
         LOG.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
                 formConfig, request.getQueryString());
         final String [] names = Params.names();
@@ -38,7 +39,7 @@ public final class FormParamsUtil {
                 formConfig.setIfAbsent(name, value);
             }
         }
-        LOG.debug(" AFTER: {}", formConfig);
+        LOG.trace(" AFTER: {}", formConfig);
     }
 
     public static void updateModelMapWithFormParamsFromRequest(
