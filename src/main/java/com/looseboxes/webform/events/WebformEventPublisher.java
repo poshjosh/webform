@@ -1,6 +1,5 @@
 package com.looseboxes.webform.events;
 
-import com.looseboxes.webform.FormStage;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,8 +18,7 @@ public class WebformEventPublisher {
                 Objects.requireNonNull(applicationEventPublisher);
     }
     
-    public void publishFormStageBegunEvent(FormRequest formRequest, FormStage stage) {
-        formRequest.getFormConfig().setFormStage(stage);
+    public void publishFormStageBegunEvent(FormRequest formRequest) {
         this.applicationEventPublisher.publishEvent(new FormStageBegunEvent(this, formRequest));
     }
 
