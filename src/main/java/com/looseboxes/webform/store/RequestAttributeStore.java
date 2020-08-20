@@ -20,13 +20,13 @@ public class RequestAttributeStore implements AttributeStore<HttpServletRequest>
         this.store = null;
     }
     
-    public RequestAttributeStore(HttpServletRequest request) {
-        this.store = Objects.requireNonNull(request);
+    public RequestAttributeStore(HttpServletRequest delegate) {
+        this.store = Objects.requireNonNull(delegate);
     }
     
     @Override
-    public AttributeStore<HttpServletRequest> wrap(HttpServletRequest request) {
-        return new RequestAttributeStore(request);
+    public AttributeStore<HttpServletRequest> wrap(HttpServletRequest delegate) {
+        return new RequestAttributeStore(delegate);
     }
     
     @Override
