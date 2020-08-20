@@ -1,7 +1,5 @@
 package com.looseboxes.webform.web;
 
-import com.looseboxes.webform.services.FormAttributeService;
-
 /**
  * @author hp
  */
@@ -17,7 +15,4 @@ public interface FormRequest<T> extends WebRequest<T>{
     FormConfigDTO getFormConfig();
     
     void setFormConfig(FormConfigDTO formConfig);
-
-    @Override
-    FormAttributeService getAttributeService();
 }
