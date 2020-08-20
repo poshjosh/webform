@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RequestAttributeStore implements AttributeStore<HttpServletRequest> {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ModelAttributeStore.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RequestAttributeStore.class);
     
     private final HttpServletRequest store;
 
