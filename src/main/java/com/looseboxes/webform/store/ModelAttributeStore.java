@@ -20,13 +20,13 @@ public class ModelAttributeStore implements AttributeStore<ModelMap> {
         this.store = null;
     }
     
-    public ModelAttributeStore(ModelMap request) {
-        this.store = Objects.requireNonNull(request);
+    public ModelAttributeStore(ModelMap delegate) {
+        this.store = Objects.requireNonNull(delegate);
     }
     
     @Override
-    public AttributeStore<ModelMap> wrap(ModelMap request) {
-        return new ModelAttributeStore(request);
+    public AttributeStore<ModelMap> wrap(ModelMap delegate) {
+        return new ModelAttributeStore(delegate);
     }
     
     @Override
