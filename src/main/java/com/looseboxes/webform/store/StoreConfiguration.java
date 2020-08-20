@@ -13,7 +13,8 @@ public class StoreConfiguration {
         return new AttributeStoreProviderImpl(
                 this.requestAttributeStore(),
                 this.modelAttributeStore(),
-                this.sessionAttributeStore()
+                this.sessionAttributeStore(),
+                this.cacheAttributeStore()
         );
     }
     
@@ -25,9 +26,9 @@ public class StoreConfiguration {
      * </p>
      * <code>
      * <pre>
- HttpServletRequest request;
- RequestAttributeStore store = requestAttributeStore().wrap(request)
- </pre>
+     * HttpServletRequest request;
+     * RequestAttributeStore store = requestAttributeStore().wrap(request)
+     * </pre>
      * </code>
      * @return An instance of {@link com.looseboxes.webform.store.RequestAttributeStore RequestAttributeStore}
      */
@@ -43,9 +44,9 @@ public class StoreConfiguration {
      * </p>
      * <code>
      * <pre>
- ModelMap model;
- SessionAttributeStore store = modelAttributeStore().wrap(model)
- </pre>
+     * ModelMap model;
+     * SessionAttributeStore store = modelAttributeStore().wrap(model)
+     * </pre>
      * </code>
      * @return An instance of {@link com.looseboxes.webform.store.ModelAttributeStore ModelAttributeStore}
      */
@@ -61,13 +62,31 @@ public class StoreConfiguration {
      * </p>
      * <code>
      * <pre>
- HttpSession session;
- SessionAttributeStore store = sessionAttributeStore().wrap(session)
- </pre>
+     * HttpSession session;
+     * SessionAttributeStore store = sessionAttributeStore().wrap(session)
+     * </pre>
      * </code>
      * @return An instance of {@link com.looseboxes.webform.store.SessionAttributeStore SessionAttributeStore}
      */
     @Bean public SessionAttributeStore sessionAttributeStore() {
         return new SessionAttributeStore();
+    }
+
+    /**
+     * Return an un-initialized instance of {@link com.looseboxes.webform.store.CacheAttributeStore CacheAttributeStore}.
+     * <p>
+     * Do not use the returned instance directly, rather use it to create an 
+     * instance that is initialized with a Cache attribute as follows:
+     * </p>
+     * <code>
+     * <pre>
+     * javax.cache.Cache cache;
+     * CacheAttributeStore store = cacheAttributeStore().wrap(cache)
+     * </pre>
+     * </code>
+     * @return An instance of {@link com.looseboxes.webform.store.CacheAttributeStore CacheAttributeStore}
+     */
+    @Bean public CacheAttributeStore cacheAttributeStore() {
+        return new CacheAttributeStore();
     }
 }

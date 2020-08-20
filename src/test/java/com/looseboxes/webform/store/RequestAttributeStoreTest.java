@@ -15,8 +15,7 @@ public class RequestAttributeStoreTest extends AttributeStoreTest<HttpServletReq
 
         @Override
         public AttributeStore<HttpServletRequest> getAttributeStore(HttpServletRequest backingStore) {
-            return new TestConfig().getFormAttributeService()
-                    .wrap(new StoreDelegate(null, backingStore)).requestAttributes();
+            return new TestConfig().getAttributeStoreProvider().forRequest(backingStore);
         }
 
         @Override

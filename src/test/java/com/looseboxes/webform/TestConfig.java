@@ -9,7 +9,6 @@ import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.TypeFromNameResolverUsingClassNames;
 import com.bc.webform.TypeTests;
 import com.bc.webform.TypeTestsImpl;
-import com.looseboxes.webform.services.FormAttributeService;
 import com.looseboxes.webform.store.AttributeStoreProvider;
 import com.looseboxes.webform.store.StoreConfiguration;
 import com.looseboxes.webform.util.PropertySuffixes;
@@ -23,10 +22,6 @@ import org.springframework.context.annotation.Bean;
 public class TestConfig extends TestBase{
     
 //    private static final Logger LOG = LoggerFactory.getLogger(TestConfig.class);
-    
-    @Bean public FormAttributeService getFormAttributeService() {
-        return new FormAttributeService(this.getAttributeStoreProvider());
-    }
     
     @Bean public AttributeStoreProvider getAttributeStoreProvider() {
         return this.getStoreConfiguration().attributeStoreProvider();

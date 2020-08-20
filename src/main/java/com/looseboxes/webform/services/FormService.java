@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.context.request.WebRequest;
 import com.looseboxes.webform.FormStages;
+import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
 
@@ -42,21 +43,21 @@ public class FormService<T> {
     @Autowired private FileUploadService fileUploadService;
     @Autowired private FormSubmitHandler formSubmitHandler;
     
-    public FormRequest onBeginForm(FormRequest formRequest){
+    public FormRequest onBeginForm(FormConfigStore store, FormRequest formRequest){
         
-        formRequest = modelObjectService.onBeginForm(formRequest);
+        formRequest = modelObjectService.onBeginForm(store, formRequest);
         
         log.trace("{}", formRequest);
         
         final FormConfigDTO formConfig = formRequest.getFormConfig();
-        formRequest.getAttributeService().setSessionAttribute(formConfig);
+        store.set(formConfig);
         
         return formRequest;
     }
 
-    public FormRequest onValidateForm(FormRequest formRequest, WebRequest webRequest) {
+    public FormRequest onValidateForm(FormConfigStore store, FormRequest formRequest, WebRequest webRequest) {
         
-        formRequest = modelObjectService.onValidateForm(formRequest, null);
+        formRequest = modelObjectService.onValidateForm(store, formRequest, null);
         
         log.trace("{}", formRequest);
         
@@ -83,9 +84,9 @@ public class FormService<T> {
         return formRequest;
     }    
 
-    public FormRequest onSubmitForm(FormRequest formRequest) {
+    public FormRequest onSubmitForm(FormConfigStore store, FormRequest formRequest) {
         
-        formRequest = modelObjectService.onSubmitForm(formRequest);
+        formRequest = modelObjectService.onSubmitForm(store, formRequest);
         
         log.trace("{}", formRequest);
         
@@ -93,9 +94,6 @@ public class FormService<T> {
 
         this.check(formConfig);
 
-        final FormAttributeService formAttributeService = 
-                formRequest.getAttributeService();
-        
         try{
         
             this.formSubmitHandler.process(formRequest);
@@ -103,7 +101,7 @@ public class FormService<T> {
             if(formConfig.getModelobject() != null 
                     && formConfig.getParentFormOptional().isPresent()) {
                 
-                modelObjectService.updateParentForm(formRequest);
+                modelObjectService.updateParentForm(store, formRequest);
             }
         }catch(RuntimeException e) {
 
@@ -113,15 +111,17 @@ public class FormService<T> {
             
         }finally{
             
-            formAttributeService.removeSessionAttribute(formConfig.getFormid());
-            formAttributeService.removeAll(FormConfig.names());
+            store.remove(formConfig.getFormid());
         }
         
         return formRequest;
     } 
 
-    public Map<String, List<SelectOption>> dependents(FormConfig formConfig,
+    public Map<String, List<SelectOption>> dependents(
+            FormConfigStore store, String formid,
             String propertyName, String propertyValue, Locale locale) {
+        
+        final FormConfigDTO formConfig = store.getOrException(formid);
 
         final Object modelobject = formConfig.getModelobject();
 
@@ -134,9 +134,11 @@ public class FormService<T> {
         return result;
     }
     
-    public void validateSingle(FormConfigDTO formConfig, 
+    public FormConfigDTO validateSingle(FormConfigStore store, String formid,
             String propertyName, String propertyValue) {
             
+        final FormConfigDTO formConfig = store.getOrException(formid);
+        
         final Object modelobject = formConfig.getModelobject();
         
         final BindingResult bindingResult = webValidator
@@ -148,6 +150,8 @@ public class FormService<T> {
         log.debug("{}#{} {} = {}", formConfig.getModelname(), 
                 propertyName, FormStages.validateSingle, 
                 bindingResult.hasErrors() ? "errors" : "no errors");
+        
+        return formConfig;
     }
 
     private void validateAndAddErrors(FormConfigDTO formConfig, BindingResult bindingResult) {
@@ -229,33 +233,3 @@ public class FormService<T> {
         return modelObjectService;
     }
 }
-/**
- * 
-    
-    private void fixModelObjectBug(FormRequest formRequest) {
-        //////////////////////////// IMPORTANT NOTE ////////////////////////////
-        // When we didn't clear this model, the session was getting re-populated
-        // by the modelobject even after the modelobject had been removed from
-        // the session.
-        // Two attributes were identified in the ModelMap: formConfigBean and 
-        // org.springframework.validation.BindingResult.formConfigBean 
-        ////////////////////////////////////////////////////////////////////////
-        // 
-        final AttributeStore<ModelMap> modelStore = formRequest.getAttributeService().modelAttributes();
-        modelStore.removeAll(FormConfig.names());
-        final String name = "formConfigBean";
-        modelStore.removeAll(new String[]{name, org.springframework.validation.BindingResult.class.getName()+"."+name});
-    }
-    
-    private void fixThymeleafIdAttributeBug(FormRequest formRequest) {
-        
-        final AttributeStore<ModelMap> modelStore = formRequest.getAttributeService().modelAttributes();
-        
-        // In Thymeleaf template we could not reference a variable named 'id'
-        // thus ${id}. 'Params.MODEL_ID' - refers to a variable named 'id', so
-        // we add an alias here i.e 'modelid'
-        //
-        modelStore.put("modelid", formRequest.getFormConfig().getId());
-    }
- * 
- */

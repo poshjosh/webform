@@ -5,7 +5,7 @@
  */
 package com.looseboxes.webform.store;
 
-import java.util.List;
+import javax.cache.Cache;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.springframework.ui.ModelMap;
@@ -16,11 +16,11 @@ import org.springframework.ui.ModelMap;
  */
 public interface AttributeStoreProvider {
     
-    List<AttributeStore> all(StoreDelegate delegate);
-
     AttributeStore<ModelMap> forModel(ModelMap model);
 
     AttributeStore<HttpServletRequest> forRequest(HttpServletRequest request);
 
     AttributeStore<HttpSession> forSession(HttpSession session);
+    
+    AttributeStore<Cache<String, Object>> forCache(Cache<String, Object> cache);
 }

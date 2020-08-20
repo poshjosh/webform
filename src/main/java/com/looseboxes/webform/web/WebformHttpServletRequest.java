@@ -1,6 +1,5 @@
 package com.looseboxes.webform.web;
 
-import com.looseboxes.webform.services.FormAttributeService;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -10,20 +9,13 @@ public class WebformHttpServletRequest extends WebHttpServletRequest implements 
     
     private FormConfigDTO formConfig;
 
-    public WebformHttpServletRequest(
-            HttpServletRequest request, FormAttributeService attributeService) {
-        super(request, attributeService);
+    public WebformHttpServletRequest(HttpServletRequest request) {
+        super(request);
     }
 
     @Override
     public WebformHttpServletRequest copy() {
-        return new WebformHttpServletRequest(
-                getHttpServletRequest(), getAttributeService());
-    }
-
-    @Override
-    public FormAttributeService getAttributeService() {
-        return (FormAttributeService)super.getAttributeService();
+        return new WebformHttpServletRequest(getHttpServletRequest());
     }
     
     @Override

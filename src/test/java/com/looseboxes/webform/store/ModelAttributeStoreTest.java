@@ -13,8 +13,7 @@ public class ModelAttributeStoreTest extends AttributeStoreTest<ModelMap>{
 
         @Override
         public AttributeStore<ModelMap> getAttributeStore(ModelMap backingStore) {
-            return new TestConfig().getFormAttributeService()
-                    .wrap(new StoreDelegate(backingStore, null)).modelAttributes();
+            return new TestConfig().getAttributeStoreProvider().forModel(backingStore);
         }
         
         @Override

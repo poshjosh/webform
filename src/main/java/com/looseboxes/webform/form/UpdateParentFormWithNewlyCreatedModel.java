@@ -4,7 +4,7 @@ import com.bc.webform.form.Form;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
-import com.looseboxes.webform.services.FormAttributeService;
+import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 import java.lang.reflect.Field;
@@ -26,7 +26,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
         this.formMemberUpdater = Objects.requireNonNull(formMemberUpdater);
     }
     
-    public boolean updateParent(FormRequest formRequest) {
+    public boolean updateParent(FormConfigStore store, FormRequest formRequest) {
         
         FormConfigDTO formConfig = formRequest.getFormConfig();
     
@@ -47,10 +47,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
             
                 final String parentFormId = parentForm.getId();
                 
-                final FormAttributeService formAttributeService = formRequest.getAttributeService();
-
-                FormConfigDTO parentFormConfig = formAttributeService
-                        .getSessionAttributeOrException(parentFormId);
+                FormConfigDTO parentFormConfig = store.getOrException(parentFormId);
 
                 if(parentFormConfig != null) {
 
@@ -58,7 +55,7 @@ public class UpdateParentFormWithNewlyCreatedModel {
 
                         parentFormConfig = this.updateParent(formConfig, parentFormConfig);
 
-                        formAttributeService.setSessionAttribute(parentFormConfig);
+                        store.set(parentFormConfig);
                         
                         updated = true;
 

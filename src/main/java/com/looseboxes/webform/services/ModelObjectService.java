@@ -14,6 +14,7 @@ import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
 import javax.validation.ValidationException;
@@ -33,9 +34,9 @@ public class ModelObjectService{
     @Autowired private EntityConfigurerService entityConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
 
-    public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest) {
+    public <T> FormRequest<T> onBeginForm(FormConfigStore store, FormRequest<T> formRequest) {
         
-        return this.onBeginForm(formRequest, this.getModelObject(formRequest));
+        return this.onBeginForm(store, formRequest, this.getModelObject(formRequest));
     }
     
     private <T> T getModelObject(FormRequest<T> formRequest) {
@@ -58,7 +59,7 @@ public class ModelObjectService{
         return modelobject;
     }
     
-    public <T> FormRequest<T> onBeginForm(FormRequest<T> formRequest, T modelobject) {
+    public <T> FormRequest<T> onBeginForm(FormConfigStore store, FormRequest<T> formRequest, T modelobject) {
         
         final FormConfigDTO formConfig = formRequest.getFormConfig();
 
@@ -72,7 +73,7 @@ public class ModelObjectService{
             modelobject = this.configureModelObject(modelobject, formRequest);
         }
         
-        return this.updateForm(formRequest, ! newForm, modelobject);
+        return this.updateForm(store, formRequest, ! newForm, modelobject);
     }
     
     /**
@@ -92,14 +93,14 @@ public class ModelObjectService{
                         .orElse(modelobject);
     }
     
-    public <T> FormRequest<T> onValidateForm(FormRequest<T> formRequest, T modelobject) {
+    public <T> FormRequest<T> onValidateForm(FormConfigStore store, FormRequest<T> formRequest, T modelobject) {
         
-        return this.updateForm(formRequest, true, modelobject);
+        return this.updateForm(store, formRequest, true, modelobject);
     }
     
-    public <T> FormRequest<T> onSubmitForm(FormRequest<T> formRequest) {
+    public <T> FormRequest<T> onSubmitForm(FormConfigStore store, FormRequest<T> formRequest) {
         
-        return this.updateForm(formRequest, true, null);
+        return this.updateForm(store, formRequest, true, null);
     }
     
     public <S, T> FormRequest<T> updateRequest(
@@ -121,7 +122,7 @@ public class ModelObjectService{
     }
     
     private <T> FormRequest<T> updateForm(
-            FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
+            FormConfigStore store, FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
         
         FormConfigDTO formConfig = formRequest.getFormConfig();
         
@@ -135,11 +136,9 @@ public class ModelObjectService{
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
-        final FormAttributeService formAttributeService = formRequest.getAttributeService();
-        
         FormConfigDTO existingFormConfig = ! existingForm ?
-                formAttributeService.getSessionAttribute(formid, null) :
-                formAttributeService.getSessionAttributeOrException(formid);
+                store.getOrDefault(formid, null) :
+                store.getOrException(formid);
         
         log.debug("Existing form config: {}\nexisting form: {}", existingFormConfig,
                 (existingFormConfig==null?null:existingFormConfig.getForm()));
@@ -149,7 +148,7 @@ public class ModelObjectService{
         }
 
         final Form parentForm = parentFormId == null ? null : 
-                formAttributeService.getFormOrException(parentFormId);
+                store.getFormOrException(parentFormId);
         
         if (modelobject == null) {
             modelobject = (T)existingFormConfig.getModelobject();
@@ -188,8 +187,8 @@ public class ModelObjectService{
         }
     }
     
-    public boolean updateParentForm(FormRequest formRequest) {
-        return this.parentFormUpdater.updateParent(formRequest);
+    public boolean updateParentForm(FormConfigStore store, FormRequest formRequest) {
+        return this.parentFormUpdater.updateParent(store, formRequest);
     }
     
     /**

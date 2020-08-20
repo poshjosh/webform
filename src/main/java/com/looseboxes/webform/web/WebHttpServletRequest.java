@@ -1,7 +1,5 @@
 package com.looseboxes.webform.web;
 
-import com.looseboxes.webform.services.AttributeService;
-import com.looseboxes.webform.store.StoreDelegate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -25,11 +23,9 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
     private final Map<String, MultipartFile> files;
 
     private final Map<String, List<MultipartFile>> multiValueFiles;
-
-    private final AttributeService attributeService;
     
-    public WebHttpServletRequest(
-            HttpServletRequest request, AttributeService attributeService) {
+    public WebHttpServletRequest(HttpServletRequest request) {
+        
         this.httpServletRequest = Objects.requireNonNull(request);
         
         if(request instanceof MultipartRequest) {
@@ -40,7 +36,6 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
             this.files = Collections.EMPTY_MAP;
             this.multiValueFiles = Collections.EMPTY_MAP;
         }
-        this.attributeService = attributeService.wrap(new StoreDelegate(null, request));
         LOG.trace("Files: {}, multi value files: {}", this.files, this.multiValueFiles);
     }
 
@@ -81,11 +76,6 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
     @Override
     public Map<String, List<MultipartFile>> getMultiValueFiles() {
         return this.multiValueFiles;
-    }
-
-    @Override
-    public AttributeService getAttributeService() {
-        return attributeService;
     }
 
     public HttpServletRequest getHttpServletRequest() {
