@@ -44,6 +44,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.looseboxes</groupId>
             <artifactId>bcjpaspring</artifactId>
             <version>1.0-SNAPSHOT</version>
