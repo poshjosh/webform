@@ -15,13 +15,13 @@ public final class Print {
 
     public static void formAttributes(String tag, HttpSession session) {
         Enumeration<String> en = session.getAttributeNames();
-        StringBuilder buffer = new StringBuilder("\n->");
+        StringBuilder buffer = new StringBuilder("\n-->");
         buffer.append(tag).append(" Printing form attribute(s) in session: ");
         buffer.append(session.getId());
         while(en.hasMoreElements()) {
             String name = en.nextElement();
             if(name.startsWith(ModelObjectService.FORM_ID_PREFIX)) {
-                buffer.append("\n->").append(session.getAttribute(name));
+                buffer.append("\n-->").append(session.getAttribute(name));
             }
         }
         LOG.debug("{}", buffer);

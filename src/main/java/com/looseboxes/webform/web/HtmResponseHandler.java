@@ -66,7 +66,7 @@ public class HtmResponseHandler implements ResponseHandler<FormConfigDTO, String
     private String getTargetAfterSubmit(FormConfigDTO config) {
         
         final String target = config.getRedirectForTargetOnCompletion()
-                .orElse(formEndpoints.getSuccess());
+                .orElseGet(() -> formEndpoints.getSuccess());
         
         LOG.debug("Target: {}", target);
         

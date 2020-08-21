@@ -204,9 +204,6 @@ public class DependentsProviderImpl implements DependentsProvider {
             final Object value = ! convertible ? propertyValue :
                     this.domainTypeConverter.convert(
                     propertyValue, TypeDescriptor.valueOf(String.class), propertyType);
-            
-            LOG.trace("Convertible: {}, output type: {}, src type: String, target type: {}", 
-                    convertible, (value==null?null:value.getClass()), propertyType.getType());
 
             final int offset = 0;
 
@@ -244,8 +241,56 @@ public class DependentsProviderImpl implements DependentsProvider {
         return this.ensureUnmodifiableMap(result);
     }
     
+    public Object convertIfNeed(TypeDescriptor propertyType, 
+            String propertyName, String propertyValue) {
+        
+        final Class propertyClass = propertyType.getType();
+        
+        final boolean convertible = isDomainTypeConvertible(String.class, propertyClass);
+        
+        Object result;
+        
+        if(convertible) {
+            result = domainTypeConverter
+                .convert(propertyValue, TypeDescriptor.valueOf(String.class), propertyType);
+        }else{
+            result = applyTempFixForIssue002(propertyType, propertyName, propertyValue);
+        }
+        
+        return result;
+    }
+
+    private Object applyTempFixForIssue002(TypeDescriptor propertyType, 
+            String propertyName, String propertyValue) {
+        return this.tryManuallyConversion(propertyType, propertyName, propertyValue);
+    }
+    
+    private Object tryManuallyConversion(TypeDescriptor propertyType, 
+            String propertyName, String propertyValue) {
+        
+        Object result;
+        final Class propertyClass = propertyType.getType();
+        
+        try{
+            Long possibleId = Long.valueOf(propertyValue + "L");
+            if(propertyClass.isEnum()) {
+                result = propertyClass.getEnumConstants()[possibleId.intValue()];
+            }else{
+                result = entityRepositoryProvider.forEntity(propertyClass)
+                        .findById(possibleId)
+                        .orElse(propertyValue);
+            }
+        }catch(NumberFormatException e) {
+            result = propertyValue;
+        }
+        
+        return result;
+    }
+    
     public boolean isDomainTypeConvertible(Class srcType, Class tgtType) {
-        return this.domainTypeConverter.isConvertible(srcType, tgtType);
+        final boolean convertible = this.domainTypeConverter.isConvertible(srcType, tgtType);
+        LOG.debug("Convertible: {}, src type: {}, tgt type: {}", convertible, srcType, tgtType);
+        return convertible;
     }
     
     public Set<PropertyDescriptor> getDependentProperties(

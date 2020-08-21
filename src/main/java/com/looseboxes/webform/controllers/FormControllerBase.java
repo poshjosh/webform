@@ -39,15 +39,15 @@ public class FormControllerBase<T>{
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
+        final FormConfigStore store = this.getStore(request);
+
         final FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        this.publishStageBegunAndLog(formRequest, FormStage.BEGIN, request);
-        
-        final FormConfigStore store = this.getStore(request);
+        this.publishStageBegunAndLog(store, formRequest, FormStage.BEGIN, request);
         
         formConfig = this.formService.onBeginForm(store, formRequest).getFormConfig();
         
-        this.publishStageCompletedAndLog(formRequest, FormStage.BEGIN, request);
+        this.publishStageCompletedAndLog(store, formRequest, FormStage.BEGIN, request);
 
         return formConfig;
     }
@@ -67,13 +67,13 @@ public class FormControllerBase<T>{
 
         FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        this.publishStageBegunAndLog(formRequest, FormStage.VALIDATE, request);
-        
         final FormConfigStore store = this.getStore(request);
-        
+
+        this.publishStageBegunAndLog(store, formRequest, FormStage.VALIDATE, request);
+       
         formConfig = this.formService.onValidateForm(store, formRequest, webRequest).getFormConfig();
         
-        this.publishStageCompletedAndLog(formRequest, FormStage.BEGIN, request);
+        this.publishStageCompletedAndLog(store, formRequest, FormStage.BEGIN, request);
         
         return formConfig;
     }    
@@ -83,15 +83,15 @@ public class FormControllerBase<T>{
         
         FormParamsUtil.updateFormConfigWithFormParamsFromRequest(formConfig, request);
         
+        final FormConfigStore store = this.getStore(request);
+        
         final FormRequest formRequest = this.getFormRequest(formConfig, request);
         
-        this.publishStageBegunAndLog(formRequest, FormStage.SUBMIT, request);
-        
-        final FormConfigStore store = this.getStore(request);
+        this.publishStageBegunAndLog(store, formRequest, FormStage.SUBMIT, request);
         
         formConfig = this.formService.onSubmitForm(store, formRequest).getFormConfig();
         
-        this.publishStageCompletedAndLog(formRequest, FormStage.BEGIN, request);
+        this.publishStageCompletedAndLog(store, formRequest, FormStage.BEGIN, request);
         
         return formConfig;
     } 
@@ -123,26 +123,26 @@ public class FormControllerBase<T>{
         return this.formService.validateSingle(store, formid, propertyName, propertyValue);
     }
     
-    protected void publishStageBegunAndLog(
-            FormRequest formRequest, 
+    private void publishStageBegunAndLog(
+            FormConfigStore store, FormRequest formRequest, 
             FormStage stage, HttpServletRequest request) {
         
         formRequest.getFormConfig().setFormStage(stage);
     
         this.eventPublisher.publishFormStageBegunEvent(formRequest);
 
-        this.log("BEGUN", stage, formRequest, request);
+        this.log("BEGUN", store, formRequest, request);
     }
     
-    protected void publishStageCompletedAndLog(
-            FormRequest formRequest, 
+    private void publishStageCompletedAndLog(
+            FormConfigStore store, FormRequest formRequest, 
             FormStage stage, HttpServletRequest request) {
         
         formRequest.getFormConfig().setFormStage(stage);
 
         this.eventPublisher.publishFormStageCompletedEvent(formRequest);
         
-        this.log("ENDED", stage, formRequest, request);
+        this.log("ENDED", store, formRequest, request);
     }
 
     public FormConfigStore getStore(HttpServletRequest request) {
@@ -150,7 +150,7 @@ public class FormControllerBase<T>{
     }
         
     public AttributeStore getAttributeStore(HttpServletRequest request) {
-        return getCacheStore().orElse(getSessionStore(request));
+        return getCacheStore().orElseGet(() -> getSessionStore(request));
     }
     
     private Optional<AttributeStore> getCacheStore() {
@@ -170,7 +170,10 @@ public class FormControllerBase<T>{
         return formRequest;
     }
     
-    protected void log(String tag, FormStage formStage, FormRequest formRequest, HttpServletRequest request){
+    private void log(String tag, 
+            FormConfigStore store, FormRequest formRequest, HttpServletRequest request){
+        final FormStage formStage = formRequest.getFormConfig() == null ? 
+                null : formRequest.getFormConfig().getFormStage();
         if(Print.isTraceEnabled()) {
             new Print().trace(formStage, formRequest.getFormConfig(), request);
         }else if(log.isDebugEnabled()){

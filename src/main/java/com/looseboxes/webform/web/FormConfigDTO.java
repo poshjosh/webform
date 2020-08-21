@@ -283,7 +283,7 @@ public class FormConfigDTO extends FormConfigBean{
 
     @Override
     public String toString() {
-        return "FormConfigDTO{\n->" + "action=" + getAction() +
+        return "->FormConfigDTO{\n->" + "action=" + getAction() +
                 ", parent form id=" + getParentfid() + ", form id=" + getFid() + 
                 ", model name=" + getModelname() + ", model id=" + getId() + 
                 ", model fields=" + getModelfields() + ", target on completion=" +

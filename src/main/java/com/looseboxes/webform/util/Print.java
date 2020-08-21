@@ -98,7 +98,7 @@ public class Print<A extends Appendable> {
     
     public void trace(FormStage formStage, FormConfig formConfig, HttpServletRequest request) {
         if(LOG.isTraceEnabled()) {
-            LOG.trace("Beginning: " + formStage);
+            LOG.trace("FormStage: " + formStage);
             if(formConfig != null) {
                 this.add("FormConfig", formConfig);
             }
