@@ -1,6 +1,5 @@
 package com.looseboxes.webform.web;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,7 +19,7 @@ public class BindingResultErrorCollector {
     
     private final Logger LOG = LoggerFactory.getLogger(BindingResultErrorCollector.class);
     
-    public Collection<FormMessage> getErrors(BindingResult bindingResult) {
+    public Set<FormMessage> getErrors(BindingResult bindingResult) {
     
         if (bindingResult.hasErrors()) {
 
