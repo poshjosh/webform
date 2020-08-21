@@ -262,10 +262,10 @@ public class DependentsProviderImpl implements DependentsProvider {
 
     private Object applyTempFixForIssue002(TypeDescriptor propertyType, 
             String propertyName, String propertyValue) {
-        return this.tryManuallyConversion(propertyType, propertyName, propertyValue);
+        return tryManualConversion(propertyType, propertyName, propertyValue);
     }
     
-    private Object tryManuallyConversion(TypeDescriptor propertyType, 
+    private Object tryManualConversion(TypeDescriptor propertyType, 
             String propertyName, String propertyValue) {
         
         Object result;
@@ -274,7 +274,11 @@ public class DependentsProviderImpl implements DependentsProvider {
         try{
             Long possibleId = Long.valueOf(propertyValue + "L");
             if(propertyClass.isEnum()) {
-                result = propertyClass.getEnumConstants()[possibleId.intValue()];
+                try{
+                    result = propertyClass.getEnumConstants()[possibleId.intValue()];
+                }catch(RuntimeException e) {
+                    result = propertyValue;
+                }
             }else{
                 result = entityRepositoryProvider.forEntity(propertyClass)
                         .findById(possibleId)
