@@ -166,16 +166,16 @@ public class FormService<T> {
 
         log.debug("Done validation, has errors: {}", bindingResult.hasErrors());
         log.trace("All errors: {}", bindingResult.getAllErrors());
-        
+
         if(StringUtils.isNullOrEmpty(propertyName)) {
             if(bindingResult.hasErrors()) {
-                formConfig.addErrors(bindingErrorCollector.getErrors(bindingResult));
+                formConfig.setErrors(bindingErrorCollector.getErrors(bindingResult));
             }else{
                 formConfig.setErrors(null);
             }
         }else{
             if(bindingResult.hasFieldErrors(propertyName)) {
-                formConfig.addErrors(bindingErrorCollector.getFieldErrors(bindingResult, propertyName));
+                formConfig.setErrors(bindingErrorCollector.getFieldErrors(bindingResult, propertyName));
             }else{
                 formConfig.removeAllErrors(propertyName);
             }
