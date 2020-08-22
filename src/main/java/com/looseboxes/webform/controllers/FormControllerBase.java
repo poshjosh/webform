@@ -172,13 +172,13 @@ public class FormControllerBase<T>{
     
     private void log(String tag, 
             FormConfigStore store, FormRequest formRequest, HttpServletRequest request){
+        
         final FormStage formStage = formRequest.getFormConfig() == null ? 
                 null : formRequest.getFormConfig().getFormStage();
+        
         if(Print.isTraceEnabled()) {
+            
             new Print().trace(formStage, formRequest.getFormConfig(), request);
-        }else if(log.isDebugEnabled()){
-            com.looseboxes.webform.controllers.Print.formAttributes(
-                    tag + " form stage: " + formStage, request.getSession());
         }
     }
 
