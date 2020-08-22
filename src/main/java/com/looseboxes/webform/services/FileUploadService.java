@@ -54,6 +54,7 @@ public class FileUploadService {
 
             final Function<UploadFileResponse, String> toFileName = 
                     response -> response.getFileName();
+            
             final Consumer<String> addToOutput = filename -> result.add(filename);
 
             final Map<String, List<UploadFileResponse>> multiOutput = 
@@ -150,16 +151,6 @@ public class FileUploadService {
                 Collections.unmodifiableMap(output);
     }  
     
-    public String getPropertyName(Object modelobject, 
-            UploadFileResponse response, BeanWrapper bean, String propertyName) {
-        return propertyName;
-    }
-    public Object getPropertyValue(Object modelobject, 
-            UploadFileResponse response, BeanWrapper bean, String propertyName) {
-        final String relativePath = response.getFileName();
-        return relativePath;
-    }
-    
     public Map<String, List<UploadFileResponse>> uploadMultipleFiles(
             String id, Object modelobject, Map<String, List<MultipartFile>> multiValueMap) {
         
@@ -248,14 +239,28 @@ public class FileUploadService {
                 Collections.unmodifiableMap(output);
     }    
 
-    public String getPropertyName(Object modelobject, 
+    private String getPropertyName(Object modelobject, 
+            UploadFileResponse response, BeanWrapper bean, String propertyName) {
+        return propertyName;
+    }
+    
+    private Object getPropertyValue(Object modelobject, 
+            UploadFileResponse response, BeanWrapper bean, String propertyName) {
+        String relativePath = response.getFileName();
+        if( ! relativePath.startsWith("/")) {
+            relativePath = "/" + relativePath;
+        }
+        return relativePath;
+    }
+
+    private String getPropertyName(Object modelobject, 
             List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
         return propertyName;
     }
     
-    public List<Object> getPropertyValues(Object modelobject, 
+    private List<Object> getPropertyValues(Object modelobject, 
             List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
-        return responseList.stream().map((response) -> response.getFileName())
+        return responseList.stream().map((response) -> getPropertyValue(modelobject, response, bean, propertyName))
                 .collect(Collectors.toList());
     }
 

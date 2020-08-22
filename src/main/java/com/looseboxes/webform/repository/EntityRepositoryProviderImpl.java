@@ -1,7 +1,7 @@
 package com.looseboxes.webform.repository;
 
 import com.bc.jpa.dao.JpaObjectFactory;
-import com.bc.jpa.spring.JpaUtil;
+import com.bc.jpa.spring.util.JpaUtil;
 //import com.bc.jpa.spring.repository.EntityRepositoryImpl;
 import java.util.Objects;
 import java.util.function.Predicate;
