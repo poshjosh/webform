@@ -181,7 +181,7 @@ public class Print<A extends Appendable> {
                 builder.append("<br/>").append("Max length").append(" = ").append(ff.getMaxLength());
                 builder.append("<br/>").append("Name").append(" = ").append(ff.getName());
                 builder.append("<br/>").append("Number of lines").append(" = ").append(ff.getNumberOfLines());
-                builder.append("<br/>").append("Reference form").append(" = ").append(ff.getReferencedForm());
+                builder.append("<br/>").append("Is form reference").append(" = ").append(ff.isFormReference());
                 builder.append("<br/>").append("Size").append(" = ").append(ff.getSize());
                 final String type = ff.getType();
                 builder.append("<br/>").append("Type").append(" = ").append(type);

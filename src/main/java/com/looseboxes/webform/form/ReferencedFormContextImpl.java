@@ -6,8 +6,6 @@ import com.bc.webform.form.member.ReferencedFormContext;
 import com.bc.webform.TypeTests;
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Optional;
-import com.looseboxes.webform.CRUDAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,14 +33,5 @@ public class ReferencedFormContextImpl implements ReferencedFormContext<Object, 
         LOG.trace("Is referenced type: {}, {}.{}", 
                 result, (form==null?null:form.getName()), field.getName());
         return result;
-    }
-
-    @Override
-    public Optional<String> getReferencedFormHref(Form<Object> form, Field field) {
-        final String name = this.typeFromNameResolver.getName(field.getType());
-        final StringBuilder b = new StringBuilder()
-                .append('/').append(CRUDAction.create)
-                .append('/').append(name);
-        return Optional.of(b.toString());
     }
 }
