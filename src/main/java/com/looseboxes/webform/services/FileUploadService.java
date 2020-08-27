@@ -4,7 +4,10 @@ import com.bc.fileupload.UploadFileResponse;
 import com.bc.fileupload.services.FileStorageHandler;
 import com.bc.reflection.ReflectionUtil;
 import com.looseboxes.webform.Errors;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +40,17 @@ public class FileUploadService {
     @Autowired
     public FileUploadService(FileStorageHandler fileStorageHandler) {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
+    }
+
+    public void deleteUploadedFiles(FormConfigDTO formConfig) {
+        final Collection<String> files = formConfig.removeUploadedFiles();
+        if(files == null || files.isEmpty()) {
+            return;
+        }
+        for(String file : files) {
+            final Path path = Paths.get(file).toAbsolutePath().normalize();
+            this.fileStorageHandler.delete(path);
+        }
     }
     
     public Collection<String> upload(FormRequest<Object> webRequest) {

@@ -8,10 +8,6 @@ import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.form.FormSubmitHandler;
 import com.looseboxes.webform.web.FormRequest;
 import com.looseboxes.webform.web.WebValidator;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -105,7 +101,7 @@ public class FormService<T> {
             }
         }catch(RuntimeException e) {
 
-            this.deleteUploadedFiles(formConfig);
+            this.fileUploadService.deleteUploadedFiles(formConfig);
             
             throw e;
             
@@ -187,30 +183,6 @@ public class FormService<T> {
         Objects.requireNonNull(formConfig.getFormid());
         Objects.requireNonNull(formConfig.getModelname());
         Objects.requireNonNull(formConfig.getModelobject());
-    }
-
-    public void deleteUploadedFiles(FormConfigDTO formConfig) {
-        final Collection<String> files = formConfig.removeUploadedFiles();
-        if(files == null || files.isEmpty()) {
-            return;
-        }
-        for(String file : files) {
-            final Path path = Paths.get(file).toAbsolutePath().normalize();
-            // @TODO
-            // Walk through files to local disc and delete orphans (i.e those
-            // without corresponding database entry), aged more than a certain
-            // limit, say 24 hours.s
-            try{
-                if( ! Files.deleteIfExists(path)) {
-                    log.info("Will delete on exit: {}", path);
-                    path.toFile().deleteOnExit();
-                }
-            }catch(IOException e) {
-                log.warn("Problem deleting: " + path, e);
-                log.info("Will delete on exit: {}", path);
-                path.toFile().deleteOnExit();
-            }
-        }
     }
 
     public DependentsProvider getDependentsProvider() {
