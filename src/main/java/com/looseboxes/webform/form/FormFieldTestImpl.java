@@ -7,7 +7,6 @@ import com.bc.webform.TypeTests;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,18 +33,7 @@ public class FormFieldTestImpl
         
         LOG.trace("Fields to ignore for: {} = {}", field, fieldsToIgnore);
         
-        final String [] fieldNames = this.propertySearch.getFieldNames(field);
-        
-        final Predicate<String> test = (fieldToIgnore) -> {
-            for(String fieldName : fieldNames) {
-                if(fieldToIgnore.equalsIgnoreCase(fieldName)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        
-        final boolean ignore = fieldsToIgnore.stream().filter(test).findAny().isPresent();
+        final boolean ignore = this.propertySearch.containsIgnoreCase(fieldsToIgnore, field);
         
         LOG.trace("Is field to ignore: {}, field: {}", ignore, field);
         

@@ -19,6 +19,7 @@ package com.looseboxes.webform.util;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import javax.persistence.Column;
 
 /**
@@ -76,6 +77,23 @@ import javax.persistence.Column;
  * @author Chinomso Bassey Ikwuagwu on Apr 20, 2019 9:21:18 AM
  */
 public interface PropertySearch{
+    
+    default boolean containsIgnoreCase(List<String> toSearchIn, Field field) {
+        
+        final String [] fieldNames = this.getFieldNames(field);
+        
+        final Predicate<String> test = (candidate) -> {
+            for(String fieldName : fieldNames) {
+                if(candidate.equalsIgnoreCase(fieldName)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        
+        return toSearchIn.stream().filter(test).findAny().isPresent();
+    
+    }
     
     default Optional<String> find(String propertyName, Field field) {
         return Optional.ofNullable(this.findOrDefault(propertyName, field, null));
