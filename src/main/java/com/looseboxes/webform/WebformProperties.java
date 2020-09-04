@@ -11,6 +11,8 @@ public interface WebformProperties {
     
     String FIELDS_TO_IGNORE = _PREFIX + "field.ignores";
     
+    String FIELD_READONLY_VALUES = _PREFIX + "field.value.readOnlys";
+    
     String FIELD_DEFAULT_VALUE = _PREFIX + "field.value.default";
 
     String DEFAULT_FIELDS = _PREFIX + "field.name.selection.defaults";
