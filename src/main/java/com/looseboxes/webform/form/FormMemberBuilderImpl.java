@@ -2,9 +2,6 @@ package com.looseboxes.webform.form;
 
 import com.bc.webform.form.member.FormMemberBean;
 import com.bc.webform.form.member.builder.FormMemberBuilderForJpaEntity;
-import com.bc.webform.form.member.FormInputContext;
-import com.bc.webform.form.member.MultiChoiceContext;
-import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.WebformProperties;
 import com.looseboxes.webform.util.PropertySearch;
 import java.lang.reflect.Field;
@@ -22,17 +19,8 @@ public class FormMemberBuilderImpl extends FormMemberBuilderForJpaEntity{
     
     private final PropertySearch propertySearch;
     
-    public FormMemberBuilderImpl(
-            PropertySearch propertySearch, 
-            FormInputContext<Object, Field, Object> formInputContext,
-            MultiChoiceContext<Object, Field> multiChoiceContext,
-            ReferencedFormContext referencedFormContext) {
-        
-        super(formInputContext, multiChoiceContext);
-        
+    public FormMemberBuilderImpl(PropertySearch propertySearch) {
         this.propertySearch = Objects.requireNonNull(propertySearch);
-        
-        this.referencedFormContext(referencedFormContext);
     }
 
     @Override
@@ -51,11 +39,15 @@ public class FormMemberBuilderImpl extends FormMemberBuilderForJpaEntity{
         final List<String> readOnlyFieldNames = this.propertySearch.findAll(
                 WebformProperties.FIELD_READONLY_VALUES, field);
         
-        LOG.info("Read only values for: {} = {}", field, readOnlyFieldNames);
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("Read only value(s) for: {}#{} = {}", 
+                    field.getDeclaringClass().getSimpleName(), field.getName(), readOnlyFieldNames);
+        }
         
         final boolean readOnlyValue = this.propertySearch.containsIgnoreCase(readOnlyFieldNames, field);
         
-        LOG.info("Is read only value: {}, field: {}", readOnlyValue, field);
+        LOG.trace("Is read only value: {}, field: {}#{}", readOnlyValue, 
+                field.getDeclaringClass().getSimpleName(), field.getName());
         
         if(readOnlyValue) {
             formMember.setReadOnlyValue(Boolean.TRUE);

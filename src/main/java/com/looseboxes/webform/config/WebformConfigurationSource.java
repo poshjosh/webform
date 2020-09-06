@@ -109,21 +109,23 @@ public class WebformConfigurationSource {
     }
     
     private FormBuilder<Object, Field, Object> newFormBuilder() {
-        return new FormBuilderForJpaEntity(formMemberBuilder(), typeTests())
+        return new FormBuilderForJpaEntity(typeTests())
                 .sourceFieldsProvider(formFieldTest())
+                .formMemberBuilderProvider(() -> this.newFormMemberBuilder())
                 .formMemberComparator(formMemberComparator());
     }
 
     @Bean public FormMemberBuilder<Object, Field, Object> formMemberBuilder() {
-        return new FormMemberBuilderImpl(
-                propertySearch(), 
-                formInputContext(), 
-                multiChoiceContext(),
-                referencedFormContext()
-                
-        );
+        return this.newFormMemberBuilder();
     }
 
+    private FormMemberBuilder<Object, Field, Object> newFormMemberBuilder() {
+        return new FormMemberBuilderImpl(propertySearch())
+                .formInputContext(formInputContext())
+                .multiChoiceContext(multiChoiceContext())
+                .referencedFormContext(referencedFormContext());
+    }
+    
     @Bean public ReferencedFormContext<Object, Field> referencedFormContext() {
         return new ReferencedFormContextImpl(typeTests(), typeFromNameResolver());
     }

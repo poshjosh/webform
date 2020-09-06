@@ -1,6 +1,7 @@
 package com.looseboxes.webform.web;
 
 import com.looseboxes.webform.FormStage;
+import com.looseboxes.webform.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,8 @@ public class FormConfigResponseHandler implements ResponseHandler<FormConfigDTO,
     
     @Override
     public ResponseEntity<FormConfigDTO> respond(FormConfigDTO formConfig, Exception e) {
-        final String err = "An unexpected error occured";
+        final String msg = e.getLocalizedMessage();
+        final String err = StringUtils.isNullOrEmpty(msg) ? "An unexpected error occured" : msg;
         log.warn(err, e);
         if(formConfig == null) {
             formConfig = new FormConfigDTO();
