@@ -22,13 +22,15 @@ import java.util.Objects;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 12, 2019 5:07:34 PM
  */
 public class EntityUniqueColumnsValidator implements Validator {
 
-//    private static final Logger LOG = LoggerFactory.getLogger(EntityUniqueColumnsValidator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EntityUniqueColumnsValidator.class);
 
     private final EntityRepositoryProvider entityRepositoryFactory;
 
@@ -38,7 +40,9 @@ public class EntityUniqueColumnsValidator implements Validator {
     
     @Override
     public boolean supports(Class<?> clazz) {
-        return this.entityRepositoryFactory.isSupported(clazz);
+        boolean supports = this.entityRepositoryFactory.isSupported(clazz);
+        LOG.trace("Supports: {}, type: {}", supports, clazz);
+        return supports;
     }
 
     @Override
@@ -49,11 +53,18 @@ public class EntityUniqueColumnsValidator implements Validator {
         final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
 
         final Collection<String> uniqueColumns = repo.getUniqueColumns();
+        
+        LOG.trace("Entity: {}, unique columns: {}", entityType.getSimpleName(), uniqueColumns);
 
         for(String uniqueCol : uniqueColumns) {
 
             final Object columnValue = errors.getFieldValue(uniqueCol);
-
+            
+            if(LOG.isTraceEnabled()) {
+                LOG.trace("SELECT * FROM {} WHERE {} = {} LIMIT 0, 1",
+                        entityType.getSimpleName(), uniqueCol, columnValue);
+            }
+            
             if(columnValue != null && !columnValue.toString().isEmpty() && 
                     ! repo.findAllBy(uniqueCol, columnValue, 0, 1).isEmpty()) {
 
