@@ -293,7 +293,7 @@ public class DependentsProviderImpl implements DependentsProvider {
     
     public boolean isDomainTypeConvertible(Class srcType, Class tgtType) {
         final boolean convertible = this.domainTypeConverter.isConvertible(srcType, tgtType);
-        LOG.debug("Convertible: {}, src type: {}, tgt type: {}", convertible, srcType, tgtType);
+        LOG.trace("Convertible: {}, src type: {}, tgt type: {}", convertible, srcType, tgtType);
         return convertible;
     }
     

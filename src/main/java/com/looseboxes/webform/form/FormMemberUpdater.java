@@ -6,7 +6,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.choices.SelectOption;
-import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBean;
 import com.bc.webform.form.member.FormMemberBean;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
 import com.looseboxes.webform.web.FormConfigDTO;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 public interface FormMemberUpdater {
 
     FormConfigDTO update(FormConfigDTO formConfig, String memberName, 
-            Function<FormMemberBean, Form> updater) 
+            Function<FormMemberBean, FormBean> updater) 
             throws FormMemberNotFoundException;
     
     FormConfigDTO setValue(FormConfigDTO formConfig, String memberName, Object memberValue) 

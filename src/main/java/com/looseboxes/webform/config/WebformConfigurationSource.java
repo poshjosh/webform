@@ -139,7 +139,7 @@ public class WebformConfigurationSource {
     }
 
     @Bean public FormMemberUpdater formMemberUpdater() {
-        return new FormMemberUpdaterImpl(formInputContext(), formFactory());
+        return new FormMemberUpdaterImpl(formInputContext());
     }
     
     @Bean public FormInputContext<Object, Field, Object> formInputContext() {

@@ -66,6 +66,10 @@ public class JacksonDomainTypeRejectionFilter extends SimpleBeanPropertyFilter{
 
         return ignore;
     }
+
+    public boolean isNameToReject(String name) {
+        return "anyFieldSet".equals(name);
+    }
     
     public boolean isDomainType(Object instance) {
         return instance == null ? false : typeTests.isDomainType(instance.getClass());

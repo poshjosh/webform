@@ -1,8 +1,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.choices.SelectOption;
-import com.bc.webform.form.Form;
-import com.bc.webform.form.member.FormMember;
+import com.bc.webform.form.FormBean;
 import com.bc.webform.form.member.FormInputContext;
 import com.bc.webform.form.member.FormMemberBean;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
@@ -22,14 +21,10 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
     private static final Logger LOG = LoggerFactory.getLogger(FormMemberUpdaterImpl.class);
     
     private final FormInputContext<Object, Field, Object> formInputContext;
-    
-    private final FormFactory formFactory;
 
     public FormMemberUpdaterImpl(
-            FormInputContext<Object, Field, Object> formInputContext,
-            FormFactory formFactory) {
+            FormInputContext<Object, Field, Object> formInputContext) {
         this.formInputContext = Objects.requireNonNull(formInputContext);
-        this.formFactory = Objects.requireNonNull(formFactory);
     }
 
     @Override
@@ -37,31 +32,25 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
             FormConfigDTO formConfig, String memberName, Object memberValue) 
             throws FormMemberNotFoundException{
         
-        final Function<FormMemberBean, Form> updater = (formMember) -> 
-                setValue(formConfig.getModelname(), formMember, memberValue);
+        final Function<FormMemberBean, FormBean> updater = (formMember) -> 
+                setValue(formMember, memberValue).getForm();
 
         return this.update(formConfig, memberName, updater);
     }
     
-    private Form setValue(String modelname, FormMemberBean formMember, Object memberValue) {
+    private FormMemberBean setValue(FormMemberBean formMember, Object memberValue) {
 
-        final Object modelobject = Objects.requireNonNull(formMember.getForm().getDataSource());
+        FormBean form = formMember.getForm();
+        
+        final Object modelobject = Objects.requireNonNull(form.getDataSource());
 
         final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
 
         this.formInputContext.setValue(modelobject, field, memberValue);
         
-        final Form form = formMember.getForm();
+        LOG.debug("Set {}#{} to {}", form.getName(), field.getName(), memberValue);
 
-        LOG.debug("Set {}.{} to {}", form.getName(), field.getName(), memberValue);
-
-        final Form formUpdate = formFactory.newForm(
-                form.getParent(), 
-                form.getId(), 
-                modelname, 
-                form.getDataSource());
-
-        return formUpdate;
+        return formMember;
     }
 
     @Override
@@ -69,8 +58,9 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
             FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
             throws FormMemberNotFoundException{
 
-        final Function<FormMemberBean, Form> updater = (formMember) -> 
+        final Function<FormMemberBean, FormBean> updater = (formMember) -> 
                 formMember.choices(choices).multiChoice(true).getForm();
+        
         
         return this.update(formConfig, memberName, updater);
     }
@@ -78,18 +68,15 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
     @Override
     public FormConfigDTO update(
             FormConfigDTO formConfig, String memberName, 
-            Function<FormMemberBean, Form> updater) throws FormMemberNotFoundException{
+            Function<FormMemberBean, FormBean> updater) throws FormMemberNotFoundException{
         
         LOG.trace("Before updating {}.{}. {}", 
                 formConfig.getModelname(), memberName, formConfig.getForm());
         
-        final FormMember formMember = this.getFormMember(formConfig, memberName);
+        final FormMemberBean formMember = this.getFormMember(formConfig, memberName);
         
-        final Form formUpdate = updater.apply(formMember.writableCopy());
         
-//        formUpdate = formUpdate.writableCopy()
-//                .dataSource(formConfig.getModelobject())
-//                .replaceMember(formMemberUpdate);
+        final FormBean formUpdate = updater.apply(formMember);
         
         formConfig.setForm(formUpdate);
         
@@ -99,12 +86,12 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         return formConfig;
     }
     
-    private FormMember getFormMember(FormConfigDTO formConfig, String memberName) 
+    private FormMemberBean getFormMember(FormConfigDTO formConfig, String memberName) 
             throws FormMemberNotFoundException{
         
-        final Form<Object> form = formConfig.getForm();
+        final FormBean<Object> form = formConfig.getForm();
 
-        final FormMember formMember = form.getMemberOptional(memberName)
+        final FormMemberBean formMember = form.getMemberOptional(memberName)
                 .orElseThrow(() -> FormMemberNotFoundException.from(form, memberName));
         
         return formMember;

@@ -1,6 +1,7 @@
 package com.looseboxes.webform.services;
 
 import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
 import com.looseboxes.webform.exceptions.InvalidRouteException;
@@ -154,7 +155,14 @@ public class ModelObjectService{
             modelobject = (T)existingFormConfig.getModelobject();
         }
 
-        final Form form = formFactory.newForm(parentForm, formid, modelname, modelobject);
+        FormBean form = formConfig.getForm();
+        if(form == null) {
+            form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
+            formConfig.setForm(form);
+        }else{
+            form.setParent(parentForm);
+            form.setDataSource(modelobject);
+        }
 
         if(existingFormConfig == null) {
             

@@ -1,6 +1,7 @@
 package com.looseboxes.webform.form;
 
 import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBean;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
@@ -81,9 +82,9 @@ public class UpdateParentFormWithNewlyCreatedModel {
             return parentFormConfig;
         }
 
-        final Form<Object> form = Objects.requireNonNull(formConfig.getForm());
+        final FormBean<Object> form = Objects.requireNonNull(formConfig.getForm());
         
-        final Form<Object> parent = parentFormConfig.getForm();
+        final FormBean<Object> parent = parentFormConfig.getForm();
         if(parent == null) {
             LOG.debug("No parent to update for form: {}", form);
             return parentFormConfig;

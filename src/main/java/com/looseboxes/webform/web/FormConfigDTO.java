@@ -16,7 +16,7 @@
 
 package com.looseboxes.webform.web;
 
-import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.FormStage;
@@ -49,7 +49,7 @@ public class FormConfigDTO extends FormConfigBean{
 
     public FormConfigDTO() { }
     
-    public FormConfigDTO(FormConfig form) { 
+    public FormConfigDTO(FormConfigBean form) { 
         super(form);
     }
 
@@ -80,7 +80,7 @@ public class FormConfigDTO extends FormConfigBean{
     }
     
     @Override
-    public FormConfigDTO with(FormConfig arg) {
+    public FormConfigDTO with(FormConfigBean arg) {
         super.with(arg);
         return this;
     }
@@ -198,7 +198,7 @@ public class FormConfigDTO extends FormConfigBean{
     }
     
     @Override
-    public FormConfigDTO form(Form form) {
+    public FormConfigDTO form(FormBean form) {
         super.form(form); 
         return this;
     }

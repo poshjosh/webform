@@ -23,12 +23,17 @@ public class JacksonFormFilter extends JacksonDomainTypeRejectionFilter{
         
         final boolean ignore = 
 //                super.isDomainType(parentType) ||
-                (Form.class.isAssignableFrom(parentType) && 
-                    (value != null && super.isDomainType(value.getClass()))); 
+                this.isNameToReject(name) ||
+                this.isFormMemberDomainType(parentType, name, value); 
         
         LOG.trace("Ignore: {}, parent type: {}, {} = {}", ignore,
                 parentType.getSimpleName(), name, value);
 
         return ignore;
+    }
+    
+    private boolean isFormMemberDomainType(Class parentType, String name, Object value) {
+        return (Form.class.isAssignableFrom(parentType) && 
+                    (value != null && super.isDomainType(value.getClass())));
     }
 }

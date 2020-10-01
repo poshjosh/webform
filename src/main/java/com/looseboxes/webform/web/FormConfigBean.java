@@ -1,6 +1,7 @@
 package com.looseboxes.webform.web;
 
 import com.bc.webform.form.Form;
+import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
@@ -44,7 +45,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
     
     private String targetOnCompletion;
     
-    private Form<Object> form;
+    private FormBean<Object> form;
     
     private Collection<String> uploadedFiles;
     
@@ -52,11 +53,11 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
     
     public FormConfigBean() { }
     
-    public FormConfigBean(FormConfig form) { 
+    public FormConfigBean(FormConfigBean form) { 
         this.init(form);
     }
     
-    private void init(FormConfig arg) {
+    private void init(FormConfigBean arg) {
         this.action(arg.getCrudAction());
         this.form(arg.getForm());
         this.formid(arg.getFormid());
@@ -70,7 +71,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
         this.uploadedFiles(arg.getUploadedFiles());
     }
 
-    public void merge(FormConfig arg) {
+    public void merge(FormConfigBean arg) {
         if(getCrudAction() == null) this.action(arg.getCrudAction());
         if(getForm() == null) this.form(arg.getForm());
         if(getFormid() == null) this.formid(arg.getFormid());
@@ -106,7 +107,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
         return new FormConfigBean(this);
     }
     
-    public FormConfigBean with(FormConfig arg) {
+    public FormConfigBean with(FormConfigBean arg) {
         this.init(arg);
         return this;
     }
@@ -181,7 +182,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
         return this;
     }
     
-    public FormConfigBean form(Form form) {
+    public FormConfigBean form(FormBean form) {
         this.form = form;
         return this;
     }
@@ -241,7 +242,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
                     }
                 }
             case FormConfig.FORM: 
-                return this.form(form == null || overwrite ? (Form)value : form);
+                return this.form(form == null || overwrite ? (FormBean)value : form);
             default: 
                 return setString(name, value == null ? (String)value : value.toString(), overwrite);
         }
@@ -411,7 +412,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
         this.targetOnCompletion = targetOnCompletion;
     }
 
-    public void setForm(Form<Object> form) {
+    public void setForm(FormBean<Object> form) {
         this.form = form;
     }
     
@@ -424,7 +425,7 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
     }
 
     @Override
-    public Form<Object> getForm() {
+    public FormBean<Object> getForm() {
         return this.form;
     }
 

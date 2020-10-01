@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.web.ResponseHandler;
 import java.util.List;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
@@ -40,7 +41,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
     public ResponseEntity<FormConfigDTO> begin(
-            FormConfigDTO formConfig, HttpServletRequest request) {
+            @RequestBody FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
             formConfig = super.onBeginForm(formConfig, request);
@@ -55,7 +56,8 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
             FormStages.validate + "/" + FormStages.submit)
-    public ResponseEntity<FormConfigDTO> validateThenSubmit(FormConfigDTO formConfig,
+    public ResponseEntity<FormConfigDTO> validateThenSubmit(
+            @RequestBody FormConfigDTO formConfig,
             HttpServletRequest request, WebRequest webRequest) {
         try{
             
@@ -70,7 +72,8 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     }    
     
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.validate)
-    public ResponseEntity<FormConfigDTO> validate(FormConfigDTO formConfig,
+    public ResponseEntity<FormConfigDTO> validate(
+            @RequestBody FormConfigDTO formConfig,
             HttpServletRequest request, WebRequest webRequest) {
         try{
             
@@ -86,7 +89,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.submit)
     public ResponseEntity<FormConfigDTO> submit(
-            FormConfigDTO formConfig, HttpServletRequest request) {
+            @RequestBody FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
             formConfig = super.onSubmitForm(formConfig, request);
@@ -145,87 +148,3 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
         return responseService;
     }
 }
-/**
- * 
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.dependents)
-    public ResponseEntity<FormConfigDTO> dependents(
-            // Without the @Valid annotation the modelobject properties were not set
-            // With the @Valid annotation the property values must be valid or error:
-            // InvocableHandlerMethod: Could not resolve parameter [0] in {METHOD_SIGNATURE}: org.springframework.validation.BeanPropertyBindingResult: 3 errors
-//            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) Object modelobject, 
-            ModelMap model, 
-            @RequestParam(name = Params.FORMID, required = true) String formid, 
-            @RequestParam(name = "propertyName", required = true) String propertyName, 
-            @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
-        try{
-            
-            final Map<String, Map> result = super.onGetDependents(
-                    model, formid, propertyName, propertyValue, request, response);
-            
-            return ResponseEntity.ok(result);
-            
-        }catch(Exception e) {
-            
-            return this.responseService.respond(e, model);
-        }
-    }
-    
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
-    public ResponseEntity<FormConfigDTO> validateSingle(
-            @Valid @ModelAttribute(HttpSessionAttributes.MODELOBJECT) T modelobject, 
-            BindingResult bindingResult, 
-            ModelMap model, 
-            @RequestParam(name = Params.FORMID, required = true) String formid, 
-            @RequestParam(name = "propertyName", required = true) String propertyName, 
-            @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
-       try{
-            
-            final FormConfig formConfig = super.onValidateSingle(modelobject, bindingResult, 
-                    model, formid, propertyName, propertyValue, request, response);
-
-            return this.responseService.respond(
-                    bindingResult, propertyName, model, formConfig);
-            
-        }catch(Exception e) {
-        
-            return this.responseService.respond(e, model);
-        }
-    }
-
-    @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStage.validateSingle)
-    public ResponseEntity<FormConfigDTO> validateSingle(
-            ModelMap model, 
-            @RequestParam(name = Params.FORMID, required = true) String formid, 
-            @RequestParam(name = "propertyName", required = true) String propertyName, 
-            @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            WebRequest webRequest) {
-       try{
-           
-            final WebDataBinder dataBinder = this.webValidator
-                    .validateSingle(webRequest, propertyName, propertyValue);
-            
-            final BindingResult bindingResult = dataBinder.getBindingResult();
-            
-            log.debug("#onValidateSingle {} = {}, session: {}", 
-                    propertyName, propertyValue, webRequest.getSessionId());
-
-            FormConfig formConfig = this.findFormConfig(webRequest, formid);
-
-            final Object modelobject = dataBinder.getTarget();
-
-            formConfig = this.getService().validateSingle(modelobject, bindingResult, 
-                    model, formConfig, propertyName, propertyValue);
-
-            return this.responseService.respond(
-                    bindingResult, propertyName, model, formConfig);
-            
-        }catch(Exception e) {
-        
-            return this.responseService.respond(e, model);
-        }
-    }
-
- * 
- */
