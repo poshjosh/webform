@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.web.ResponseHandler;
 import java.util.List;
-import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
@@ -39,9 +38,25 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     
     public FormControllerRest() { }
 
+    @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
+            FormStages.begin + "/" + FormStages.validate + "/" + FormStages.submit)
+    public ResponseEntity<FormConfigDTO> beginThenValidateThenSubmit(
+            FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
+        try{
+            
+            formConfig = super.onBeginThenValidateThenSubmitForm(formConfig, request, webRequest);
+            
+            return this.responseService.respond(formConfig);
+            
+        }catch(Exception e) {
+        
+            return this.responseService.respond(formConfig, e);
+        }
+    }    
+
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}")
-    public ResponseEntity<FormConfigDTO> begin(
-            @RequestBody FormConfigDTO formConfig, HttpServletRequest request) {
+    public ResponseEntity<FormConfigDTO> begin(FormConfigDTO formConfig, HttpServletRequest request) {
+        
         try{
             
             formConfig = super.onBeginForm(formConfig, request);
@@ -57,8 +72,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + 
             FormStages.validate + "/" + FormStages.submit)
     public ResponseEntity<FormConfigDTO> validateThenSubmit(
-            @RequestBody FormConfigDTO formConfig,
-            HttpServletRequest request, WebRequest webRequest) {
+            FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
         try{
             
             formConfig = super.onValidateThenSubmitForm(formConfig, request, webRequest);
@@ -73,8 +87,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     
     @PostMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.validate)
     public ResponseEntity<FormConfigDTO> validate(
-            @RequestBody FormConfigDTO formConfig,
-            HttpServletRequest request, WebRequest webRequest) {
+            FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
         try{
             
             formConfig = super.onValidateForm(formConfig, request, webRequest);
@@ -89,7 +102,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.submit)
     public ResponseEntity<FormConfigDTO> submit(
-            @RequestBody FormConfigDTO formConfig, HttpServletRequest request) {
+            FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
             formConfig = super.onSubmitForm(formConfig, request);

@@ -102,7 +102,9 @@ public class FormConfigDTO extends FormConfigBean{
     }
     
     public FormConfigDTO setErrors(Set<FormMessage> errors) {
-        this.errors = errors;
+        // We use our own copy to prevent external edits
+        // Our copy is modifiable to allow modifications via the various addXXX methods
+        this.errors = errors == null ? null : new LinkedHashSet(errors);
         return this;
     }
 
@@ -150,7 +152,9 @@ public class FormConfigDTO extends FormConfigBean{
     }
     
     public FormConfigDTO setInfos(Set<FormMessage> infos) {
-        this.infos = infos;
+        // We use our own copy to prevent external edits
+        // Our copy is modifiable to allow modifications via the various addXXX methods
+        this.infos = infos == null ? null : new LinkedHashSet(infos);
         return this;
     }
 

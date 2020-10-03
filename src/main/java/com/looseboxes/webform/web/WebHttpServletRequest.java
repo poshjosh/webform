@@ -33,6 +33,7 @@ public class WebHttpServletRequest<T> implements WebRequest<T>{
             this.files = multiPartRequest.getFileMap();
             this.multiValueFiles = multiPartRequest.getMultiFileMap();
         }else{
+            LOG.debug("Not instance of MultipartRequest");
             this.files = Collections.EMPTY_MAP;
             this.multiValueFiles = Collections.EMPTY_MAP;
         }

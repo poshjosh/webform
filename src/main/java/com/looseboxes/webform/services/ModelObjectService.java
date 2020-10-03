@@ -70,33 +70,12 @@ public class ModelObjectService{
             formConfig.setFormid(this.generateFormId());
         }
         
-        if(modelobject != null) {
-            modelobject = this.configureModelObject(modelobject, formRequest);
-        }
-        
         return this.updateForm(store, formRequest, ! newForm, modelobject);
     }
     
-    /**
-     * Apply custom configurations to the model object.
-     * @param modelobject 
-     * @param formRequest
-     * @return  
-     */
-    public <T> T configureModelObject(T modelobject, FormRequest<T> formRequest) {
+    public <T> FormRequest<T> onValidateForm(FormConfigStore store, FormRequest<T> formRequest) {
         
-        final Class<T> type = (Class<T>)modelobject.getClass();
-
-        // Custom configuration for the newly created model object
-        //
-        return entityConfigurerService.getConfigurer(type)
-                        .map((configurer) -> configurer.configure(modelobject, formRequest))
-                        .orElse(modelobject);
-    }
-    
-    public <T> FormRequest<T> onValidateForm(FormConfigStore store, FormRequest<T> formRequest, T modelobject) {
-        
-        return this.updateForm(store, formRequest, true, modelobject);
+        return this.updateForm(store, formRequest, true, null);
     }
     
     public <T> FormRequest<T> onSubmitForm(FormConfigStore store, FormRequest<T> formRequest) {
@@ -141,8 +120,14 @@ public class ModelObjectService{
                 store.getOrDefault(formid, null) :
                 store.getOrException(formid);
         
-        log.debug("Existing form config: {}\nexisting form: {}", existingFormConfig,
+        log.trace("Received model: {}\nExisting model: {}", formConfig.getModelobject(), 
+                (existingFormConfig==null?null:existingFormConfig.getModelobject()));
+
+        log.debug("Received form: {}\nExisting form: {}", 
+                formConfig.getForm(),
                 (existingFormConfig==null?null:existingFormConfig.getForm()));
+        
+        log.trace("Received form config: {}\nExisting form config: {}", formConfig, existingFormConfig);
 
         if(existingForm && existingFormConfig == null) {
             throw new InvalidRouteException();
@@ -153,16 +138,22 @@ public class ModelObjectService{
         
         if (modelobject == null) {
             modelobject = (T)existingFormConfig.getModelobject();
+//            modelobject = (T)formConfig.getModelobject();
         }
 
-        FormBean form = formConfig.getForm();
-        if(form == null) {
-            form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
-            formConfig.setForm(form);
-        }else{
-            form.setParent(parentForm);
-            form.setDataSource(modelobject);
+        if(modelobject != null) {
+            modelobject = this.configureModelObject(modelobject, formRequest);
         }
+        
+        FormBean form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
+//        FormBean form = formConfig.getForm();
+//        if(form == null) {
+//            form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
+//            formConfig.setForm(form);
+//        }else{
+//            form.setParent(parentForm);
+//            form.setDataSource(modelobject);
+//        }
 
         if(existingFormConfig == null) {
             
@@ -180,6 +171,25 @@ public class ModelObjectService{
         return formRequest;
     }   
     
+    /**
+     * Apply custom configurations to the model object.
+     * @param modelobject 
+     * @param formRequest
+     * @return  
+     */
+    public <T> T configureModelObject(T modelobject, FormRequest<T> formRequest) {
+        
+        final Class<T> type = (Class<T>)modelobject.getClass();
+
+        // Custom configuration for the newly created model object
+        //
+        T result = entityConfigurerService.getConfigurer(type)
+                        .map((configurer) -> configurer.configure(modelobject, formRequest))
+                        .orElse(modelobject);
+        log.trace("After configure: {}", result);
+        return result;
+    }
+
     private void validate(FormConfigDTO existingFormConfig, FormConfigDTO receivedViaRequest) {
 //        existingFormConfig.validate(receivedViaRequest);
         this.validateFormId(existingFormConfig, receivedViaRequest);

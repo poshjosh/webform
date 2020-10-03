@@ -53,7 +53,7 @@ public class FormService<T> {
 
     public FormRequest onValidateForm(FormConfigStore store, FormRequest formRequest, WebRequest webRequest) {
         
-        formRequest = modelObjectService.onValidateForm(store, formRequest, null);
+        formRequest = modelObjectService.onValidateForm(store, formRequest);
         
         log.trace("{}", formRequest);
         
@@ -67,14 +67,16 @@ public class FormService<T> {
         
         this.check(formConfig);
         
-        log.trace("Has errors: {}, Has files: {}", bindingResult.hasErrors(), formRequest.hasFiles());
+        log.debug("Has errors: {}, Has files: {}", bindingResult.hasErrors(), formRequest.hasFiles());
   
         if ( ! bindingResult.hasErrors() && formRequest.hasFiles()) {
             
-            final Collection<String> uploadedFiles = 
-                    fileUploadService.upload(formRequest);
+            final Collection<String> uploadedFiles = fileUploadService.upload(formRequest);
 
             formConfig.setUploadedFiles(uploadedFiles);
+        }else{
+        
+            log.trace("There are no multi part files to process");
         }
 
         return formRequest;
