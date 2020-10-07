@@ -2,6 +2,7 @@ package com.looseboxes.webform.repository;
 
 import com.looseboxes.webform.mappers.EntityMapper;
 import com.looseboxes.webform.mappers.EntityMapperService;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
@@ -22,6 +23,12 @@ public class MappedEntityRepositoryProvider implements EntityRepositoryProvider{
     }
 
     @Override
+    public Optional<Object> getIdOptional(Object entity) {
+        entity = entityMapperService.toEntity(entity);
+        return this.entityRepositoryProvider.getIdOptional(entity);
+    }
+
+    @Override
     public EntityManagerFactory getEntityManagerFactory() {
         return entityRepositoryProvider.getEntityManagerFactory();
     }
@@ -32,6 +39,14 @@ public class MappedEntityRepositoryProvider implements EntityRepositoryProvider{
         entityType = this.mapToActualEntityTypeIfNeed(entityType);
 
         return entityRepositoryProvider.isSupported(entityType);
+    }
+
+    @Override
+    public Collection<String> getUniqueColumns(Class entityType) {
+        
+        entityType = this.mapToActualEntityTypeIfNeed(entityType);
+
+        return entityRepositoryProvider.getUniqueColumns(entityType);
     }
 
     @Override

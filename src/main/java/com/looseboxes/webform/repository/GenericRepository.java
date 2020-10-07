@@ -1,19 +1,12 @@
 package com.looseboxes.webform.repository;
 
-import com.bc.db.meta.access.MetaDataAccess;
-import com.bc.db.meta.access.MetaDataAccessImpl;
 import com.bc.jpa.dao.Dao;
 import com.bc.jpa.dao.JpaObjectFactory;
-import com.bc.jpa.dao.functions.GetTableName;
 import com.bc.jpa.spring.ConvertToType;
 import com.bc.jpa.spring.EntityIdAccessor;
-import com.bc.jpa.spring.EntityIdAccessorImpl;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -30,9 +23,15 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     
     private final JpaObjectFactory jpa;
     
-    public GenericRepository(Class<E> entityType, JpaObjectFactory jpa) {
+    private final EntityIdAccessor entityIdAccessor;
+    
+    public GenericRepository(
+            Class<E> entityType, 
+            JpaObjectFactory jpa, 
+            EntityIdAccessor entityIdAccessor) {
         this.entityType = Objects.requireNonNull(entityType);
         this.jpa = Objects.requireNonNull(jpa);
+        this.entityIdAccessor = Objects.requireNonNull(entityIdAccessor);
         LOG.trace("Entity type: {}", entityType);
     }
 
@@ -57,7 +56,7 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
 
     @Override
     public <S extends E> S save(S entity) {
-        final Optional idOptional = this.getIdOptional(entity);
+        final Optional idOptional = this.entityIdAccessor.getValueOptional(entity);
         if(idOptional.isPresent()) {
             return this.merge(entity);
         }else{
@@ -75,16 +74,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     }
 
     @Override
-    public Optional<Object> getIdOptional(E entity) {
-        return this.getIdAccessor().getValueOptional(entity);
-    }
-
-    @Override
-    public E findByIdOrException(Object id) throws EntityNotFoundException {
-        return this.findById(id).orElseThrow(() -> new EntityNotFoundException());
-    }
-
-    @Override
     public Optional<E> findById(Object id) {
         final com.bc.jpa.dao.Dao dao = this.getDao();
         id = this.convertToIdTypeIfNeed(id);
@@ -97,35 +86,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
         return jpa.getDaoForSelect(entityType)
                 .where(key, value).distinct(true)
                 .getResultsAndClose(offset, limit);
-    }
-
-    private Collection<String> _uniqueColumns;
-    @Override
-    public Collection<String> getUniqueColumns() {
-        
-        if(_uniqueColumns == null) {
-        
-            final MetaDataAccess metaDataAccess = this.getMetaDataAccess();
-
-            final String tableName = new GetTableName(metaDataAccess).apply(entityType);
-
-            final List<String> indexNames = metaDataAccess
-                    .fetchStringIndexInfo(tableName, true, MetaDataAccess.INDEX_NAME);
-            
-            if(indexNames == null || indexNames.isEmpty()) {
-                _uniqueColumns = Collections.EMPTY_SET;
-            }else{
-                final List<String> columnNames = metaDataAccess
-                        .fetchStringMetaData(tableName, MetaDataAccess.COLUMN_NAME);
-                _uniqueColumns = indexNames.stream()
-                        .filter((name) -> columnNames.contains(name))
-                        .collect(Collectors.toSet());
-            }
-        }
-
-        LOG.trace("Entity: {}, unique columns: {}", this.entityType.getName(), _uniqueColumns);
-
-        return _uniqueColumns;
     }
     
     public Dao getDao() {
@@ -143,12 +103,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
          return new EntityNotFoundException("Not found. " + 
                  entityType.getName() + ", searched by id: " + id);
     }
-    
-    public MetaDataAccess getMetaDataAccess() {
-        final MetaDataAccess metaDataAccess = new MetaDataAccessImpl(
-                this.getEntityManagerFactory());
-        return metaDataAccess;
-    }
 
     public Object convertToIdTypeIfNeed(Object id) {
         if( ! this.getPrimaryColumnType().isAssignableFrom(id.getClass())) {
@@ -158,11 +112,11 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     }
     
     public String getPrimaryColumnName() {
-        return this.getIdAccessor().getName(entityType);
+        return this.entityIdAccessor.getName(entityType);
     }
     
     public Class getPrimaryColumnType() {
-        return this.getIdAccessor().getType(entityType);
+        return this.entityIdAccessor.getType(entityType);
     }
     
     private ConvertToType _c2t;
@@ -171,14 +125,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
             _c2t = new ConvertToType(this.getPrimaryColumnType());
         }
         return _c2t;
-    }
-    
-    private EntityIdAccessor _eia;
-    public EntityIdAccessor getIdAccessor() {
-        if(_eia == null) {
-            _eia = new EntityIdAccessorImpl(this.getEntityManagerFactory());
-        }
-        return _eia;
     }
 
     public EntityManagerFactory getEntityManagerFactory() {

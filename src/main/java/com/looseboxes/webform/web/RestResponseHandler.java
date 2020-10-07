@@ -70,9 +70,7 @@ public class RestResponseHandler implements ResponseHandler<FormConfigDTO, Respo
     
     private URI buildURIForRead(FormConfig formConfig) {
         final Object modelobject = formConfig.getModelobject();
-        final Class modeltype = modelobject.getClass();
-        final Object id = entityRepositoryProvider.forEntity(modeltype)
-                .getIdOptional(modelobject).orElse(null);
+        final Object id = entityRepositoryProvider.getIdOptional(modelobject).orElse(null);
         Objects.requireNonNull(id);
         URI uri = ServletUriComponentsBuilder.fromCurrentContextPath()
           .path(this.buildPathForRead(formConfig))

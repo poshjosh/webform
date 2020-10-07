@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import com.looseboxes.webform.web.WebValidator;
+import com.looseboxes.webform.web.WebstoreValidatingDataBinder;
 import java.util.Date;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.ConversionService;
@@ -52,8 +52,8 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     @Autowired private ApplicationContext context;
     @Autowired private Validator validator;
     
-    @Bean WebValidator webValidator(@Autowired DomainTypeConverter domainTypeConverter) {
-        return new WebValidator(webformConversionService(domainTypeConverter), this.validator);
+    @Bean WebstoreValidatingDataBinder webValidator(@Autowired DomainTypeConverter domainTypeConverter) {
+        return new WebstoreValidatingDataBinder(webformConversionService(domainTypeConverter), this.validator);
     }
     
 //    @Bean 

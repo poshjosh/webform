@@ -17,11 +17,11 @@
 package com.looseboxes.webform.form.validators;
 
 import com.looseboxes.webform.repository.EntityRepository;
+import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,15 +32,15 @@ public class EntityUniqueColumnsValidator implements Validator {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityUniqueColumnsValidator.class);
 
-    private final EntityRepositoryProvider entityRepositoryFactory;
+    private final EntityRepositoryProvider repositoryFactory;
 
-    public EntityUniqueColumnsValidator(EntityRepositoryProvider entityRepositoryFactory) {
-        this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
+    public EntityUniqueColumnsValidator(EntityRepositoryProvider repositoryFactory) {
+        this.repositoryFactory = Objects.requireNonNull(repositoryFactory);
     }
     
     @Override
     public boolean supports(Class<?> clazz) {
-        boolean supports = this.entityRepositoryFactory.isSupported(clazz);
+        boolean supports = repositoryFactory.isSupported(clazz);
         LOG.trace("Supports: {}, type: {}", supports, clazz);
         return supports;
     }
@@ -50,12 +50,12 @@ public class EntityUniqueColumnsValidator implements Validator {
 
         final Class entityType = object.getClass();
         
-        final EntityRepository repo = entityRepositoryFactory.forEntity(entityType);
-
-        final Collection<String> uniqueColumns = repo.getUniqueColumns();
+        final Collection<String> uniqueColumns = repositoryFactory.getUniqueColumns(entityType);
         
         LOG.trace("Entity: {}, unique columns: {}", entityType.getSimpleName(), uniqueColumns);
 
+        final EntityRepository repository = repositoryFactory.forEntity(entityType);
+        
         for(String uniqueCol : uniqueColumns) {
 
             final Object columnValue = errors.getFieldValue(uniqueCol);
@@ -66,7 +66,7 @@ public class EntityUniqueColumnsValidator implements Validator {
             }
             
             if(columnValue != null && !columnValue.toString().isEmpty() && 
-                    ! repo.findAllBy(uniqueCol, columnValue, 0, 1).isEmpty()) {
+                    ! repository.findAllBy(uniqueCol, columnValue, 0, 1).isEmpty()) {
 
                 //@todo provide messages.properties or validation_messages.properties
                 errors.rejectValue(uniqueCol, "Duplicate." + uniqueCol, "`" + uniqueCol + "` already exists");

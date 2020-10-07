@@ -16,6 +16,8 @@
 
 package com.looseboxes.webform.repository;
 
+import java.util.Collection;
+import java.util.Optional;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -28,4 +30,8 @@ public interface EntityRepositoryProvider {
     boolean isSupported(Class entityType);
     
     <E> EntityRepository<E, Object> forEntity(Class<E> entityType);
+    
+    Optional<Object> getIdOptional(Object entity);
+    
+    Collection<String> getUniqueColumns(Class entityType);
 }

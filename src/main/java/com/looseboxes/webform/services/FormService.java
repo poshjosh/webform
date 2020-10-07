@@ -7,7 +7,7 @@ import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.form.FormSubmitHandler;
 import com.looseboxes.webform.web.FormRequest;
-import com.looseboxes.webform.web.WebValidator;
+import com.looseboxes.webform.web.WebstoreValidatingDataBinder;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +22,7 @@ import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
+import org.springframework.validation.DataBinder;
 
 /**
  * @author hp
@@ -34,7 +35,7 @@ public class FormService<T> {
     @Autowired private ModelObjectService modelObjectService;
     @Autowired private BindingResultErrorCollector bindingErrorCollector;
     @Autowired private DependentsProvider dependentsProvider;
-    @Autowired private WebValidator webValidator;
+    @Autowired private WebstoreValidatingDataBinder bindingValidator;
     @Autowired private FormValidatorService formValidatorService;
     @Autowired private FileUploadService fileUploadService;
     @Autowired private FormSubmitHandler formSubmitHandler;
@@ -53,15 +54,21 @@ public class FormService<T> {
 
     public FormRequest onValidateForm(FormConfigStore store, FormRequest formRequest, WebRequest webRequest) {
         
+        final FormConfigDTO formConfig = formRequest.getFormConfig();
+        
+        final Object modelobject = formConfig.getModelobject();
+        
+        // We need to bind request value to the model object before calling
+        // ModelObjectService#onValidateForm
+        //
+        final DataBinder dataBinder = bindingValidator.bind(webRequest, modelobject);
+        
         formRequest = modelObjectService.onValidateForm(store, formRequest);
         
         log.trace("{}", formRequest);
         
-        final FormConfigDTO formConfig = formRequest.getFormConfig();
-
-        final BindingResult bindingResult = webValidator
-                .bindAndValidate(webRequest, formConfig.getModelobject())
-                .getBindingResult();
+        final BindingResult bindingResult = bindingValidator
+                .validate(dataBinder, modelobject).getBindingResult();
         
         this.validateAndAddErrors(formConfig, bindingResult);
         
@@ -74,6 +81,7 @@ public class FormService<T> {
             final Collection<String> uploadedFiles = fileUploadService.upload(formRequest);
 
             formConfig.setUploadedFiles(uploadedFiles);
+            
         }else{
         
             log.trace("There are no multi part files to process");
@@ -139,7 +147,7 @@ public class FormService<T> {
         
         final Object modelobject = formConfig.getModelobject();
         
-        final BindingResult bindingResult = webValidator
+        final BindingResult bindingResult = bindingValidator
                 .bindAndValidateSingle(modelobject, propertyName, propertyValue)
                 .getBindingResult();
         

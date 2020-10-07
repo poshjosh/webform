@@ -17,6 +17,7 @@ import com.looseboxes.webform.events.WebformEventPublisher;
 import com.looseboxes.webform.store.AttributeStore;
 import com.looseboxes.webform.store.AttributeStoreProvider;
 import com.looseboxes.webform.store.FormConfigStore;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import javax.cache.Cache;
@@ -191,13 +192,33 @@ public class FormControllerBase<T>{
     private void log(String tag, 
             FormConfigStore store, FormRequest formRequest, HttpServletRequest request){
         
-        final FormStage formStage = formRequest.getFormConfig() == null ? 
-                null : formRequest.getFormConfig().getFormStage();
+        FormConfigDTO formConfig = formRequest.getFormConfig();
+        
+        final FormStage formStage = formConfig == null ? null : formConfig.getFormStage();
         
         if(Print.isTraceEnabled()) {
-            
-            new Print().trace(formStage, formRequest.getFormConfig(), request);
+            new Print().trace(formStage, null, request);
         }
+        if(log.isTraceEnabled()) {
+            log.trace("{} Current session ID: {}", tag, request.getSession().getId());
+            log.trace("RECEIVED\n====================================================");
+            this.log(formConfig);
+            log.trace("EXISTING\n====================================================");
+            final String formId = formConfig == null ? null : formConfig.getFormid();
+            this.log(formId == null ? null : store.getOrDefault(formId, null));
+        }
+    }
+    
+    private void log(FormConfigDTO formConfig) {
+        if(formConfig == null) {
+            return;
+        }
+        Map map = new HashMap(formConfig.toMap());
+        map.remove("form");
+        log.trace("FormConfig map: {}", map);
+        log.trace("Form: {}", formConfig.getForm());
+        log.trace("Model: {}", formConfig.getModelobject());
+        log.trace("Form.infos: {}, form.errors: {}", formConfig.getInfos(), formConfig.getErrors());
     }
 
     public FormService getService() {

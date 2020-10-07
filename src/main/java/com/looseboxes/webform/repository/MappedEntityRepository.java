@@ -1,7 +1,6 @@
 package com.looseboxes.webform.repository;
 
 import com.looseboxes.webform.mappers.EntityMapper;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,17 +19,6 @@ public class MappedEntityRepository<E extends Object> implements EntityRepositor
             EntityRepository<E, Object> entityRepository) {
         this.entityMapper = Objects.requireNonNull(entityMapper);
         this.entityRepository = Objects.requireNonNull(entityRepository);
-    }
-
-    @Override
-    public Collection<String> getUniqueColumns() {
-        return entityRepository.getUniqueColumns();
-    }
-
-    @Override
-    public Optional<Object> getIdOptional(E entity) {
-        entity = this.entityMapper.toEntity(entity);
-        return entityRepository.getIdOptional(entity);
     }
 
     @Override

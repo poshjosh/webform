@@ -145,9 +145,7 @@ public class SaveEntityAndChildrenIfAny {
     }
     
     private boolean hasId(Object e) {
-        final Class entityType = e.getClass();
-        return entityRepositoryProvider.forEntity(entityType)
-                .getIdOptional(e).isPresent();
+        return entityRepositoryProvider.getIdOptional(e).isPresent();
     }
 
     public TypeFromNameResolver getTypeFromNameResolver() {

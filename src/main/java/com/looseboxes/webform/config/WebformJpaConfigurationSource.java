@@ -69,15 +69,13 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
     }
     
     @Bean public EntityUniqueColumnsValidator entityUniqueColumnsValidator() {
-        return new EntityUniqueColumnsValidator(
-                this.entityRepositoryProvider());
+        return new EntityUniqueColumnsValidator(this.entityRepositoryProvider());
     }
 
     @Override 
     @Bean public TypeFromNameResolver typeFromNameResolver() {
         return new MappedEntityTypeFromNameResolver(
-                this.entityMapperService(), 
-                super.typeFromNameResolver());
+                this.entityMapperService(), super.typeFromNameResolver());
     }
         
     @Bean public EntityRepositoryProvider entityRepositoryProvider() {
@@ -85,12 +83,17 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
                 this.entityMapperService(), this.unMappedEntityRepositoryProvider());
     }
 
-    private EntityRepositoryProvider unMappedEntityRepositoryProvider() {
+    public EntityRepositoryProvider unMappedEntityRepositoryProvider() {
         return new EntityRepositoryProviderImpl(
-                this.jpaObjectFactory(), this.domainClasses());
+                this.jpaObjectFactory(), this.domainClasses(), 
+                this.metaDataAccess(), this.entityIdAccessor());
     }
     
     private EntityMapperService entityMapperService() {
         return applicationContext.getBean(EntityMapperService.class);
+    }
+
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
     }
 }
