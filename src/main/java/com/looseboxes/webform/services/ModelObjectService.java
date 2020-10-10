@@ -17,9 +17,13 @@ import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormRequest;
+import com.looseboxes.webform.web.WebstoreValidatingDataBinder;
 import java.util.Collections;
 import java.util.Optional;
 import javax.validation.ValidationException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
+import org.springframework.web.context.request.WebRequest;
 
 /**
  * @author hp
@@ -32,6 +36,7 @@ public class ModelObjectService{
     public static final String FORM_ID_PREFIX = "form";
     
     @Autowired private ModelObjectProvider modelObjectProvider;
+    @Autowired private WebstoreValidatingDataBinder bindingValidator;
     @Autowired private FormFactory formFactory;
     @Autowired private EntityConfigurerService entityConfigurerService;
     @Autowired private UpdateParentFormWithNewlyCreatedModel parentFormUpdater;
@@ -71,17 +76,17 @@ public class ModelObjectService{
             formConfig.setFormid(this.generateFormId());
         }
         
-        return this.updateForm(store, formRequest, ! newForm, modelobject);
+        return this.updateForm(store, formRequest, ! newForm, modelobject, null);
     }
     
-    public <T> FormRequest<T> onValidateForm(FormConfigStore store, FormRequest<T> formRequest) {
+    public <T> FormRequest<T> onValidateForm(FormConfigStore store, FormRequest<T> formRequest, WebRequest webRequest) {
         
-        return this.updateForm(store, formRequest, true, null);
+        return this.updateForm(store, formRequest, true, null, webRequest);
     }
     
     public <T> FormRequest<T> onSubmitForm(FormConfigStore store, FormRequest<T> formRequest) {
         
-        return this.updateForm(store, formRequest, true, null);
+        return this.updateForm(store, formRequest, true, null, null);
     }
     
     public <S, T> FormRequest<T> updateRequest(
@@ -104,7 +109,7 @@ public class ModelObjectService{
     
     private <T> FormRequest<T> updateForm(
             FormConfigStore store, FormRequest<T> formRequest, 
-            boolean existingForm, @Nullable T modelobject) {
+            boolean existingForm, @Nullable T modelobject, @Nullable WebRequest webRequest) {
         
         FormConfigDTO formConfig = formRequest.getFormConfig();
         
@@ -140,6 +145,8 @@ public class ModelObjectService{
             modelobject = (T)existingFormConfig.getModelobject();
 //            modelobject = (T)formConfig.getModelobject();
         }
+        
+        final BindingResult bindingResult = this.bind(webRequest, modelobject);
 
         if(modelobject != null) {
             modelobject = this.configureModelObject(modelobject, formRequest);
@@ -168,8 +175,33 @@ public class ModelObjectService{
             formRequest.setFormConfig(formConfig.form(form));
         }
         
+        if(bindingResult != null) {
+        
+            formRequest.getFormConfig().setBindingResult(bindingResult);
+        }
+        
         return formRequest;
     }   
+    
+    public BindingResult bind(WebRequest webRequest, Object modelobject) {
+        
+        final boolean validate = webRequest != null;
+        
+        final BindingResult bindingResult;
+        
+        if(validate) {
+        
+            final DataBinder dataBinder = bindingValidator.bind(webRequest, modelobject);
+
+            bindingResult = bindingValidator.validate(dataBinder).getBindingResult();
+            
+        }else{
+            
+            bindingResult = null;
+        }
+        
+        return bindingResult;
+    }
     
     public Optional<FormConfigDTO> getExistingFormConfig(
             FormConfigStore store, String formid, boolean existingForm) {

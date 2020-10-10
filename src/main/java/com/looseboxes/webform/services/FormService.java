@@ -22,7 +22,6 @@ import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
-import org.springframework.validation.DataBinder;
 
 /**
  * @author hp
@@ -54,20 +53,13 @@ public class FormService<T> {
 
     public FormRequest onValidateForm(FormConfigStore store, FormRequest formRequest, WebRequest webRequest) {
         
-        final FormConfigDTO formConfig = formRequest.getFormConfig();
-        
-        final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
-        
-        // We need to bind request value to the model object before calling
-        // ModelObjectService#onValidateForm
-        //
-        final DataBinder dataBinder = bindingValidator.bind(webRequest, modelobject);
-        
-        formRequest = modelObjectService.onValidateForm(store, formRequest);
+        formRequest = modelObjectService.onValidateForm(store, formRequest, webRequest);
         
         log.trace("{}", formRequest);
         
-        final BindingResult bindingResult = bindingValidator.validate(dataBinder).getBindingResult();
+        final FormConfigDTO formConfig = formRequest.getFormConfig();
+        
+        final BindingResult bindingResult = formConfig.getBindingResult();
         
         this.validateAndAddErrors(formConfig, bindingResult);
         
