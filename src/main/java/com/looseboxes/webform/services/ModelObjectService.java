@@ -18,6 +18,7 @@ import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.Collections;
+import java.util.Optional;
 import javax.validation.ValidationException;
 
 /**
@@ -102,7 +103,8 @@ public class ModelObjectService{
     }
     
     private <T> FormRequest<T> updateForm(
-            FormConfigStore store, FormRequest<T> formRequest, boolean existingForm, @Nullable T modelobject) {
+            FormConfigStore store, FormRequest<T> formRequest, 
+            boolean existingForm, @Nullable T modelobject) {
         
         FormConfigDTO formConfig = formRequest.getFormConfig();
         
@@ -116,9 +118,7 @@ public class ModelObjectService{
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
         
-        FormConfigDTO existingFormConfig = ! existingForm ?
-                store.getOrDefault(formid, null) :
-                store.getOrException(formid);
+        FormConfigDTO existingFormConfig = getExistingFormConfig(store, formid, existingForm).orElse(null);
         
         log.trace("Received model: {}\nExisting model: {}", formConfig.getModelobject(), 
                 (existingFormConfig==null?null:existingFormConfig.getModelobject()));
@@ -161,7 +161,7 @@ public class ModelObjectService{
 
         }else{
   
-            this.validate(existingFormConfig, formConfig);
+            this.validateFormId(existingFormConfig, formConfig);
             
             formConfig.merge(existingFormConfig);
             
@@ -170,6 +170,13 @@ public class ModelObjectService{
         
         return formRequest;
     }   
+    
+    public Optional<FormConfigDTO> getExistingFormConfig(
+            FormConfigStore store, String formid, boolean existingForm) {
+        return Optional.ofNullable(
+                ! existingForm ? store.getOrDefault(formid, null) : store.getOrException(formid)
+        );
+    }
     
     /**
      * Apply custom configurations to the model object.
@@ -190,11 +197,6 @@ public class ModelObjectService{
         return result;
     }
 
-    private void validate(FormConfigDTO existingFormConfig, FormConfigDTO receivedViaRequest) {
-//        existingFormConfig.validate(receivedViaRequest);
-        this.validateFormId(existingFormConfig, receivedViaRequest);
-    }
-    
     private void validateFormId(FormConfigDTO existingFormConfig, FormConfigDTO receivedViaRequest) {
 //        existingFormConfig.validate(sentViaRequest);
         if( ! existingFormConfig.getFormid().equals(receivedViaRequest.getFormid())) {

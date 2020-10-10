@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ModelObjectProvider{
     
-    private static final Logger LOG = LoggerFactory.getLogger(ModelObjectService.class);
+    private final Logger LOG = LoggerFactory.getLogger(ModelObjectProvider.class);
     
     private final EntityRepositoryProvider entityRepositoryFactory;
     private final TypeFromNameResolver typeFromNameResolver;

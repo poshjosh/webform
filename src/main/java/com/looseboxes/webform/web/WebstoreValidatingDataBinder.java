@@ -30,12 +30,14 @@ public class WebstoreValidatingDataBinder {
 
         final DataBinder dataBinder = this.bind(webRequest, modelobject);
         
-        return this.validate(dataBinder, modelobject);
+        return this.validate(dataBinder);
     }
     
     public DataBinder bind(WebRequest webRequest, Object modelobject) {
 
         log.trace("BEFORE Modelobject: {}", modelobject);
+        
+        Objects.requireNonNull(modelobject);
         
         final WebRequestDataBinder dataBinder = new WebRequestDataBinder(modelobject);
         dataBinder.setConversionService(conversionService);
@@ -46,17 +48,6 @@ public class WebstoreValidatingDataBinder {
         
         return dataBinder;
     }
-
-    public DataBinder validate(DataBinder dataBinder, Object modelobject) {
-
-        dataBinder.setValidator(validator);
-
-        dataBinder.validate();
-        
-        log.trace("Validation result: {}", dataBinder.getBindingResult());
-        
-        return dataBinder;
-    }
     
     public WebDataBinder bindAndValidateSingle(Object modelobject, String name, Object value) {
         
@@ -64,11 +55,20 @@ public class WebstoreValidatingDataBinder {
         dataBinder.setAllowedFields(name);
         dataBinder.setConversionService(conversionService);
 
+        dataBinder.bind(new MutablePropertyValues().add(name, value));
+        
+        validate(dataBinder);
+        
+        return dataBinder;
+    }
+
+    public DataBinder validate(DataBinder dataBinder) {
+
         dataBinder.setValidator(validator);
 
-        dataBinder.bind(new MutablePropertyValues().add(name, value));
-
         dataBinder.validate();
+        
+        log.trace("Validation result: {}", dataBinder.getBindingResult());
         
         return dataBinder;
     }

@@ -56,7 +56,7 @@ public class FormService<T> {
         
         final FormConfigDTO formConfig = formRequest.getFormConfig();
         
-        final Object modelobject = formConfig.getModelobject();
+        final Object modelobject = Objects.requireNonNull(formConfig.getModelobject());
         
         // We need to bind request value to the model object before calling
         // ModelObjectService#onValidateForm
@@ -67,8 +67,7 @@ public class FormService<T> {
         
         log.trace("{}", formRequest);
         
-        final BindingResult bindingResult = bindingValidator
-                .validate(dataBinder, modelobject).getBindingResult();
+        final BindingResult bindingResult = bindingValidator.validate(dataBinder).getBindingResult();
         
         this.validateAndAddErrors(formConfig, bindingResult);
         
