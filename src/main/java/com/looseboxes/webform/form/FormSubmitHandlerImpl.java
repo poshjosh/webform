@@ -4,8 +4,6 @@ import com.looseboxes.webform.web.FormConfig;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.looseboxes.webform.Errors;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
@@ -18,7 +16,7 @@ import com.looseboxes.webform.web.FormRequest;
  */
 public class FormSubmitHandlerImpl implements FormSubmitHandler{
     
-    private static final Logger LOG = LoggerFactory.getLogger(FormSubmitHandlerImpl.class);
+//    private static final Logger LOG = LoggerFactory.getLogger(FormSubmitHandlerImpl.class);
     
     private final SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny;
     private final TypeFromNameResolver entityTypeResolver;
@@ -54,8 +52,7 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
                 break;
                 
             case delete:
-                final Object id = formConfig.getModelid();
-                this.getEntityRepository(formConfig).deleteById(id);
+                this.saveEntityAndChildrenIfAny.delete(formRequest);
                 break;
                 
             default:

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.looseboxes.webform.CRUDAction;
+import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.web.FormConfigDTO;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
@@ -148,7 +149,7 @@ public class ModelObjectService{
         
         final BindingResult bindingResult = this.bind(webRequest, modelobject);
 
-        if(modelobject != null) {
+        if(modelobject != null && this.shouldConfigureModelObject(formRequest)) {
             modelobject = this.configureModelObject(modelobject, formRequest);
         }
         
@@ -208,6 +209,19 @@ public class ModelObjectService{
         return Optional.ofNullable(
                 ! existingForm ? store.getOrDefault(formid, null) : store.getOrException(formid)
         );
+    }
+    
+    public boolean shouldConfigureModelObject(FormRequest formRequest) {
+        final boolean configure;
+        final CRUDAction crudAction = formRequest.getFormConfig().getCrudAction();
+        switch(crudAction) {
+            case create: configure = true; break;
+            case read: configure = false; break;
+            case update: configure = true; break;
+            case delete: configure = false; break;
+            default: throw Errors.unexpectedElement(crudAction, CRUDAction.values());
+        }
+        return configure;
     }
     
     /**

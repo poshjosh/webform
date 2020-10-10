@@ -73,7 +73,43 @@ public class SaveEntityAndChildrenIfAny {
             
             result = child;
         }
+        
+        return this.updateFormDataSource(formRequest, entity, result);
+    }
 
+    public Object delete(FormRequest formRequest) {
+        
+        Object modelobject = formRequest.getFormConfig().getModelobject();
+        
+        return this.delete(modelobject, formRequest);
+    }
+    
+    public Object delete(Object modelobject, FormRequest formRequest) {
+        
+        final Object entity = this.entityMapperService.toEntity(modelobject);
+        
+        final List entityList = this.buildEntityList(entity, formRequest);
+        
+        Object result = null;
+        
+        for(Object child : entityList) {
+            
+            final Class childType = child.getClass();
+            
+            Object id = this.entityRepositoryProvider.getIdOptional(child).orElse(null);
+            if(id != null) {
+                this.entityRepositoryProvider.forEntity(childType).deleteById(id);
+            }
+            
+            LOG.debug("Deleted: {}", child);
+            
+            result = child;
+        }
+        
+        return this.updateFormDataSource(formRequest, entity, result);
+    }
+
+    private Object updateFormDataSource(FormRequest formRequest, Object entity, Object result) {
         //@TODO
         // This is a temporary bug fix
         final Object dataSource = result == null ? entity : result;
@@ -84,7 +120,6 @@ public class SaveEntityAndChildrenIfAny {
         }catch(RuntimeException e) {
             LOG.warn("Failed to set FormConfig.form.dataSource to: " + dataSource, e);
         }
-        
         return result;
     }
     
@@ -109,9 +144,11 @@ public class SaveEntityAndChildrenIfAny {
             final Predicate isRoot = (e) -> e == root;
             final Predicate hasNoId = (e) -> hasNoId(e);
             
+            final boolean configure = modelObjectService.shouldConfigureModelObject(formRequest);
+            
             // Configure all list elements but the root, which is already configured
             //
-            final Function configureNonRootEntity = (e) -> 
+            final Function configureNonRootEntity = ! configure ? (e) -> e : (e) -> 
                     isRoot.test(e) ? e : configureModelObject(e, formRequest);
             
             result = (List)list.stream()
