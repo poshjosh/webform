@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author hp
  */
-public class SaveEntityAndChildrenIfAny {
+public class UpdateEntityAndNestedIfAny {
     
-    private static final Logger LOG = LoggerFactory.getLogger(SaveEntityAndChildrenIfAny.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UpdateEntityAndNestedIfAny.class);
     
     private final TypeFromNameResolver typeFromNameResolver;
     private final EntityRepositoryProvider entityRepositoryProvider;
@@ -27,7 +27,7 @@ public class SaveEntityAndChildrenIfAny {
     private final ObjectGraphBuilder objectGraphBuilder;  
     private final ModelObjectService modelObjectService;
     
-    public SaveEntityAndChildrenIfAny(
+    public UpdateEntityAndNestedIfAny(
             TypeFromNameResolver entityTypeResolver, 
             EntityRepositoryProvider entityRepositoryProvider,
             TypeTests typeTests,
@@ -109,9 +109,10 @@ public class SaveEntityAndChildrenIfAny {
             Object id = this.entityRepositoryProvider.getIdOptional(child).orElse(null);
             if(id != null) {
                 this.entityRepositoryProvider.forEntity(childType).deleteById(id);
+                LOG.debug("Deleted: {}", child);
+            }else{
+                LOG.debug("Not deleted as has no ID: {}", child);
             }
-            
-            LOG.debug("Deleted: {}", child);
             
             result = child;
         }
@@ -166,7 +167,7 @@ public class SaveEntityAndChildrenIfAny {
                     .map(configureNonRootEntity).collect(Collectors.toList());
         }
         if(LOG.isTraceEnabled()) {
-            LOG.trace("For insert: {}", 
+            LOG.trace("For update: {}", 
                     result.stream().map(Object::toString)
                             .collect(Collectors.joining("\n", "[\n", "\n]")));
         }

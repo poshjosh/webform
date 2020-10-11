@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.context.request.WebRequest;
 import com.looseboxes.webform.FormStages;
+import com.looseboxes.webform.form.util.ModelObjectImagePathsProvider;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
@@ -38,6 +39,7 @@ public class FormService<T> {
     @Autowired private DependentsProvider dependentsProvider;
     @Autowired private WebstoreValidatingDataBinder bindingValidator;
     @Autowired private FormValidatorService formValidatorService;
+    @Autowired private ModelObjectImagePathsProvider imagePathsProvider;
     @Autowired(required = false) private FileUploadHandler fileUploadHandlerOptional;
     @Autowired private FormSubmitHandler formSubmitHandler;
     
@@ -69,32 +71,50 @@ public class FormService<T> {
         
         log.debug("Has errors: {}, Has files: {}", bindingResult.hasErrors(), formRequest.hasFiles());
   
+        this.processFiles(formRequest);
+        
+        return formRequest;
+    }    
+    
+    private void processFiles(FormRequest<Object> formRequest) {
+        
+        final FormConfigDTO formConfig = formRequest.getFormConfig();
+        
+        final BindingResult bindingResult = formConfig.getBindingResult();
+        
         if ( ! bindingResult.hasErrors()) {
+
+            Optional<FileUploadHandler> optional = this.getFileUploadService();
             
-            if(formRequest.hasFiles()) {
+            if(CRUDAction.delete.equals(formConfig.getCrudAction())) {
+
+                // We delete images in the root entity only
+                // This is because We we delete a product and the product
+                // has a nested user, then we need not delete the product's user
+                //
+                if( ! imagePathsProvider.getImagePathsOfRootEntityOnly(formRequest).isEmpty()) {
                 
-                Optional<FileUploadHandler> optional = this.getFileUploadService();
+                    if(optional.isPresent()) {
+                        optional.get().deleteFilesOfRootEntityOnly(formRequest);
+                    }else{
+                        this.complainAboutFileUploadService();
+                    }
+                }
+            }else if(formRequest.hasFiles()) {
                 
                 if(optional.isPresent()){
                 
-                    if(CRUDAction.delete.equals(formConfig.getCrudAction())) {
-
-                        optional.get().delete(formRequest);
-
-                    }else{
-
-                        optional.get().upload(formRequest);
-                    }
+                    optional.get().upload(formRequest);
+  
                 }else{
+                    
                     this.complainAboutFileUploadService();
                 }
             }else{
                 log.trace("There are no multi part files to process");
             }
         }
-
-        return formRequest;
-    }    
+    }
 
     public FormRequest onSubmitForm(FormConfigStore store, FormRequest formRequest) {
         
@@ -137,8 +157,9 @@ public class FormService<T> {
     } 
     
     private void complainAboutFileUploadService() {
-        throw new IllegalStateException("Bean of type " + 
-                FileUploadHandler.class.getName() + " is either not present or wrongly configured");
+        String msg = ("Bean of type " + 
+                FileUploadHandler.class.getName() + " is either not present or wrongly configured. This means that form images will not be processed");
+        log.warn(msg);
     }
 
     public Map<String, List<SelectOption>> dependents(

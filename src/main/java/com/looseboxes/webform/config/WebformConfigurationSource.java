@@ -56,18 +56,26 @@ import com.looseboxes.webform.form.MultiChoiceContextImpl;
 import java.util.Locale;
 import org.springframework.context.annotation.Bean;
 import com.looseboxes.webform.converters.IdStringToDomainTypeConverterFactory;
+import com.looseboxes.webform.domain.ObjectGraphBuilder;
+import com.looseboxes.webform.form.util.ModelObjectImagePathsProvider;
+import com.looseboxes.webform.form.util.ModelObjectImagePathsProviderImpl;
 
 /**
  * @author hp
  */
 public class WebformConfigurationSource {
     
-    private final Logger log = LoggerFactory.getLogger(WebformConfigurationSource.class);
+//    private final Logger log = LoggerFactory.getLogger(WebformConfigurationSource.class);
     
     private final ApplicationContext applicationContext;
     
     public WebformConfigurationSource(ApplicationContext applicationContext) { 
         this.applicationContext = Objects.requireNonNull(applicationContext);
+    }
+    
+    @Bean public ModelObjectImagePathsProvider modelObjectImagePathProvider(
+            ObjectGraphBuilder ogb, TypeFromNameResolver tnr, FormFactory ffy) {
+        return new ModelObjectImagePathsProviderImpl(ogb, tnr, ffy);
     }
     
     @Bean public BindingResultErrorCollector bindingResultErrorCollector() {

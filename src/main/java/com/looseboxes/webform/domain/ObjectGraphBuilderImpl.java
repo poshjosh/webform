@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ObjectGraphBuilderImpl.class);
+    private final Logger log = LoggerFactory.getLogger(ObjectGraphBuilderImpl.class);
     
     private static class Node implements Comparable{
 
@@ -92,8 +92,8 @@ public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
             list.add(object);
             result = Collections.unmodifiableList(list);
         }
-        if(LOG.isDebugEnabled()) {
-            LOG.debug("Object graph as list: {}", 
+        if(log.isDebugEnabled()) {
+            log.debug("Object graph as list: {}", 
                     result.stream().map(Object::toString)
                             .collect(Collectors.joining("\n", "[\n", "\n]")));
         }
@@ -103,9 +103,9 @@ public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
     public List buildChildren(Object object, BiPredicate<Field, Object> test) {
         List<Node> collectInto = new ArrayList<>();
         this.build(object.getClass(), object, test, collectInto, 0);
-        LOG.trace("Before sort: {}", collectInto);
+        log.trace("Before sort: {}", collectInto);
         Collections.sort(collectInto, Collections.reverseOrder());
-        LOG.trace(" After sort: {}", collectInto);
+        log.trace(" After sort: {}", collectInto);
         List result = collectInto.stream()
                 .map((node) -> node.value).collect(Collectors.toList());
         return result;
@@ -114,11 +114,11 @@ public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
     private Field [] build(Class beanType, Object bean, 
             BiPredicate<Field, Object> propertyTest, List<Node> collectInto, int depth) {
         
-        LOG.trace("Depth: {}, bean: {}, collected: {}", 
+        log.trace("Depth: {}, bean: {}, collected: {}", 
                 depth, beanType.getName(), collectInto.size());
         
         if(this.isMaxDepthReached(depth)) {
-            LOG.trace("Max depth exceeded. Depth: {}, max depth: {}", depth, maxDepth);
+            log.trace("Max depth exceeded. Depth: {}, max depth: {}", depth, maxDepth);
             return new Field[0];
         }
     
@@ -132,7 +132,7 @@ public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
             
             final boolean accept = fieldValue != null && propertyTest.test(field, fieldValue);
             
-            LOG.trace("Accept: {}, {}#{} = {}", accept, beanType.getName(), field.getName(), fieldValue);
+            log.trace("Accept: {}, {}#{} = {}", accept, beanType.getName(), field.getName(), fieldValue);
             
             if(accept) {
                 
@@ -142,7 +142,7 @@ public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
                 node.depth = depth;
                 node.value = fieldValue;
                 collectInto.add(node);
-                LOG.trace("Added: {}", node);
+                log.trace("Added: {}", node);
             }
         }
         

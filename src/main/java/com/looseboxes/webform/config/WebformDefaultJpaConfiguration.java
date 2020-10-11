@@ -15,7 +15,7 @@ import com.looseboxes.webform.form.validators.EntityUniqueColumnsValidator;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
-import com.looseboxes.webform.domain.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.domain.UpdateEntityAndNestedIfAny;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -43,13 +43,13 @@ public class WebformDefaultJpaConfiguration{
         return delegate.objectGraphBuilder(typeTests);
     }
 
-    @Bean public SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny(
+    @Bean public UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny(
             ModelObjectService modelObjectService) {
         return delegate.saveEntityAndChildrenIfAny(modelObjectService);
     }
 
     @Bean public FormSubmitHandler formSubmitHandler(
-            SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny) {
+            UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny) {
         return delegate.formSubmitHandler(saveEntityAndChildrenIfAny);
     }
 

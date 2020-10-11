@@ -8,5 +8,7 @@ import java.util.List;
  */
 public interface ModelObjectImagePathsProvider{
     
-    List<String> getImagePaths(FormRequest<Object> formRequest);
+    List<String> getImagePathsOfRootAndNestedEntities(FormRequest<Object> formRequest);
+    
+    List<String> getImagePathsOfRootEntityOnly(FormRequest<Object> formRequest);
 }

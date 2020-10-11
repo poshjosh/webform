@@ -34,7 +34,7 @@ public class ModelObjectImagePathsProviderImpl implements ModelObjectImagePathsP
     }
     
     @Override
-    public List<String> getImagePaths(FormRequest<Object> formRequest) {
+    public List<String> getImagePathsOfRootAndNestedEntities(FormRequest<Object> formRequest) {
         
         final List<String> result = new ArrayList<>();
         
@@ -54,7 +54,7 @@ public class ModelObjectImagePathsProviderImpl implements ModelObjectImagePathsP
             Form<Object> form = this.formFactory.newForm(
                     null, Long.toHexString(System.currentTimeMillis()), typeId, entity);
             
-            result.addAll(this.getImagePaths(form));
+            result.addAll(this.getImagePathsOfRootEntityOnly(form));
         
         }
         
@@ -63,9 +63,13 @@ public class ModelObjectImagePathsProviderImpl implements ModelObjectImagePathsP
         return result.isEmpty() ? Collections.EMPTY_LIST : Collections.unmodifiableList(result);
     }
 
-    public List<String> getImagePaths(Form<Object> form) {
+    @Override
+    public List<String> getImagePathsOfRootEntityOnly(FormRequest<Object> formRequest) {
         
-        final Object model = form.getDataSource();
+        return getImagePathsOfRootEntityOnly(formRequest.getFormConfig().getForm());
+    }
+    
+    public List<String> getImagePathsOfRootEntityOnly(Form<Object> form) {
         
         return form.getMembers().stream()
                 .filter(member -> "file".equals(member.getType()))

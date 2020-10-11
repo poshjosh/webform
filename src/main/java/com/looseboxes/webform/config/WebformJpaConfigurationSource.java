@@ -15,7 +15,7 @@ import com.looseboxes.webform.repository.EntityRepositoryProviderImpl;
 import com.looseboxes.webform.repository.MappedEntityRepositoryProvider;
 import com.looseboxes.webform.repository.MappedEntityTypeFromNameResolver;
 import com.looseboxes.webform.services.ModelObjectService;
-import com.looseboxes.webform.domain.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.domain.UpdateEntityAndNestedIfAny;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -43,9 +43,9 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
         return new WebformObjectGraphBuilder(typeTests, this.entityMapperService());
     }
     
-    @Bean public SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny(
+    @Bean public UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny(
             @Autowired ModelObjectService modelObjectService) {
-        return new SaveEntityAndChildrenIfAny(
+        return new UpdateEntityAndNestedIfAny(
                 this.typeFromNameResolver(), 
                 this.entityRepositoryProvider(),
                 this.typeTests(),
@@ -55,7 +55,7 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
     }
     
     @Bean public FormSubmitHandler formSubmitHandler(
-            @Autowired SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny) {
+            @Autowired UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny) {
         return new FormSubmitHandlerImpl(
                 saveEntityAndChildrenIfAny,
                 this.typeFromNameResolver(), 

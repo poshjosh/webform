@@ -7,7 +7,7 @@ import java.util.Objects;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
-import com.looseboxes.webform.domain.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.domain.UpdateEntityAndNestedIfAny;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 
@@ -18,12 +18,12 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
     
 //    private static final Logger LOG = LoggerFactory.getLogger(FormSubmitHandlerImpl.class);
     
-    private final SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny;
+    private final UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny;
     private final TypeFromNameResolver entityTypeResolver;
     private final EntityRepositoryProvider entityRepositoryProvider;
     
     public FormSubmitHandlerImpl(
-            SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny,
+            UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny,
             TypeFromNameResolver entityTypeResolver, 
             EntityRepositoryProvider entityRepositoryProvider) {
         this.saveEntityAndChildrenIfAny = Objects.requireNonNull(saveEntityAndChildrenIfAny);
@@ -52,6 +52,10 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
                 break;
                 
             case delete:
+                // We delete images in the root entity only
+                // This is because We we delete a product and the product
+                // has a nested user, then we need not delete the product's user
+                //
                 this.saveEntityAndChildrenIfAny.deleteRootOnly(formRequest);
                 break;
                 

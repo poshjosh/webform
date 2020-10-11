@@ -109,3 +109,22 @@ public class AddressConfigurer implements EntityConfigurer<Address>{
     }
 }
 ```
+
+### Uploading/Deleting Images
+
+Uploading/deleting of images are handled by class `FileUploadHandler` which 
+is a bean that becomes available when you provide and instance of
+`com.looseboxes.webform.config.WebformFileuploadConfigurationSource` for 
+example as shown below:
+
+```java
+public class WebformFileuploadConfiguration extends WebformFileuploadConfigurationSource{
+
+   ... // Any additional spring beans could be added here    
+}
+
+```
+
+
+
+

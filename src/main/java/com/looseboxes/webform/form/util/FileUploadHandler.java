@@ -37,17 +37,17 @@ public class FileUploadHandler {
     
     private final ModelObjectImagePathsProvider imagePathsProvider;
     
-    private final FilePathProvider getUniquePathForFilename;
+    private final FilePathProvider filePathProvider;
 
     public FileUploadHandler(
             FileStorageHandler fileStorageHandler,
             ModelObjectImagePathsProvider imagePathsProvider,
-            FilePathProvider getUniquePathForFilename) {
+            FilePathProvider filePathProvider) {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
         this.imagePathsProvider = Objects.requireNonNull(imagePathsProvider);
-        this.getUniquePathForFilename = Objects.requireNonNull(getUniquePathForFilename);
+        this.filePathProvider = Objects.requireNonNull(filePathProvider);
     }
-
+    
     public void deleteUploadedFiles(FormConfigDTO formConfig) {
         final Collection<String> files = formConfig.removeUploadedFiles();
         if(files == null || files.isEmpty()) {
@@ -58,21 +58,66 @@ public class FileUploadHandler {
             this.fileStorageHandler.delete(path);
         }
     }
-    
-    public void delete(FormRequest<Object> formRequest) {
+
+    /**
+     * Deletes all the files in the the root form contained in the FormRequest
+     * 
+     * The root form is the form created from the model object.
+     * @param formRequest 
+     */
+    public void deleteFilesOfRootEntityOnly(FormRequest<Object> formRequest) {
         
-        List<String> imagePaths = imagePathsProvider.getImagePaths(formRequest);
+        this.deleteAll(this.getFilesOfRootEntityOnly(formRequest));
+    }
+
+    public boolean rootEntityHasFiles(FormRequest<Object> formRequest) {
+    
+        return ! this.getFilesOfRootEntityOnly(formRequest).isEmpty();
+    }
+    
+    public List<String> getFilesOfRootEntityOnly(FormRequest<Object> formRequest) {
+        
+        List<String> imagePaths = imagePathsProvider.getImagePathsOfRootEntityOnly(formRequest);
+        
+        return imagePaths;
+    }
+    
+    /**
+     * Deletes all the files in the the form(s) contained in the
+     * {@code FormRequest} The forms in the form request are those of all
+     * the entities belonging to the entity graph built from the modelobject
+     * in the form request's form
+     * @param formRequest 
+     */
+    public void deleteFilesOfRootAndNestedEntities(FormRequest<Object> formRequest) {
+        
+        this.deleteAll(this.getFilesOfRootAndNestedEntities(formRequest));
+    }
+
+    public boolean rootOrNestedEntitiesHasFiles(FormRequest<Object> formRequest) {
+        
+        return ! this.getFilesOfRootAndNestedEntities(formRequest).isEmpty();
+    }
+    
+    public List<String> getFilesOfRootAndNestedEntities(FormRequest<Object> formRequest) {
+    
+        List<String> imagePaths = imagePathsProvider.getImagePathsOfRootAndNestedEntities(formRequest);
+        
+        return imagePaths;
+    }
+    
+    public void deleteAll(List<String> imagePaths) {
         
         LOG.debug("Images to delete: {}", imagePaths);
         
         for(String imagePathStr : imagePaths) {
             
-            Path imagePath = this.getUniquePathForFilename.getPath(imagePathStr);
+            Path imagePath = this.filePathProvider.getPath(imagePathStr);
         
             this.delete(imagePath);
         }
     }
-    
+
     public void delete(Path path) {
         this.fileStorageHandler.delete(path);
     }
