@@ -1,5 +1,6 @@
-package com.looseboxes.webform.util;
+package com.looseboxes.webform.domain;
 
+import com.looseboxes.webform.util.FieldUtils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,11 +23,14 @@ import org.slf4j.LoggerFactory;
  * then the <code>Person</code>.
  * 
  * <b>Note.</b> By default properties with <code>null</code> values are ignored.
+ * 
+ * A max depth of -1 implies no limit
+ * 
  * @author chinomso bassey ikwuagwu
  */
-public class ObjectAsGraphListBuilderImpl implements ObjectGraphAsListBuilder<Field> {
+public class ObjectGraphBuilderImpl implements ObjectGraphBuilder<Field> {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ObjectAsGraphListBuilderImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ObjectGraphBuilderImpl.class);
     
     private static class Node implements Comparable{
 
@@ -71,7 +75,7 @@ public class ObjectAsGraphListBuilderImpl implements ObjectGraphAsListBuilder<Fi
     
     private final int maxDepth;
     
-    public ObjectAsGraphListBuilderImpl(int maxDepth) { 
+    public ObjectGraphBuilderImpl(int maxDepth) { 
         if(maxDepth < -1) {
             throw new IllegalArgumentException();
         }

@@ -7,10 +7,16 @@ import com.bc.jpa.spring.EntityIdAccessor;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author hp
@@ -21,7 +27,7 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     
     private final Class<E> entityType;
     
-    private final JpaObjectFactory jpa;
+    private final JpaObjectFactory jpaObjectFactory;
     
     private final EntityIdAccessor entityIdAccessor;
     
@@ -30,7 +36,7 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
             JpaObjectFactory jpa, 
             EntityIdAccessor entityIdAccessor) {
         this.entityType = Objects.requireNonNull(entityType);
-        this.jpa = Objects.requireNonNull(jpa);
+        this.jpaObjectFactory = Objects.requireNonNull(jpa);
         this.entityIdAccessor = Objects.requireNonNull(entityIdAccessor);
         LOG.trace("Entity type: {}", entityType);
     }
@@ -44,16 +50,40 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
 // So we use the same Dao to find and then delete the entity
 //        final Object found = this.find(id);
 //        this.getDao().removeAndClose(found);
-        try(final Dao dao = this.getDao()) {
-            dao.begin();
-            id = this.convertToIdTypeIfNeed(id);
-            final Object found = dao.find(entityType, id);
-            this.requireNotNull(found, id);
-            dao.remove(found);
-            dao.commit();
-        }
+
+// DID NOT WORK
+//        try(final Delete dao = this.getJpaObjectFactory().getDaoForDelete(entityType)) {
+//            dao.begin();
+//            id = this.convertToIdTypeIfNeed(id);
+//            final Object found = dao.find(entityType, id);
+//            this.requireNotNull(found, id);
+//            dao.remove(found).commit();
+//        }
+        
+        this.customDeleteById(entityType, this.getPrimaryColumnName(), id);
     }
 
+    @Transactional(readOnly = false)
+    private void customDeleteById(Class entityType, String name, Object value) {
+        EntityManagerFactory emf = this.getEntityManagerFactory();
+        EntityManager em = emf.createEntityManager();
+        try{
+            //https://en.wikibooks.org/wiki/Java_Persistence/Criteria
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaDelete cd = cb.createCriteriaDelete(entityType);
+            Root root = cd.from(entityType);
+            cd.where(cb.equal(root.get(name), value));
+            Query query = em.createQuery(cd);
+            // https://stackoverflow.com/questions/25821579/transactionrequiredexception-executing-an-update-delete-query            
+            em.getTransaction().begin();
+            int updateCount = query.executeUpdate();
+            em.flush();
+            em.getTransaction().commit();
+        }finally{
+            em.close();
+        }
+    }
+    
     @Override
     public <S extends E> S save(S entity) {
         final Optional idOptional = this.entityIdAccessor.getValueOptional(entity);
@@ -83,13 +113,13 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
 
     @Override
     public List<E> findAllBy(String key, Object value, int offset, int limit) {
-        return jpa.getDaoForSelect(entityType)
+        return jpaObjectFactory.getDaoForSelect(entityType)
                 .where(key, value).distinct(true)
                 .getResultsAndClose(offset, limit);
     }
     
     public Dao getDao() {
-        return jpa.getDao();
+        return jpaObjectFactory.getDao();
     }
     
     public void requireNotNull(Object entity, Object id) 
@@ -128,6 +158,18 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
-        return this.jpa.getEntityManagerFactory();
+        return this.jpaObjectFactory.getEntityManagerFactory();
+    }
+
+    public Class<E> getEntityType() {
+        return entityType;
+    }
+
+    public JpaObjectFactory getJpaObjectFactory() {
+        return jpaObjectFactory;
+    }
+
+    public EntityIdAccessor getEntityIdAccessor() {
+        return entityIdAccessor;
     }
 }

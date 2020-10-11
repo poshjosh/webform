@@ -10,17 +10,17 @@ import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.jpa.spring.repository.EntityRepositoryFactory;
 import com.bc.jpa.spring.repository.JpaRepositoryFactory;
 import com.bc.webform.TypeTests;
-import com.looseboxes.webform.form.FormSubmitHandler;
+import com.looseboxes.webform.form.util.FormSubmitHandler;
 import com.looseboxes.webform.form.validators.EntityUniqueColumnsValidator;
 import com.looseboxes.webform.form.validators.FormValidatorFactory;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
-import com.looseboxes.webform.util.ObjectGraphAsListBuilder;
-import com.looseboxes.webform.util.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.domain.SaveEntityAndChildrenIfAny;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.looseboxes.webform.domain.ObjectGraphBuilder;
 
 /**
  * @author hp
@@ -39,8 +39,8 @@ public class WebformDefaultJpaConfiguration{
         return delegate.typeTests();
     }
 
-    @Bean public ObjectGraphAsListBuilder objectGraphListBuilder() {
-        return delegate.objectGraphListBuilder();
+    @Bean public ObjectGraphBuilder objectGraphBuilder(TypeTests typeTests) {
+        return delegate.objectGraphBuilder(typeTests);
     }
 
     @Bean public SaveEntityAndChildrenIfAny saveEntityAndChildrenIfAny(

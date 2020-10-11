@@ -1,10 +1,11 @@
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.form.util;
 
 import com.bc.webform.form.Form;
 import com.bc.webform.form.FormBean;
 import com.bc.webform.form.member.FormMember;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.exceptions.FormMemberNotFoundException;
+import com.looseboxes.webform.form.FormMemberUpdater;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;

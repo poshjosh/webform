@@ -1,14 +1,15 @@
 package com.looseboxes.webform.services;
 
+import com.looseboxes.webform.form.util.FileUploadHandler;
 import com.bc.webform.choices.SelectOption;
+import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.web.BindingResultErrorCollector;
-import com.looseboxes.webform.form.DependentsProvider;
+import com.looseboxes.webform.form.util.DependentsProvider;
 import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.web.FormConfigDTO;
-import com.looseboxes.webform.form.FormSubmitHandler;
+import com.looseboxes.webform.form.util.FormSubmitHandler;
 import com.looseboxes.webform.web.FormRequest;
 import com.looseboxes.webform.web.WebstoreValidatingDataBinder;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +23,7 @@ import com.looseboxes.webform.FormStages;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.util.StringUtils;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author hp
@@ -36,7 +38,7 @@ public class FormService<T> {
     @Autowired private DependentsProvider dependentsProvider;
     @Autowired private WebstoreValidatingDataBinder bindingValidator;
     @Autowired private FormValidatorService formValidatorService;
-    @Autowired private FileUploadService fileUploadService;
+    @Autowired(required = false) private FileUploadHandler fileUploadHandlerOptional;
     @Autowired private FormSubmitHandler formSubmitHandler;
     
     public FormRequest onBeginForm(FormConfigStore store, FormRequest formRequest){
@@ -67,15 +69,28 @@ public class FormService<T> {
         
         log.debug("Has errors: {}, Has files: {}", bindingResult.hasErrors(), formRequest.hasFiles());
   
-        if ( ! bindingResult.hasErrors() && formRequest.hasFiles()) {
+        if ( ! bindingResult.hasErrors()) {
             
-            final Collection<String> uploadedFiles = fileUploadService.upload(formRequest);
+            if(formRequest.hasFiles()) {
+                
+                Optional<FileUploadHandler> optional = this.getFileUploadService();
+                
+                if(optional.isPresent()){
+                
+                    if(CRUDAction.delete.equals(formConfig.getCrudAction())) {
 
-            formConfig.setUploadedFiles(uploadedFiles);
-            
-        }else{
-        
-            log.trace("There are no multi part files to process");
+                        optional.get().delete(formRequest);
+
+                    }else{
+
+                        optional.get().upload(formRequest);
+                    }
+                }else{
+                    this.complainAboutFileUploadService();
+                }
+            }else{
+                log.trace("There are no multi part files to process");
+            }
         }
 
         return formRequest;
@@ -102,7 +117,14 @@ public class FormService<T> {
             }
         }catch(RuntimeException e) {
 
-            this.fileUploadService.deleteUploadedFiles(formConfig);
+            if(formRequest.hasFiles()) {
+                Optional<FileUploadHandler> optional = this.getFileUploadService();
+                if(optional.isPresent()) {
+                    optional.get().deleteUploadedFiles(formConfig);
+                }else{
+                    this.complainAboutFileUploadService();
+                }
+            }
             
             throw e;
             
@@ -113,6 +135,11 @@ public class FormService<T> {
         
         return formRequest;
     } 
+    
+    private void complainAboutFileUploadService() {
+        throw new IllegalStateException("Bean of type " + 
+                FileUploadHandler.class.getName() + " is either not present or wrongly configured");
+    }
 
     public Map<String, List<SelectOption>> dependents(
             FormConfigStore store, String formid,
@@ -194,8 +221,8 @@ public class FormService<T> {
         return formValidatorService;
     }
 
-    public FileUploadService getFileUploadService() {
-        return fileUploadService;
+    public Optional<FileUploadHandler> getFileUploadService() {
+        return Optional.ofNullable(fileUploadHandlerOptional);
     }
 
     public FormSubmitHandler getFormSubmitHandler() {

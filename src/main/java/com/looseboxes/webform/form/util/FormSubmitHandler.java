@@ -1,4 +1,4 @@
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.form.util;
 
 import com.looseboxes.webform.web.FormRequest;
 

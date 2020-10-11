@@ -15,7 +15,7 @@ import com.looseboxes.webform.web.FormConfigDTO;
 import org.springframework.lang.Nullable;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
 import com.looseboxes.webform.form.FormFactory;
-import com.looseboxes.webform.form.UpdateParentFormWithNewlyCreatedModel;
+import com.looseboxes.webform.form.util.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.store.FormConfigStore;
 import com.looseboxes.webform.web.FormRequest;
 import com.looseboxes.webform.web.WebstoreValidatingDataBinder;

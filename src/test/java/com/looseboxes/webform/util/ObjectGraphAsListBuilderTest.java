@@ -1,5 +1,7 @@
 package com.looseboxes.webform.util;
 
+import com.looseboxes.webform.domain.ObjectGraphBuilder;
+import com.looseboxes.webform.domain.ObjectGraphBuilderImpl;
 import static java.lang.annotation.ElementType.TYPE;
 import java.lang.annotation.Retention;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -127,13 +129,13 @@ public class ObjectGraphAsListBuilderTest {
                 this.withTestToAcceptEntities());
     }
 
-    private ObjectGraphAsListBuilder givenMaxDepthOf(int maxDepth) {
-        ObjectGraphAsListBuilder instance = this.getObjectGraphAsListBuilder(maxDepth);
+    private ObjectGraphBuilder givenMaxDepthOf(int maxDepth) {
+        ObjectGraphBuilder instance = this.getObjectGraphAsListBuilder(maxDepth);
         return instance;
     }
 
     private void shouldReturnListOfSize(
-            int expectedOutputSize, ObjectGraphAsListBuilder builder, 
+            int expectedOutputSize, ObjectGraphBuilder builder, 
             Object bean, BiPredicate test) {
         if(expectedOutputSize > levelDepth) {
             expectedOutputSize = levelDepth;
@@ -201,7 +203,7 @@ public class ObjectGraphAsListBuilderTest {
         return userGroup;
     }
     
-    private ObjectGraphAsListBuilder getObjectGraphAsListBuilder(int depth) {
-        return new ObjectAsGraphListBuilderImpl(depth);
+    private ObjectGraphBuilder getObjectGraphAsListBuilder(int depth) {
+        return new ObjectGraphBuilderImpl(depth);
     }
 }

@@ -97,4 +97,16 @@ public class EntityRepositoryProviderImpl implements EntityRepositoryProvider{
     public Predicate<Class> getDomainTypeTest() {
         return domainTypeTest;
     }
+
+    public JpaObjectFactory getJpaObjectFactory() {
+        return jpaObjectFactory;
+    }
+
+    public MetaDataAccess getMetaDataAccess() {
+        return metaDataAccess;
+    }
+
+    public EntityIdAccessor getEntityIdAccessor() {
+        return entityIdAccessor;
+    }
 }

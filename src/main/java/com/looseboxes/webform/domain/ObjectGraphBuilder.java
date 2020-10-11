@@ -1,4 +1,4 @@
-package com.looseboxes.webform.util;
+package com.looseboxes.webform.domain;
 
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -20,8 +20,12 @@ import java.util.function.BiPredicate;
  * {@link java.beans.PropertyDescriptor} or whatever abstraction of a bean
  * property 
  */
-public interface ObjectGraphAsListBuilder<T> {
+public interface ObjectGraphBuilder<T> {
 
+    default List build(Object object) {
+        return build(object, (field, fieldValue) -> true);
+    }
+    
     /**
      * @param object
      * @param test To test each property and their value

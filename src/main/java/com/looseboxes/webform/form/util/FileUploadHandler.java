@@ -1,4 +1,4 @@
-package com.looseboxes.webform.services;
+package com.looseboxes.webform.form.util;
 
 import com.bc.fileupload.UploadFileResponse;
 import com.bc.fileupload.services.FileStorageHandler;
@@ -23,23 +23,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.bc.fileupload.functions.FilePathProvider;
 
 /**
  * @author hp
  */
-@Service
-public class FileUploadService {
+public class FileUploadHandler {
     
-    private static final Logger LOG = LoggerFactory.getLogger(FileUploadService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileUploadHandler.class);
     
     private final FileStorageHandler fileStorageHandler;
+    
+    private final ModelObjectImagePathsProvider imagePathsProvider;
+    
+    private final FilePathProvider getUniquePathForFilename;
 
-    @Autowired
-    public FileUploadService(FileStorageHandler fileStorageHandler) {
+    public FileUploadHandler(
+            FileStorageHandler fileStorageHandler,
+            ModelObjectImagePathsProvider imagePathsProvider,
+            FilePathProvider getUniquePathForFilename) {
         this.fileStorageHandler = Objects.requireNonNull(fileStorageHandler);
+        this.imagePathsProvider = Objects.requireNonNull(imagePathsProvider);
+        this.getUniquePathForFilename = Objects.requireNonNull(getUniquePathForFilename);
     }
 
     public void deleteUploadedFiles(FormConfigDTO formConfig) {
@@ -53,18 +59,36 @@ public class FileUploadService {
         }
     }
     
-    public Collection<String> upload(FormRequest<Object> webRequest) {
+    public void delete(FormRequest<Object> formRequest) {
+        
+        List<String> imagePaths = imagePathsProvider.getImagePaths(formRequest);
+        
+        LOG.debug("Images to delete: {}", imagePaths);
+        
+        for(String imagePathStr : imagePaths) {
+            
+            Path imagePath = this.getUniquePathForFilename.getPath(imagePathStr);
+        
+            this.delete(imagePath);
+        }
+    }
+    
+    public void delete(Path path) {
+        this.fileStorageHandler.delete(path);
+    }
+    
+    public Collection<String> upload(FormRequest<Object> formRequest) {
         
         final Collection<String> output;
-        
-        if( ! webRequest.hasFiles()) {
+
+        if( ! formRequest.hasFiles()) {
             output = Collections.EMPTY_LIST;
         }else{
         
             final List result = new ArrayList<>();
-            final String id = webRequest.getSessionId();
-            final Object modelobject = webRequest.getFormConfig().getModelobject();
-            final Map<String, List<MultipartFile>> multiValueFiles = webRequest.getMultiValueFiles();
+            final String id = formRequest.getSessionId();
+            final Object modelobject = formRequest.getFormConfig().getModelobject();
+            final Map<String, List<MultipartFile>> multiValueFiles = formRequest.getMultiValueFiles();
 
             final Function<UploadFileResponse, String> toFileName = 
                     response -> response.getFileName();
@@ -81,7 +105,7 @@ public class FileUploadService {
                         .forEach(addToOutput);
             }
 
-            final Map<String, MultipartFile> files = webRequest.getFiles();
+            final Map<String, MultipartFile> files = formRequest.getFiles();
 
             final Map<String, MultipartFile> fileMap = files == null ? 
                     Collections.EMPTY_MAP : new HashMap<>(files);
@@ -101,9 +125,11 @@ public class FileUploadService {
                             .forEach(addToOutput);
                 }
             }
-
+            
             output = result.isEmpty() ? 
                     Collections.EMPTY_LIST : Collections.unmodifiableCollection(result);
+
+            formRequest.getFormConfig().setUploadedFiles(output);
         }
         
         return output;

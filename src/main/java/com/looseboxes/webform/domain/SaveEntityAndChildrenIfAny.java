@@ -1,16 +1,13 @@
-package com.looseboxes.webform.util;
+package com.looseboxes.webform.domain;
 
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
 import com.bc.webform.form.FormBean;
-import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
 import com.looseboxes.webform.web.FormRequest;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -27,22 +24,19 @@ public class SaveEntityAndChildrenIfAny {
     private final TypeFromNameResolver typeFromNameResolver;
     private final EntityRepositoryProvider entityRepositoryProvider;
     private final TypeTests typeTests;
-    private final EntityMapperService entityMapperService;
-    private final ObjectGraphAsListBuilder objectGraphListBuilder;  
+    private final ObjectGraphBuilder objectGraphBuilder;  
     private final ModelObjectService modelObjectService;
     
     public SaveEntityAndChildrenIfAny(
             TypeFromNameResolver entityTypeResolver, 
             EntityRepositoryProvider entityRepositoryProvider,
             TypeTests typeTests,
-            EntityMapperService entityMapperService,
-            ObjectGraphAsListBuilder objectGraphListBuilder,
+            ObjectGraphBuilder objectGraphListBuilder,
             ModelObjectService modelObjectService) {
         this.typeFromNameResolver = Objects.requireNonNull(entityTypeResolver);
         this.entityRepositoryProvider = Objects.requireNonNull(entityRepositoryProvider);
         this.typeTests = Objects.requireNonNull(typeTests);
-        this.entityMapperService = Objects.requireNonNull(entityMapperService);
-        this.objectGraphListBuilder = Objects.requireNonNull(objectGraphListBuilder);
+        this.objectGraphBuilder = Objects.requireNonNull(objectGraphListBuilder);
         this.modelObjectService = Objects.requireNonNull(modelObjectService);
 //        LOG.trace("TypeFromNameResolver: {}, EntityRepositoryProvider: {}", 
 //                typeFromNameResolver, entityRepositoryProvider);
@@ -57,9 +51,9 @@ public class SaveEntityAndChildrenIfAny {
     
     public Object save(Object modelobject, FormRequest formRequest) {
         
-        final Object entity = this.entityMapperService.toEntity(modelobject);
+        final List entityList = this.buildEntityList(modelobject, formRequest);
         
-        final List entityList = this.buildEntityList(entity, formRequest);
+        final Object entity = entityList.get(entityList.size() - 1);
         
         Object result = null;
         
@@ -76,6 +70,22 @@ public class SaveEntityAndChildrenIfAny {
         
         return this.updateFormDataSource(formRequest, entity, result);
     }
+    
+    public Object deleteRootOnly(FormRequest formRequest) {
+        
+        Object modelobject = formRequest.getFormConfig().getModelobject();
+        
+        final List entityList = this.buildEntityList(modelobject, formRequest);
+        
+        final Object entity = entityList.get(entityList.size() - 1);
+        
+        Object id = this.entityRepositoryProvider.getIdOptional(entity).orElse(null);
+        this.entityRepositoryProvider.forEntity(entity.getClass()).deleteById(id);
+
+        LOG.debug("Deleted: {}", entity);
+        
+        return entity;
+    }
 
     public Object delete(FormRequest formRequest) {
         
@@ -86,9 +96,9 @@ public class SaveEntityAndChildrenIfAny {
     
     public Object delete(Object modelobject, FormRequest formRequest) {
         
-        final Object entity = this.entityMapperService.toEntity(modelobject);
+        final List entityList = this.buildEntityList(modelobject, formRequest);
         
-        final List entityList = this.buildEntityList(entity, formRequest);
+        final Object entity = entityList.get(entityList.size() - 1);
         
         Object result = null;
         
@@ -123,15 +133,15 @@ public class SaveEntityAndChildrenIfAny {
         return result;
     }
     
-    private List buildEntityList(Object root, FormRequest formRequest) {
+    private List buildEntityList(Object model, FormRequest formRequest) {
         
-        // Accepting Enum types lead to Stackoverflow
-        //
-        final BiPredicate<Field, Object> test = (field, fieldValue) -> 
-                typeTests.isDomainType(field.getType()) && 
-                        ! typeTests.isEnumType(field.getType());
+        // The input model is converted to an entity if it is a DTO type
+        // Hence the root may be the entity type of a DTO type if the
+        // input model is a DTO type
+        // 
+        final List<Object> list = this.objectGraphBuilder.build(model);
         
-        final List<Object> list = this.objectGraphListBuilder.build(root, test);
+        final Object entity = list.get(list.size() - 1);
         
         final List result;
         if(list.size() == 1) {
@@ -141,7 +151,7 @@ public class SaveEntityAndChildrenIfAny {
             // Entities that have no id, will always be equals so we use 
             // reference equality to distinguish them in this case
             //
-            final Predicate isRoot = (e) -> e == root;
+            final Predicate isRoot = (e) -> e == entity;
             final Predicate hasNoId = (e) -> hasNoId(e);
             
             final boolean configure = modelObjectService.shouldConfigureModelObject(formRequest);
@@ -197,12 +207,8 @@ public class SaveEntityAndChildrenIfAny {
         return typeTests;
     }
 
-    public EntityMapperService getEntityMapperService() {
-        return entityMapperService;
-    }
-
-    public ObjectGraphAsListBuilder getObjectGraphListBuilder() {
-        return objectGraphListBuilder;
+    public ObjectGraphBuilder getObjectGraphBuilder() {
+        return objectGraphBuilder;
     }
 
     public ModelObjectService getModelObjectService() {

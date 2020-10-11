@@ -1,4 +1,4 @@
-package com.looseboxes.webform.form;
+package com.looseboxes.webform.form.util;
 
 import com.looseboxes.webform.web.FormConfig;
 import com.bc.jpa.spring.TypeFromNameResolver;
@@ -7,7 +7,7 @@ import java.util.Objects;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
-import com.looseboxes.webform.util.SaveEntityAndChildrenIfAny;
+import com.looseboxes.webform.domain.SaveEntityAndChildrenIfAny;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 
@@ -52,7 +52,7 @@ public class FormSubmitHandlerImpl implements FormSubmitHandler{
                 break;
                 
             case delete:
-                this.saveEntityAndChildrenIfAny.delete(formRequest);
+                this.saveEntityAndChildrenIfAny.deleteRootOnly(formRequest);
                 break;
                 
             default:
