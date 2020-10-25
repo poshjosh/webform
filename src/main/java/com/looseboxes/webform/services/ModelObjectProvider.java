@@ -8,12 +8,15 @@ import com.looseboxes.webform.Params;
 import com.looseboxes.webform.exceptions.AttributeNotFoundException;
 import com.looseboxes.webform.exceptions.MalformedRouteException;
 import com.looseboxes.webform.exceptions.ResourceNotFoundException;
+import com.looseboxes.webform.mappers.EntityMapper;
+import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.web.FormConfig;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,13 +29,16 @@ public class ModelObjectProvider{
     
     private final EntityRepositoryProvider entityRepositoryFactory;
     private final TypeFromNameResolver typeFromNameResolver;
+    private final EntityMapperService entityMapperService;
 
     @Autowired
     public ModelObjectProvider(
             EntityRepositoryProvider entityRepositoryFactory, 
-            TypeFromNameResolver typeFromNameResolver) {
+            TypeFromNameResolver typeFromNameResolver,
+            EntityMapperService entityMapperService) {
         this.entityRepositoryFactory = Objects.requireNonNull(entityRepositoryFactory);
         this.typeFromNameResolver = Objects.requireNonNull(typeFromNameResolver);
+        this.entityMapperService = Objects.requireNonNull(entityMapperService);
     }
     
     public Object getModel(FormConfig formConfig) {
@@ -55,12 +61,15 @@ public class ModelObjectProvider{
     }
     
     public Object getModel(String modelname, String modelid) {
+        
         if(modelid == null || modelid.isEmpty()) {
             throw new AttributeNotFoundException(modelname, Params.MODELID);
         }
-        final String errMsg = modelname + " with id = " + modelid;
+        
         Object found = null;
+        final String errMsg = modelname + " with id = " + modelid;
         try{
+            
             found = this.fetchModelFromDatabase(modelname, modelid);
         }catch(javax.persistence.EntityNotFoundException e){
             LOG.debug(errMsg, e);
@@ -69,7 +78,22 @@ public class ModelObjectProvider{
         if(found == null) {
             throw new ResourceNotFoundException(errMsg);
         }
-        return found;
+        
+        return toDto(found);
+    }
+    
+    public Object toDto(Object found) {
+        
+        final Object dto;
+        
+        if(found == null) {
+            dto = null;
+        }else{    
+            Optional opt = entityMapperService.getMapperForEntity(found.getClass());
+            dto = opt.isPresent() ? ((EntityMapper)opt.get()).toDto(found) : found;
+        }
+        
+        return dto;
     }
 
     public Object fetchModelFromDatabase(String modelname, String modelid) {
