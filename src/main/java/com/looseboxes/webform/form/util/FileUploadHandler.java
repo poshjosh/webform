@@ -7,7 +7,6 @@ import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,8 +53,7 @@ public class FileUploadHandler {
             return;
         }
         for(String file : files) {
-            final Path path = Paths.get(file).toAbsolutePath().normalize();
-            this.fileStorageHandler.delete(path);
+            this.delete(file);
         }
     }
 
@@ -111,14 +109,23 @@ public class FileUploadHandler {
         LOG.debug("Images to delete: {}", imagePaths);
         
         for(String imagePathStr : imagePaths) {
-            
-            Path imagePath = this.filePathProvider.getPath(imagePathStr);
-        
-            this.delete(imagePath);
+            this.delete(imagePathStr);
+        }
+    }
+    
+    public boolean delete(String pathStr) {
+        if(pathStr != null && pathStr.startsWith("http:")) {
+            LOG.warn("Cannot delete. Not a file: {}", pathStr);
+            return false;
+        }else{
+            Path path = this.filePathProvider.getPath(pathStr);
+            this.delete(path);
+            return true;
         }
     }
 
     public void delete(Path path) {
+        path = path.toAbsolutePath().normalize();
         this.fileStorageHandler.delete(path);
     }
     
