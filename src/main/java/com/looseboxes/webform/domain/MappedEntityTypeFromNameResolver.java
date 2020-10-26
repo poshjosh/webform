@@ -1,4 +1,4 @@
-package com.looseboxes.webform.repository;
+package com.looseboxes.webform.domain;
 
 import com.looseboxes.webform.mappers.EntityMapperService;
 import com.bc.jpa.spring.TypeFromNameResolver;

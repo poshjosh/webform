@@ -114,7 +114,7 @@ public class FileUploadHandler {
     }
     
     public boolean delete(String pathStr) {
-        if(pathStr != null && pathStr.startsWith("http:")) {
+        if(pathStr != null && (pathStr.startsWith("http:") || pathStr.startsWith("https:"))) {
             LOG.warn("Cannot delete. Not a file: {}", pathStr);
             return false;
         }else{

@@ -44,7 +44,7 @@ public class WebformDefaultConfiguration{
     public WebformDefaultConfiguration(ApplicationContext applicationContext) { 
         delegate = new WebformConfigurationSource(applicationContext);
     }
-
+    
     @Bean public BindingResultErrorCollector bindingResultErrorCollector() {
         return delegate.bindingResultErrorCollector();
     }

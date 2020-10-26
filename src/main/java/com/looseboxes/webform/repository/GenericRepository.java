@@ -2,8 +2,8 @@ package com.looseboxes.webform.repository;
 
 import com.bc.jpa.dao.Dao;
 import com.bc.jpa.dao.JpaObjectFactory;
-import com.bc.jpa.spring.ConvertToType;
 import com.bc.jpa.spring.EntityIdAccessor;
+import com.bc.jpa.spring.util.JpaUtil;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author hp
  */
+@Transactional
 public class GenericRepository<E extends Object> implements EntityRepository<E, Object>{
     
     private static final Logger LOG = LoggerFactory.getLogger(GenericRepository.class);
@@ -63,7 +64,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
         this.customDeleteById(entityType, this.getPrimaryColumnName(), id);
     }
 
-    @Transactional(readOnly = false)
     private void customDeleteById(Class entityType, String name, Object value) {
         EntityManagerFactory emf = this.getEntityManagerFactory();
         EntityManager em = emf.createEntityManager();
@@ -77,6 +77,8 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
             // https://stackoverflow.com/questions/25821579/transactionrequiredexception-executing-an-update-delete-query            
             em.getTransaction().begin();
             int updateCount = query.executeUpdate();
+            LOG.trace("Update count = {}, for query: DELETE * FROM {} WHERE {} = {}", 
+                    updateCount , entityType.getSimpleName(), name, value);
             em.flush();
             em.getTransaction().commit();
         }finally{
@@ -96,14 +98,18 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     
     public <S extends E> S persist(S entity) {
         this.getDao().persistAndClose(entity);
+        LOG.trace("Persisted: {}", entity);
         return entity;
     }
     
     public <S extends E> S merge(S entity) {
-        return this.getDao().mergeAndClose(entity);
+        final S result = this.getDao().mergeAndClose(entity);
+        LOG.trace("Merged: {}", entity);
+        return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<E> findById(Object id) {
         final com.bc.jpa.dao.Dao dao = this.getDao();
         id = this.convertToIdTypeIfNeed(id);
@@ -112,6 +118,7 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<E> findAllBy(String key, Object value, int offset, int limit) {
         return jpaObjectFactory.getDaoForSelect(entityType)
                 .where(key, value).distinct(true)
@@ -134,9 +141,9 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
                  entityType.getName() + ", searched by id: " + id);
     }
 
-    public Object convertToIdTypeIfNeed(Object id) {
+    private Object convertToIdTypeIfNeed(Object id) {
         if( ! this.getPrimaryColumnType().isAssignableFrom(id.getClass())) {
-            return this.getConvertToType().convert(id);
+            return JpaUtil.convertToType(id, getPrimaryColumnType());
         }
         return id;
     }
@@ -147,14 +154,6 @@ public class GenericRepository<E extends Object> implements EntityRepository<E, 
     
     public Class getPrimaryColumnType() {
         return this.entityIdAccessor.getType(entityType);
-    }
-    
-    private ConvertToType _c2t;
-    public ConvertToType getConvertToType() {
-        if(_c2t == null) {
-            _c2t = new ConvertToType(this.getPrimaryColumnType());
-        }
-        return _c2t;
     }
 
     public EntityManagerFactory getEntityManagerFactory() {

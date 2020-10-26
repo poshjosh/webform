@@ -1,5 +1,6 @@
 package com.looseboxes.webform.config;
 
+import com.bc.db.meta.access.MetaDataAccess;
 import com.bc.jpa.spring.JpaConfiguration;
 import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.TypeTests;
@@ -13,7 +14,7 @@ import com.looseboxes.webform.form.validators.FormValidatorFactoryImpl;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.repository.EntityRepositoryProviderImpl;
 import com.looseboxes.webform.repository.MappedEntityRepositoryProvider;
-import com.looseboxes.webform.repository.MappedEntityTypeFromNameResolver;
+import com.looseboxes.webform.domain.MappedEntityTypeFromNameResolver;
 import com.looseboxes.webform.services.ModelObjectService;
 import com.looseboxes.webform.domain.UpdateEntityAndNestedIfAny;
 import java.util.Objects;
@@ -22,6 +23,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import com.looseboxes.webform.domain.ObjectGraphBuilder;
 import com.looseboxes.webform.domain.WebformObjectGraphBuilder;
+import com.looseboxes.webform.domain.GetUniqueColumnNames;
+import com.looseboxes.webform.domain.GetUniqueColumnNamesImpl;
+import com.looseboxes.webform.domain.ModelUpdater;
+import com.looseboxes.webform.domain.ModelUpdaterImpl;
 
 /**
  * @author hp
@@ -35,6 +40,11 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
         this.applicationContext = Objects.requireNonNull(applicationContext);
     }
     
+    @Bean public GetUniqueColumnNames getUniqueColumnNames(
+            EntityMapperService entityMapperService, MetaDataAccess metaDataAccess) {
+        return new GetUniqueColumnNamesImpl(entityMapperService, metaDataAccess);
+    }
+    
     @Bean public TypeTests typeTests() {
         return new TypeTestsImpl().withDomainTest(this.domainClasses());
     }
@@ -44,14 +54,21 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
     }
     
     @Bean public UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny(
-            @Autowired ModelObjectService modelObjectService) {
+            TypeFromNameResolver typeFromNameResolver, EntityRepositoryProvider entityRepositoryProvider,
+            TypeTests typeTests, ObjectGraphBuilder objectGraphBuilder,
+            ModelObjectService modelObjectService, ModelUpdater modelUpdater) {
         return new UpdateEntityAndNestedIfAny(
-                this.typeFromNameResolver(), 
-                this.entityRepositoryProvider(),
-                this.typeTests(),
-                this.objectGraphBuilder(this.typeTests()),
-                modelObjectService
+                typeFromNameResolver, 
+                entityRepositoryProvider,
+                typeTests,
+                objectGraphBuilder,
+                modelObjectService,
+                modelUpdater
         );
+    }
+    
+    @Bean public ModelUpdater modelUpdater() {
+        return new ModelUpdaterImpl();
     }
     
     @Bean public FormSubmitHandler formSubmitHandler(
@@ -63,12 +80,13 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
         );
     }
     
-    @Bean public FormValidatorFactory formValidatorFactory() {
-        return new FormValidatorFactoryImpl(this.entityUniqueColumnsValidator());
+    @Bean public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {
+        return new FormValidatorFactoryImpl(validator);
     }
     
-    @Bean public EntityUniqueColumnsValidator entityUniqueColumnsValidator() {
-        return new EntityUniqueColumnsValidator(this.entityRepositoryProvider());
+    @Bean public EntityUniqueColumnsValidator entityUniqueColumnsValidator(
+            GetUniqueColumnNames getUniqueColumnNames, EntityRepositoryProvider repositoryProvider) {
+        return new EntityUniqueColumnsValidator(getUniqueColumnNames, repositoryProvider);
     }
 
     @Override 
@@ -84,8 +102,7 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
 
     public EntityRepositoryProvider unMappedEntityRepositoryProvider() {
         return new EntityRepositoryProviderImpl(
-                this.jpaObjectFactory(), this.domainClasses(), 
-                this.metaDataAccess(), this.entityIdAccessor());
+                this.jpaObjectFactory(), this.domainClasses(), this.entityIdAccessor());
     }
     
     private EntityMapperService entityMapperService() {

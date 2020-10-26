@@ -18,6 +18,7 @@ package com.looseboxes.webform.form.validators;
 
 import com.looseboxes.webform.repository.EntityRepository;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
+import com.looseboxes.webform.domain.GetUniqueColumnNames;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.validation.Errors;
@@ -32,9 +33,13 @@ public class EntityUniqueColumnsValidator implements Validator {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityUniqueColumnsValidator.class);
 
+    private final GetUniqueColumnNames getUniqueColumnNames;
     private final EntityRepositoryProvider repositoryFactory;
 
-    public EntityUniqueColumnsValidator(EntityRepositoryProvider repositoryFactory) {
+    public EntityUniqueColumnsValidator(
+            GetUniqueColumnNames getUniqueColumnNames, 
+            EntityRepositoryProvider repositoryFactory) {
+        this.getUniqueColumnNames = Objects.requireNonNull(getUniqueColumnNames);
         this.repositoryFactory = Objects.requireNonNull(repositoryFactory);
     }
     
@@ -50,26 +55,29 @@ public class EntityUniqueColumnsValidator implements Validator {
 
         final Class entityType = object.getClass();
         
-        final Collection<String> uniqueColumns = repositoryFactory.getUniqueColumns(entityType);
+        final Collection<String> uniqueColumns = this.getUniqueColumnNames.apply(entityType);
         
         LOG.trace("Entity: {}, unique columns: {}", entityType.getSimpleName(), uniqueColumns);
-
-        final EntityRepository repository = repositoryFactory.forEntity(entityType);
         
-        for(String uniqueCol : uniqueColumns) {
+        if( ! uniqueColumns.isEmpty()) {
 
-            final Object columnValue = errors.getFieldValue(uniqueCol);
-            
-            if(LOG.isTraceEnabled()) {
-                LOG.trace("SELECT * FROM {} WHERE {} = {} LIMIT 0, 1",
-                        entityType.getSimpleName(), uniqueCol, columnValue);
-            }
-            
-            if(columnValue != null && !columnValue.toString().isEmpty() && 
-                    ! repository.findAllBy(uniqueCol, columnValue, 0, 1).isEmpty()) {
+            final EntityRepository repository = repositoryFactory.forEntity(entityType);
 
-                //@todo provide messages.properties or validation_messages.properties
-                errors.rejectValue(uniqueCol, "Duplicate." + uniqueCol, "`" + uniqueCol + "` already exists");
+            for(String uniqueCol : uniqueColumns) {
+
+                final Object columnValue = errors.getFieldValue(uniqueCol);
+
+                if(LOG.isTraceEnabled()) {
+                    LOG.trace("SELECT * FROM {} WHERE {} = {} LIMIT 0, 1",
+                            entityType.getSimpleName(), uniqueCol, columnValue);
+                }
+
+                if(columnValue != null && !columnValue.toString().isEmpty() && 
+                        ! repository.findAllBy(uniqueCol, columnValue, 0, 1).isEmpty()) {
+
+                    //@todo provide messages.properties or validation_messages.properties
+                    errors.rejectValue(uniqueCol, "Duplicate." + uniqueCol, "`" + uniqueCol + "` already exists");
+                }
             }
         }
     }

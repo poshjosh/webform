@@ -16,22 +16,16 @@
 
 package com.looseboxes.webform.repository;
 
-import java.util.Collection;
 import java.util.Optional;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * @author Chinomso Bassey Ikwuagwu on Apr 6, 2019 2:04:27 PM
  */
 public interface EntityRepositoryProvider {
 
-    EntityManagerFactory getEntityManagerFactory();
-    
     boolean isSupported(Class entityType);
     
     <E> EntityRepository<E, Object> forEntity(Class<E> entityType);
     
     Optional<Object> getIdOptional(Object entity);
-    
-    Collection<String> getUniqueColumns(Class entityType);
 }

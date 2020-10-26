@@ -8,9 +8,11 @@ import com.looseboxes.webform.services.ModelObjectService;
 import com.looseboxes.webform.web.FormRequest;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,18 +28,21 @@ public class UpdateEntityAndNestedIfAny {
     private final TypeTests typeTests;
     private final ObjectGraphBuilder objectGraphBuilder;  
     private final ModelObjectService modelObjectService;
+    private final ModelUpdater modelUpdater;
     
     public UpdateEntityAndNestedIfAny(
             TypeFromNameResolver entityTypeResolver, 
             EntityRepositoryProvider entityRepositoryProvider,
             TypeTests typeTests,
             ObjectGraphBuilder objectGraphListBuilder,
-            ModelObjectService modelObjectService) {
+            ModelObjectService modelObjectService,
+            ModelUpdater modelUpdater) {
         this.typeFromNameResolver = Objects.requireNonNull(entityTypeResolver);
         this.entityRepositoryProvider = Objects.requireNonNull(entityRepositoryProvider);
         this.typeTests = Objects.requireNonNull(typeTests);
         this.objectGraphBuilder = Objects.requireNonNull(objectGraphListBuilder);
         this.modelObjectService = Objects.requireNonNull(modelObjectService);
+        this.modelUpdater = Objects.requireNonNull(modelUpdater);
 //        LOG.trace("TypeFromNameResolver: {}, EntityRepositoryProvider: {}", 
 //                typeFromNameResolver, entityRepositoryProvider);
     }
@@ -142,7 +147,7 @@ public class UpdateEntityAndNestedIfAny {
         // 
         final List<Object> list = this.objectGraphBuilder.build(model);
         
-        final Object entity = list.get(list.size() - 1);
+        final Object lastEntity = list.get(list.size() - 1);
         
         final List result;
         if(list.size() == 1) {
@@ -152,19 +157,23 @@ public class UpdateEntityAndNestedIfAny {
             // Entities that have no id, will always be equals so we use 
             // reference equality to distinguish them in this case
             //
-            final Predicate isRoot = (e) -> e == entity;
-            final Predicate hasNoId = (e) -> hasNoId(e);
+            final Predicate isRoot = (e) -> e == lastEntity;
+//            final Predicate hasNoId = (e) -> hasNoId(e);
             
             final boolean configure = modelObjectService.shouldConfigureModelObject(formRequest);
             
             // Configure all list elements but the root, which is already configured
             //
-            final Function configureNonRootEntity = ! configure ? (e) -> e : (e) -> 
-                    isRoot.test(e) ? e : configureModelObject(e, formRequest);
+            final Function configureEntity = ! configure ? (e) -> e : 
+                    (e) -> isRoot.test(e) ? e : configure(e, formRequest).orElse(null);
             
             result = (List)list.stream()
-                    .filter(isRoot.or(hasNoId))
-                    .map(configureNonRootEntity).collect(Collectors.toList());
+//                    .filter(isRoot.or(hasNoId))
+                    // Returns null if there is no need to update the database
+                    // for the particular entity
+                    .map(configureEntity) 
+                    .filter(e -> e != null)
+                    .collect(Collectors.toList());
         }
         if(LOG.isTraceEnabled()) {
             LOG.trace("For update: {}", 
@@ -172,6 +181,46 @@ public class UpdateEntityAndNestedIfAny {
                             .collect(Collectors.joining("\n", "[\n", "\n]")));
         }
         return result;
+    }
+    
+    private <S, T> Optional<T> configure(T modelobject, FormRequest<S> parentFormRequest) {
+        
+        modelobject = this.configureModelObject(modelobject, parentFormRequest);
+        
+        return this.fetchDatabaseInstanceAndUpdateWith(modelobject);
+    }
+
+    /**
+     * Update the model with values from the database
+     *
+     * For each property, an update is only performed if the source has a
+     * value and the target has a different or {@code null} value.
+     *
+     * If no update is performed, returns an empty optional
+     * 
+     * @param model The model to source values from
+     * @return     An optional containing the updated model, or an empty optional
+     * if no update was performed on the target.
+     */
+    private <T> Optional<T> fetchDatabaseInstanceAndUpdateWith(T model) 
+            throws EntityNotFoundException{
+        Object id = this.entityRepositoryProvider.getIdOptional(model).orElse(null);
+        final T result;
+        if(id == null) {
+            result = model;
+        }else{    
+            final Class modelClass = model.getClass();
+            final T targetEntity = (T)this.entityRepositoryProvider
+                    .forEntity(modelClass)
+                    .findById(id)
+                    .orElse(null);
+            if(targetEntity == null) {
+                throw new EntityNotFoundException(modelClass.getSimpleName() + " with ID: " + id);
+            }
+            
+            result = (T)modelUpdater.update(model, targetEntity).orElse(null);
+        }
+        return Optional.ofNullable(result);
     }
     
     private <S, T> T configureModelObject(T modelobject, FormRequest<S> parentFormRequest) {

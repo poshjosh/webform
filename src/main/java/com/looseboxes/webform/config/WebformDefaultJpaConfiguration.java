@@ -21,6 +21,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.looseboxes.webform.domain.ObjectGraphBuilder;
+import com.looseboxes.webform.mappers.EntityMapperService;
+import com.looseboxes.webform.domain.GetUniqueColumnNames;
+import com.looseboxes.webform.domain.ModelUpdater;
 
 /**
  * @author hp
@@ -35,6 +38,10 @@ public class WebformDefaultJpaConfiguration{
         delegate = new WebformJpaConfigurationSource(context);
     }
 
+    @Bean public GetUniqueColumnNames getUniqueColumnNames(EntityMapperService entityMapperService, MetaDataAccess metaDataAccess) {
+        return delegate.getUniqueColumnNames(entityMapperService, metaDataAccess);
+    }
+
     @Bean public TypeTests typeTests() {
         return delegate.typeTests();
     }
@@ -44,8 +51,13 @@ public class WebformDefaultJpaConfiguration{
     }
 
     @Bean public UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny(
-            ModelObjectService modelObjectService) {
-        return delegate.saveEntityAndChildrenIfAny(modelObjectService);
+            TypeFromNameResolver typeFromNameResolver, EntityRepositoryProvider entityRepositoryProvider,
+            TypeTests typeTests, ObjectGraphBuilder objectGraphBuilder,
+            ModelObjectService modelObjectService, ModelUpdater modelUpdater) {
+        return delegate.saveEntityAndChildrenIfAny(
+                typeFromNameResolver, entityRepositoryProvider, 
+                typeTests, objectGraphBuilder, 
+                modelObjectService, modelUpdater);
     }
 
     @Bean public FormSubmitHandler formSubmitHandler(
@@ -53,12 +65,12 @@ public class WebformDefaultJpaConfiguration{
         return delegate.formSubmitHandler(saveEntityAndChildrenIfAny);
     }
 
-    @Bean public FormValidatorFactory formValidatorFactory() {
-        return delegate.formValidatorFactory();
+    public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {
+        return delegate.formValidatorFactory(validator);
     }
 
-    @Bean public EntityUniqueColumnsValidator entityUniqueColumnsValidator() {
-        return delegate.entityUniqueColumnsValidator();
+    public EntityUniqueColumnsValidator entityUniqueColumnsValidator(GetUniqueColumnNames getUniqueColumnNames, EntityRepositoryProvider repositoryProvider) {
+        return delegate.entityUniqueColumnsValidator(getUniqueColumnNames, repositoryProvider);
     }
 
     @Bean public TypeFromNameResolver typeFromNameResolver() {
