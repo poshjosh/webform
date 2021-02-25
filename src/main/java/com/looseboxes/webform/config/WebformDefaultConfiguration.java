@@ -1,11 +1,13 @@
 package com.looseboxes.webform.config;
 
+import com.bc.jpa.spring.TypeFromNameResolver;
 import com.bc.webform.form.builder.FormBuilder;
 import com.bc.webform.form.member.FormInputContext;
 import com.bc.webform.form.member.builder.FormMemberBuilder;
 import com.bc.webform.form.member.MultiChoiceContext;
 import com.bc.webform.form.member.ReferencedFormContext;
 import com.looseboxes.webform.configurers.EntityConfigurerService;
+import com.looseboxes.webform.domain.ObjectGraphBuilder;
 import com.looseboxes.webform.mappers.EntityMapperService;
 import com.looseboxes.webform.form.util.DependentsProvider;
 import com.looseboxes.webform.form.FormBuilderProvider;
@@ -13,6 +15,7 @@ import com.looseboxes.webform.form.FormFactory;
 import com.looseboxes.webform.form.FormFieldTest;
 import com.looseboxes.webform.form.FormMemberComparator;
 import com.looseboxes.webform.form.FormMemberUpdater;
+import com.looseboxes.webform.form.util.ModelObjectImagePathsProvider;
 import com.looseboxes.webform.form.util.UpdateParentFormWithNewlyCreatedModel;
 import com.looseboxes.webform.store.PropertyStore;
 import com.looseboxes.webform.util.PropertySearch;
@@ -43,6 +46,11 @@ public class WebformDefaultConfiguration{
     
     public WebformDefaultConfiguration(ApplicationContext applicationContext) { 
         delegate = new WebformConfigurationSource(applicationContext);
+    }
+
+    @Bean public ModelObjectImagePathsProvider modelObjectImagePathProvider(
+            ObjectGraphBuilder ogb, TypeFromNameResolver tnr, FormFactory ffy) {
+        return delegate.modelObjectImagePathProvider(ogb, tnr, ffy);
     }
     
     @Bean public BindingResultErrorCollector bindingResultErrorCollector() {
