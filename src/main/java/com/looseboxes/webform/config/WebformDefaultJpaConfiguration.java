@@ -65,11 +65,11 @@ public class WebformDefaultJpaConfiguration{
         return delegate.formSubmitHandler(saveEntityAndChildrenIfAny);
     }
 
-    public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {
+    @Bean public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {
         return delegate.formValidatorFactory(validator);
     }
 
-    public EntityUniqueColumnsValidator entityUniqueColumnsValidator(GetUniqueColumnNames getUniqueColumnNames, EntityRepositoryProvider repositoryProvider) {
+    @Bean public EntityUniqueColumnsValidator entityUniqueColumnsValidator(GetUniqueColumnNames getUniqueColumnNames, EntityRepositoryProvider repositoryProvider) {
         return delegate.entityUniqueColumnsValidator(getUniqueColumnNames, repositoryProvider);
     }
 
