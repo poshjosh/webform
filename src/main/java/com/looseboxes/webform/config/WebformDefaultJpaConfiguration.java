@@ -60,6 +60,10 @@ public class WebformDefaultJpaConfiguration{
                 modelObjectService, modelUpdater);
     }
 
+    @Bean public ModelUpdater modelUpdater() {
+        return delegate.modelUpdater();
+    }
+
     @Bean public FormSubmitHandler formSubmitHandler(
             UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny) {
         return delegate.formSubmitHandler(saveEntityAndChildrenIfAny);
