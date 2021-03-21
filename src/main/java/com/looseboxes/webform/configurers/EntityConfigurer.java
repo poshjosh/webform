@@ -14,8 +14,10 @@ import java.util.Objects;
  * </p>
  * 
  * <p>
- * Configuration of model objects happens when the object is newly created and 
- * only for create/update operations not read/delete operations.
+ * Configuration of model objects happens at the earlier part of all 
+ * {@link com.looseboxes.webform.FormStage FormStage}s (i.e begin/validate/submit) 
+ * and only for create/update {@link com.looseboxes.webform.CRUDAction CRUDAction}s 
+ * not read/delete. 
  * </p>
  * 
  * <p><b>Example usage:</b></p>
@@ -44,8 +46,10 @@ public interface EntityConfigurer<T>{
     /**
      * Configure the domain/model object
      * <p>
-     * This method is called when the object is newly created and 
-     * only for create/update operations not read/delete operations.
+     * This method is called at the earlier part of all 
+     * {@link com.looseboxes.webform.FormStage FormStage}s (i.e begin/validate/submit) 
+     * and only for create/update {@link com.looseboxes.webform.CRUDAction CRUDAction}s 
+     * not read/delete. 
      * </p>
      * @param entity The domain object to configure
      * @param formRequest The object to use in configuring the domain object
