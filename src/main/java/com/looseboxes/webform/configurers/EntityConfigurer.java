@@ -7,36 +7,46 @@ import java.util.Objects;
  * Class to use in configuring the model object when it is first created for 
  * the form.
  * 
+ * <p>
  * This class could be used to initialize some defaults on the model object. 
  * For example we could set the current logged in user if there is a field and/
- * accessor methods for that on the model object.
+ * access methods for that on the model object.
+ * </p>
+ * 
+ * <p>
+ * Configuration of model objects happens when the object is newly created and 
+ * only for create/update operations not read/delete operations.
+ * </p>
  * 
  * <p><b>Example usage:</b></p>
- * <code>
- * <pre>
-    @Configuration
-    public class WebformConfigurerImpl implements WebformConfigurer{
-        private static class PostPreconfigurer implements ModelObjectConfigurer<Post>{
-            @Override
-            public Post configure(Post post) {
-                // Configure the Post here
-                return post;
-            }
-        }
-
-        @Override
-        public void addModelObjectConfigurers(ModelObjectConfigurerService service) {
-            service.addConfigurer(Post.class, new PostPreconfigurer());
-        }
-    }
- * </pre>
- * </code>
  * 
+ * <pre>
+ *  @Configuration
+ *  public class WebformConfigurerImpl implements WebformConfigurer{
+ *      private static class PostPreconfigurer implements EntityConfigurer{
+ *          @Override
+ *          public Post configure(Post post, FormRequest formRequest) {
+ *              // Configure the Post here
+ *              return post;
+ *          }
+ *      }
+ * 
+ *      @Override
+ *      public void addModelObjectConfigurers(EntityConfigurerService service) {
+ *          service.addConfigurer(Post.class, new PostPreconfigurer());
+ *      }
+ *  }
+ * </pre>
  * @author hp
  */
 public interface EntityConfigurer<T>{
    
     /**
+     * Configure the domain/model object
+     * <p>
+     * This method is called when the object is newly created and 
+     * only for create/update operations not read/delete operations.
+     * </p>
      * @param entity The domain object to configure
      * @param formRequest The object to use in configuring the domain object
      * @return The configured model object
