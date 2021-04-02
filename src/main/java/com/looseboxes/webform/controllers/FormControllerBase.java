@@ -92,7 +92,7 @@ public class FormControllerBase<T>{
        
         formConfig = this.formService.onValidateForm(store, formRequest, webRequest).getFormConfig();
         
-        this.publishStageCompletedAndLog(store, formRequest, FormStage.BEGIN, request);
+        this.publishStageCompletedAndLog(store, formRequest, FormStage.VALIDATE, request);
         
         return formConfig;
     }    
@@ -110,7 +110,7 @@ public class FormControllerBase<T>{
         
         formConfig = this.formService.onSubmitForm(store, formRequest).getFormConfig();
         
-        this.publishStageCompletedAndLog(store, formRequest, FormStage.BEGIN, request);
+        this.publishStageCompletedAndLog(store, formRequest, FormStage.SUBMIT, request);
         
         return formConfig;
     } 
