@@ -54,7 +54,7 @@ public class UpdateEntityAndNestedIfAny {
         return this.save(modelobject, formRequest);
     }
     
-    public Object save(Object modelobject, FormRequest formRequest) {
+    private Object save(Object modelobject, FormRequest formRequest) {
         
         final List entityList = this.buildEntityList(modelobject, formRequest);
         
@@ -90,39 +90,6 @@ public class UpdateEntityAndNestedIfAny {
         LOG.debug("Deleted: {}", entity);
         
         return entity;
-    }
-
-    public Object delete(FormRequest formRequest) {
-        
-        Object modelobject = formRequest.getFormConfig().getModelobject();
-        
-        return this.delete(modelobject, formRequest);
-    }
-    
-    public Object delete(Object modelobject, FormRequest formRequest) {
-        
-        final List entityList = this.buildEntityList(modelobject, formRequest);
-        
-        final Object entity = entityList.get(entityList.size() - 1);
-        
-        Object result = null;
-        
-        for(Object child : entityList) {
-            
-            final Class childType = child.getClass();
-            
-            Object id = this.entityRepositoryProvider.getIdOptional(child).orElse(null);
-            if(id != null) {
-                this.entityRepositoryProvider.forEntity(childType).deleteById(id);
-                LOG.debug("Deleted: {}", child);
-            }else{
-                LOG.debug("Not deleted as has no ID: {}", child);
-            }
-            
-            result = child;
-        }
-        
-        return this.updateFormDataSource(formRequest, entity, result);
     }
 
     private Object updateFormDataSource(FormRequest formRequest, Object entity, Object result) {
@@ -265,3 +232,40 @@ public class UpdateEntityAndNestedIfAny {
         return modelObjectService;
     }
 }
+/**
+ * 
+
+    private Object delete(FormRequest formRequest) {
+        
+        Object modelobject = formRequest.getFormConfig().getModelobject();
+        
+        return this.delete(modelobject, formRequest);
+    }
+    
+    private Object delete(Object modelobject, FormRequest formRequest) {
+        
+        final List entityList = this.buildEntityList(modelobject, formRequest);
+        
+        final Object entity = entityList.get(entityList.size() - 1);
+        
+        Object result = null;
+        
+        for(Object child : entityList) {
+            
+            final Class childType = child.getClass();
+            
+            Object id = this.entityRepositoryProvider.getIdOptional(child).orElse(null);
+            if(id != null) {
+                this.entityRepositoryProvider.forEntity(childType).deleteById(id);
+                LOG.debug("Deleted: {}", child);
+            }else{
+                LOG.debug("Not deleted as has no ID: {}", child);
+            }
+            
+            result = child;
+        }
+        
+        return this.updateFormDataSource(formRequest, entity, result);
+    }
+ * 
+ */
