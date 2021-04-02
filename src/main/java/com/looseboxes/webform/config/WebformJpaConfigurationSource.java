@@ -18,7 +18,6 @@ import com.looseboxes.webform.domain.MappedEntityTypeFromNameResolver;
 import com.looseboxes.webform.services.ModelObjectService;
 import com.looseboxes.webform.domain.UpdateEntityAndNestedIfAny;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import com.looseboxes.webform.domain.ObjectGraphBuilder;
@@ -71,13 +70,8 @@ public class WebformJpaConfigurationSource extends JpaConfiguration{
         return new ModelUpdaterImpl();
     }
     
-    @Bean public FormSubmitHandler formSubmitHandler(
-            @Autowired UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny) {
-        return new FormSubmitHandlerImpl(
-                saveEntityAndChildrenIfAny,
-                this.typeFromNameResolver(), 
-                this.entityRepositoryProvider()
-        );
+    @Bean public FormSubmitHandler formSubmitHandler(UpdateEntityAndNestedIfAny updateEntityAndChildrenIfAny) {
+        return new FormSubmitHandlerImpl(updateEntityAndChildrenIfAny);
     }
     
     @Bean public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {

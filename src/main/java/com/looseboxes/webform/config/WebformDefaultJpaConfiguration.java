@@ -64,9 +64,8 @@ public class WebformDefaultJpaConfiguration{
         return delegate.modelUpdater();
     }
 
-    @Bean public FormSubmitHandler formSubmitHandler(
-            UpdateEntityAndNestedIfAny saveEntityAndChildrenIfAny) {
-        return delegate.formSubmitHandler(saveEntityAndChildrenIfAny);
+    @Bean public FormSubmitHandler formSubmitHandler(UpdateEntityAndNestedIfAny updateEntityAndChildrenIfAny) {
+        return delegate.formSubmitHandler(updateEntityAndChildrenIfAny);
     }
 
     @Bean public FormValidatorFactory formValidatorFactory(EntityUniqueColumnsValidator validator) {
