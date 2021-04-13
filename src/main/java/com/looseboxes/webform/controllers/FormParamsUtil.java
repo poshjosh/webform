@@ -2,6 +2,7 @@ package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.web.FormConfigDTO;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +30,11 @@ public final class FormParamsUtil {
     public static void updateFormConfigWithFormParamsFromRequest(
             FormConfigDTO formConfig, HttpServletRequest request) {
         
-        LOG.trace("HttpServletRequest.parameterNames: {}", request.getParameterNames());
-        LOG.trace("BEFORE adding request parameters");
-        FormConfigLogUtil.logWith(LOG, formConfig);
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("HttpServletRequest.parameterNames: {}", Collections.list(request.getParameterNames()));
+            LOG.trace("BEFORE adding request parameters");
+            FormConfigLogUtil.logWith(LOG, formConfig);
+        }
         
         final String [] names = Params.names();
         for(String name : names) {
@@ -41,9 +44,11 @@ public final class FormParamsUtil {
                 formConfig.setIfAbsent(name, value);
             }
         }
-        
-        LOG.trace(" AFTER adding request parameters");
-        FormConfigLogUtil.logWith(LOG, formConfig);
+
+        if(LOG.isTraceEnabled()) {
+            LOG.trace(" AFTER adding request parameters");
+            FormConfigLogUtil.logWith(LOG, formConfig);
+        }
     }
 
     public static void updateModelMapWithFormParamsFromRequest(
