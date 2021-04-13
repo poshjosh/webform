@@ -42,6 +42,9 @@ public class ModelObjectProvider{
     }
     
     public Object getModel(FormConfig formConfig) {
+        
+        LOG.trace("getModel {}", formConfig);
+        
         final CRUDAction crudAction = formConfig.getCrudAction();
         final String modelname = formConfig.getModelname();
         final String modelid = formConfig.getModelid();
