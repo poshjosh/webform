@@ -29,8 +29,8 @@ public final class FormParamsUtil {
     public static void updateFormConfigWithFormParamsFromRequest(
             FormConfigDTO formConfig, HttpServletRequest request) {
         
-        LOG.trace("HttpServletRequest.queryString: {}", request.getQueryString());
-        LOG.trace("BEFORE adding query parameters");
+        LOG.trace("HttpServletRequest.parameterNames: {}", request.getParameterNames());
+        LOG.trace("BEFORE adding request parameters");
         FormConfigLogUtil.logWith(LOG, formConfig);
         
         final String [] names = Params.names();
@@ -42,7 +42,7 @@ public final class FormParamsUtil {
             }
         }
         
-        LOG.trace(" AFTER adding query parameters");
+        LOG.trace(" AFTER adding request parameters");
         FormConfigLogUtil.logWith(LOG, formConfig);
     }
 
