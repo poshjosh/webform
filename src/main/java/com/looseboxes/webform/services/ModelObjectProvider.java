@@ -48,7 +48,7 @@ public class ModelObjectProvider{
         final Object object;
         switch(crudAction) {
             case create: 
-                object = this.createModel(modelname);
+                object = formConfig.getModelobject() != null ? formConfig.getModelobject() : this.createModel(modelname);
                 break;
             case read: 
             case update: 
