@@ -29,8 +29,10 @@ public final class FormParamsUtil {
     public static void updateFormConfigWithFormParamsFromRequest(
             FormConfigDTO formConfig, HttpServletRequest request) {
         
-        LOG.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
-                formConfig, request.getQueryString());
+        LOG.trace("HttpServletRequest.queryString: {}", request.getQueryString());
+        LOG.trace("BEFORE adding query parameters");
+        FormConfigLogUtil.logWith(LOG, formConfig);
+        
         final String [] names = Params.names();
         for(String name : names) {
             final Object value = getParameter(request, name);
@@ -39,7 +41,9 @@ public final class FormParamsUtil {
                 formConfig.setIfAbsent(name, value);
             }
         }
-        LOG.trace(" AFTER: {}", formConfig);
+        
+        LOG.trace(" AFTER adding query parameters");
+        FormConfigLogUtil.logWith(LOG, formConfig);
     }
 
     public static void updateModelMapWithFormParamsFromRequest(
