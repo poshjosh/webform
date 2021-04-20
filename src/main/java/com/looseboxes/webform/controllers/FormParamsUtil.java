@@ -1,12 +1,14 @@
 package com.looseboxes.webform.controllers;
 
 import com.looseboxes.webform.Params;
+import com.looseboxes.webform.web.FormConfig;
 import com.looseboxes.webform.web.FormConfigDTO;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ui.ModelMap;
 
 /**
  * @author hp
@@ -37,13 +39,23 @@ public final class FormParamsUtil {
         }
         
         final String [] names = Params.names();
+        final List<String> attempted = new ArrayList<>(names.length);
         for(String name : names) {
             final Object value = getParameter(request, name);
             if(value != null) {
+                attempted.add(name);
 //                LOG.trace("Setting: {} to {}", name, value);
                 formConfig.setIfAbsent(name, value);
             }
         }
+
+////////// This is a temporary fix for issue #3 ////////////////////////////////
+// We try to prevent fid from 
+        if(isCandidateForBugFixOfIssue3(attempted, formConfig)) {
+            LOG.debug("Applying temporary fix of issue #3 by deleting wrongly set form id");
+            formConfig.setFid(null);
+        }
+////////////////////////////////////////////////////////////////////////////////        
 
         if(LOG.isTraceEnabled()) {
             LOG.trace(" AFTER adding request parameters");
@@ -51,18 +63,10 @@ public final class FormParamsUtil {
         }
     }
 
-    public static void updateModelMapWithFormParamsFromRequest(
-            ModelMap model, HttpServletRequest request) {
-        LOG.trace("BEFORE: {}\nHttpServletRequest.queryString: {}", 
-                model, request.getQueryString());
-        final String [] names = Params.names();
-        for(String name : names) {
-            final Object value = getParameter(request, name);
-            if(value != null) {
-                model.putIfAbsent(name, value);
-            }
-        }
-        LOG.debug(" AFTER: {}", model);
+    private static boolean isCandidateForBugFixOfIssue3(List<String> names, FormConfig formConfig) {
+        return (names.contains(Params.TARGET_ON_COMPLETION) &&
+                names.contains(Params.FORMID) && names.contains(Params.PARENT_FORMID) &&
+                formConfig.getFid() != null && formConfig.getFid().equals(formConfig.getParentFormid()));
     }
     
     private static Object getParameter(HttpServletRequest request, String name) {
