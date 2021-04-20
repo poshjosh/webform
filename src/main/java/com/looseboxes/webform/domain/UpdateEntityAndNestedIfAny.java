@@ -197,7 +197,7 @@ public class UpdateEntityAndNestedIfAny {
         String modelname = this.typeFromNameResolver.getName(modeltype);
 
         FormRequest<T> formRequestUpdate = 
-                modelObjectService.updateRequest(parentFormRequest, modelname, null);
+                modelObjectService.createNextFormConfigAndUpdateRequest(parentFormRequest, modelname, null);
 
         modelobject = modelObjectService.configureModelObject(modelobject, formRequestUpdate);
         

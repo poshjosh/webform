@@ -90,7 +90,7 @@ public class ModelObjectService{
         return this.updateForm(store, formRequest, true, null, null);
     }
     
-    public <S, T> FormRequest<T> updateRequest(
+    public <S, T> FormRequest<T> createNextFormConfigAndUpdateRequest(
             FormRequest<S> formRequest, String modelname, String modelid) {
         
         FormConfigDTO formConfig = formRequest.getFormConfig();
@@ -99,9 +99,12 @@ public class ModelObjectService{
         
         FormConfigDTO formConfigUpdate = formConfig
                 .fid(this.generateFormId())
+                // We set the form to null, because after the successfully
+                // submitting a form we do not display the previous values
+                //
                 .form(null).id(modelid).modelfields(Collections.EMPTY_LIST)
                 .modelname(modelname).parentfid(parentFormId)
-                .targetOnCompletion(null);
+                .targetOnCompletion(formConfig.getTargetOnCompletion());
         
         formRequest.setFormConfig(formConfigUpdate);
         
