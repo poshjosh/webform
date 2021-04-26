@@ -97,7 +97,7 @@ public class ModelObjectService{
         
         String parentFormId = formConfig.getFormid();
         
-        FormConfigDTO formConfigUpdate = formConfig
+        FormConfigDTO formConfigUpdate = formConfig.copy()
                 .fid(this.generateFormId())
                 // We set the form to null, because after the successfully
                 // submitting a form we do not display the previous values
@@ -106,9 +106,11 @@ public class ModelObjectService{
                 .modelname(modelname).parentfid(parentFormId)
                 .targetOnCompletion(formConfig.getTargetOnCompletion());
         
-        formRequest.setFormConfig(formConfigUpdate);
-        
-        return (FormRequest<T>)formRequest;
+//        formRequest.setFormConfig(formConfigUpdate);
+
+//        return (FormRequest<T>)formRequest;
+
+        return formRequest.copy().formConfig(formConfigUpdate);
     }
     
     private <T> FormRequest<T> updateForm(

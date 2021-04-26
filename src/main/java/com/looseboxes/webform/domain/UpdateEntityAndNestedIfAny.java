@@ -5,7 +5,9 @@ import com.bc.webform.TypeTests;
 import com.bc.webform.form.FormBean;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.services.ModelObjectService;
+import com.looseboxes.webform.web.FormConfigDTO;
 import com.looseboxes.webform.web.FormRequest;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -103,6 +105,7 @@ public class UpdateEntityAndNestedIfAny {
         }catch(RuntimeException e) {
             LOG.warn("Failed to set FormConfig.form.dataSource to: " + dataSource, e);
         }
+        
         return result;
     }
     
@@ -171,7 +174,9 @@ public class UpdateEntityAndNestedIfAny {
      */
     private <T> Optional<T> fetchDatabaseInstanceAndUpdateWith(T model) 
             throws EntityNotFoundException{
+        
         Object id = this.entityRepositoryProvider.getIdOptional(model).orElse(null);
+        
         final T result;
         if(id == null) {
             result = model;
@@ -187,6 +192,7 @@ public class UpdateEntityAndNestedIfAny {
             
             result = (T)modelUpdater.update(model, targetEntity).orElse(null);
         }
+        
         return Optional.ofNullable(result);
     }
     
@@ -194,24 +200,41 @@ public class UpdateEntityAndNestedIfAny {
     
         Class<T> modeltype = (Class<T>)modelobject.getClass();
 
-        String modelname = this.typeFromNameResolver.getName(modeltype);
+        String modelname = typeFromNameResolver.getName(modeltype);
 
-        FormRequest<T> formRequestUpdate = 
-                modelObjectService.createNextFormConfigAndUpdateRequest(parentFormRequest, modelname, null);
+        Object id = modelobject == null ? null : entityRepositoryProvider.getIdOptional(modelobject).orElse(null);
+        
+        FormRequest<T> formRequestUpdate = copyFormRequestFor(
+                parentFormRequest, modelname, id == null ? null : id.toString());
 
         modelobject = modelObjectService.configureModelObject(modelobject, formRequestUpdate);
         
         return modelobject;
     }
     
-    private boolean hasNoId(Object e) {
-        return ! this.hasId(e);
+    private <S, T> FormRequest<T> copyFormRequestFor(
+            FormRequest<S> formRequest, String modelname, String modelid) {
+        
+        FormConfigDTO formConfig = formRequest.getFormConfig();
+        
+        String parentFormId = formConfig.getFormid();
+        
+        FormConfigDTO formConfigUpdate = formConfig.copy()
+                .fid(this.generateFormId())
+                // We set the form to null, because after the successfully
+                // submitting a form we do not display the previous values
+                //
+                .form(null).id(modelid).modelfields(Collections.EMPTY_LIST)
+                .modelname(modelname).parentfid(parentFormId)
+                .targetOnCompletion(formConfig.getTargetOnCompletion());
+        
+        return formRequest.copy().formConfig(formConfigUpdate);
     }
     
-    private boolean hasId(Object e) {
-        return entityRepositoryProvider.getIdOptional(e).isPresent();
+    private String generateFormId() {
+        return ModelObjectService.FORM_ID_PREFIX + Long.toHexString(System.currentTimeMillis());
     }
-
+    
     public TypeFromNameResolver getTypeFromNameResolver() {
         return typeFromNameResolver;
     }
