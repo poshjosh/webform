@@ -140,14 +140,15 @@ public class FileUploadHandler {
             final List result = new ArrayList<>();
             final String id = formRequest.getSessionId();
             final Object modelobject = formRequest.getFormConfig().getModelobject();
-            final Map<String, List<MultipartFile>> multiValueFiles = formRequest.getMultiValueFiles();
 
             final Function<UploadFileResponse, String> toFileName = 
                     response -> response.getFileName();
             
             final Consumer<String> addToOutput = filename -> result.add(filename);
 
-            final Map<String, List<UploadFileResponse>> multiOutput = 
+            // Upload multi-value files
+            final Map<String, List<MultipartFile>> multiValueFiles = formRequest.getMultiValueFiles();
+            final Map<String, List<UploadFileResponse>> multiOutput =
                     uploadMultipleFiles(id, modelobject, multiValueFiles);
 
             if(multiOutput != null && ! multiOutput.isEmpty()) {
@@ -157,25 +158,16 @@ public class FileUploadHandler {
                         .forEach(addToOutput);
             }
 
-            final Map<String, MultipartFile> files = formRequest.getFiles();
+            // Upload single-value files, not yet uploaded via the multi-value operation above
+            final Map<String, MultipartFile> singleValueFiles = collectYetToBeUploadedFiles(formRequest, multiOutput);
 
-            final Map<String, MultipartFile> fileMap = files == null ? 
-                    Collections.EMPTY_MAP : new HashMap<>(files);
+            final Map<String, UploadFileResponse> singleOutput =
+                    uploadSingleFiles(id, modelobject, singleValueFiles);
 
-            if(multiOutput != null && ! multiOutput.isEmpty()) {
-                fileMap.keySet().removeAll(multiOutput.keySet());
-            }
-
-            if( ! fileMap.isEmpty()) {
-
-                final Map<String, UploadFileResponse> singleOutput = 
-                        uploadSingleFiles(id, modelobject, fileMap);
-
-                if(singleOutput != null && ! singleOutput.isEmpty()) {
-                    singleOutput.values().stream()
-                            .map(toFileName)
-                            .forEach(addToOutput);
-                }
+            if(singleOutput != null && ! singleOutput.isEmpty()) {
+                singleOutput.values().stream()
+                        .map(toFileName)
+                        .forEach(addToOutput);
             }
             
             output = result.isEmpty() ? 
@@ -185,6 +177,21 @@ public class FileUploadHandler {
         }
         
         return output;
+    }
+
+    private Map<String, MultipartFile> collectYetToBeUploadedFiles(
+            FormRequest<Object> formRequest, Map<String, List<UploadFileResponse>> multiOutput) {
+
+        final Map<String, MultipartFile> files = formRequest.getFiles();
+
+        final Map<String, MultipartFile> fileMap = files == null ?
+                Collections.EMPTY_MAP : new HashMap<>(files);
+
+        if(multiOutput != null && ! multiOutput.isEmpty()) {
+            fileMap.keySet().removeAll(multiOutput.keySet());
+        }
+
+        return fileMap;
     }
 
     public Map<String, UploadFileResponse> uploadSingleFiles(
@@ -215,15 +222,13 @@ public class FileUploadHandler {
                 
                 output.put(name, response);
                 
-                final String propertyName = getPropertyName(
-                        modelobject, response, bean, name);
+                final String propertyName = name;
                 
                 if(propertyName == null) {
                     continue;
                 }
                 
-                final Object propertyValue = getPropertyValue(
-                        modelobject, response, bean, propertyName);
+                final Object propertyValue = getPropertyValue(response);
                 
                 final Object previousValue = bean.getPropertyValue(propertyName);
                 
@@ -286,15 +291,13 @@ public class FileUploadHandler {
                     output.put(name, responseList);
                 }
                 
-                final String propertyName = getPropertyName(
-                        modelobject, responseList, bean, name);
+                final String propertyName = name;
                 
                 if(propertyName == null) {
                     continue;
                 }
                 
-                final List<Object> propertyValueList = getPropertyValues(
-                        modelobject, responseList, bean, propertyName);
+                final List<Object> propertyValueList = getPropertyValues(responseList);
                 
                 final Object previousValue = bean.getPropertyValue(propertyName);
                 
@@ -331,13 +334,7 @@ public class FileUploadHandler {
                 Collections.unmodifiableMap(output);
     }    
 
-    private String getPropertyName(Object modelobject, 
-            UploadFileResponse response, BeanWrapper bean, String propertyName) {
-        return propertyName;
-    }
-    
-    private Object getPropertyValue(Object modelobject, 
-            UploadFileResponse response, BeanWrapper bean, String propertyName) {
+    private Object getPropertyValue(UploadFileResponse response) {
         String relativePath = response.getFileName();
         if( ! relativePath.startsWith("/")) {
             relativePath = "/" + relativePath;
@@ -345,14 +342,8 @@ public class FileUploadHandler {
         return relativePath;
     }
 
-    private String getPropertyName(Object modelobject, 
-            List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
-        return propertyName;
-    }
-    
-    private List<Object> getPropertyValues(Object modelobject, 
-            List<UploadFileResponse> responseList, BeanWrapper bean, String propertyName) {
-        return responseList.stream().map((response) -> getPropertyValue(modelobject, response, bean, propertyName))
+    private List<Object> getPropertyValues(List<UploadFileResponse> responseList) {
+        return responseList.stream().map((response) -> getPropertyValue(response))
                 .collect(Collectors.toList());
     }
 

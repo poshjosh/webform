@@ -84,27 +84,27 @@ public class FormService<T> {
         
         if ( ! bindingResult.hasErrors()) {
 
-            Optional<FileUploadHandler> optional = this.getFileUploadService();
+            Optional<FileUploadHandler> fileUploadHandlerOptional = this.getFileUploadService();
             
             if(CRUDAction.delete.equals(formConfig.getCrudAction())) {
 
                 // We delete images in the root entity only
-                // This is because We we delete a product and the product
-                // has a nested user, then we need not delete the product's user
+                // This is because, when we delete a product and the product
+                // has a nested user, then we need not delete the product's user's images
                 //
                 if( ! imagePathsProvider.getImagePathsOfRootEntityOnly(formRequest).isEmpty()) {
                 
-                    if(optional.isPresent()) {
-                        optional.get().deleteFilesOfRootEntityOnly(formRequest);
+                    if(fileUploadHandlerOptional.isPresent()) {
+                        fileUploadHandlerOptional.get().deleteFilesOfRootEntityOnly(formRequest);
                     }else{
                         this.complainAboutFileUploadService();
                     }
                 }
             }else if(formRequest.hasFiles()) {
                 
-                if(optional.isPresent()){
+                if(fileUploadHandlerOptional.isPresent()){
                 
-                    optional.get().upload(formRequest);
+                    fileUploadHandlerOptional.get().upload(formRequest);
   
                 }else{
                     
