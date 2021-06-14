@@ -104,7 +104,7 @@ public class PropertySearchTest {
         this.setPrefixedProperty(key, value);
         final PropertySearch instance = this.getInstance();
         final Optional<String> expResult = Optional.ofNullable(this.getPrefixedProperty(key, null));
-        final Optional<String> result = instance.find(propertyName, fieldName);
+        final Optional<String> result = instance.find(propertyName, "dateOfBirth");
         System.out.println("Expect: " + expResult);
         System.out.println(" Found: " + result);
         assertEquals(expResult, result);
@@ -128,19 +128,25 @@ public class PropertySearchTest {
         assertEquals(expResult, result);
 
         result = instance.find(propertyName, Person.class);
-        System.out.println("Expect: " + expResult);
         System.out.println(" Found: " + result);
         assertEquals(expResult, result);
 
         result = instance.find(propertyName, "dateOfBirth");
-        System.out.println("Expect: " + expResult);
+        System.out.println(" Found: " + result);
+        assertEquals(expResult, result);
+
+        result = instance.find(propertyName, "date_of_birth");
         System.out.println(" Found: " + result);
         assertEquals(expResult, result);
 
         result = instance.find(propertyName, Person.class, "dateOfBirth");
-        System.out.println("Expect: " + expResult);
+        System.out.println(" Found: " + result);
+
+        result = instance.find(propertyName, Person.class, "date_o_birth");
         System.out.println(" Found: " + result);
         assertEquals(expResult, result);
+
+
     }
     
     public String setPersonProperty(String fieldName) {

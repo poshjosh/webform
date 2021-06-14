@@ -118,11 +118,10 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
     public String findOrDefault(String propertyName, String suffix, String defaultValue) {
         Objects.requireNonNull(propertyName);
         if(suffix == null || suffix.isEmpty()) {
-            return this.findOrDefault(propertyName, defaultValue);
+            return findOrDefault(propertyName, defaultValue);
         }else{
-            final String val = this.find(propertyName + '.' + suffix).orElse(
-                    this.findOrDefault(propertyName, null)
-            );
+            final String val = find(propertyName + '.' + suffix)
+                    .orElseGet(() -> findOrDefault(propertyName, null));
             return val == null ? defaultValue : val;
         }
     }
@@ -136,7 +135,7 @@ public class PropertySearchImpl implements Serializable, PropertySearch {
     @Override
     public String findOrDefault(String propertyName, String defaultValue) {
         Objects.requireNonNull(propertyName);
-        final String key = this.withPrefix(propertyName);
+        final String key = withPrefix(propertyName);
         final String val = getOrNull(key);
         return val == null ? defaultValue : val;
     }

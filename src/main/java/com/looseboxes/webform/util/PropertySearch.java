@@ -96,18 +96,18 @@ public interface PropertySearch{
     }
     
     default Optional<String> find(String propertyName, Field field) {
-        return Optional.ofNullable(this.findOrDefault(propertyName, field, null));
+        return Optional.ofNullable(findOrDefault(propertyName, field, null));
     }
     
     default String findOrDefault(String propertyName, Field field, String defaultValue) {
         final Class type = field.getDeclaringClass();
-        final String [] names = this.getFieldNames(field);
+        final String [] names = getFieldNames(field);
         return this.findOrDefault(propertyName, type, names, defaultValue);
     }
 
     default List<String> findAll(String propertyName, Field field) {
         final Class type = field.getDeclaringClass();
-        final String [] names = this.getFieldNames(field);
+        final String [] names = getFieldNames(field);
         return this.findAll(propertyName, type, names);
     }
 
@@ -130,29 +130,29 @@ public interface PropertySearch{
     }
     
     default Optional<String> find(String propertyName, Class type) {
-        return this.find(propertyName, type, null);
+        return find(propertyName, type, null);
     }
     
     default String findOrDefault(String propertyName, Class type, String defaultValue) {
-        return this.findOrDefault(propertyName, type, (String[])null, defaultValue);
+        return findOrDefault(propertyName, type, (String[])null, defaultValue);
     }
     
     default List<String> findAll(String propertyName, Class type) {
-        return this.findAll(propertyName, type, (String[])null);
+        return findAll(propertyName, type, (String[])null);
     }
 
     default Optional<String> find(String propertyName, Class type, String fieldName) {
-        return Optional.ofNullable(this.findOrDefault(propertyName, type, fieldName, null));
+        return Optional.ofNullable(findOrDefault(propertyName, type, fieldName, null));
     }
     
     default String findOrDefault(String propertyName, Class type, 
             String fieldName, String defaultValue) {
-        return this.findOrDefault(propertyName, type, 
+        return findOrDefault(propertyName, type,
                 fieldName == null ? (String[])null : new String[]{fieldName}, defaultValue);
     }
     
     default List<String> findAll(String propertyName, Class type, String fieldName) {
-        return this.findAll(propertyName, type, 
+        return findAll(propertyName, type,
                 fieldName == null ? (String[])null : new String[]{fieldName});
     }
 
@@ -162,7 +162,7 @@ public interface PropertySearch{
     List<String> findAll(String propertyName, Class type, String [] fieldNames);
 
     default Optional<String> find(String propertyName, String suffix) {
-        return Optional.ofNullable(this.findOrDefault(propertyName, suffix, null));
+        return Optional.ofNullable(findOrDefault(propertyName, suffix, null));
     }
     
     String findOrDefault(String propertyName, String suffix, String defaultValue);
@@ -170,7 +170,7 @@ public interface PropertySearch{
     List<String> findAll(String propertyName, String suffix);
 
     default Optional<String> find(String propertyName) {
-        return Optional.ofNullable(this.findOrDefault(propertyName, null));
+        return Optional.ofNullable(findOrDefault(propertyName, null));
     }
     
     String findOrDefault(String propertyName, String defaultValue);
