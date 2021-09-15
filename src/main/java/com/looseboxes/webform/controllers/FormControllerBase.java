@@ -201,10 +201,11 @@ public class FormControllerBase<T>{
         if(log.isTraceEnabled()) {
             log.trace("{} Current session ID: {}", tag, request.getSession().getId());
             log.trace("RECEIVED FormConfig");
-            FormConfigLogUtil.logWith(log, formConfig);
+            log.trace("{}", formConfig == null ? null : formConfig.print());
             log.trace("EXISTING FormConfig");
             final String formId = formConfig == null ? null : formConfig.getFormid();
-            FormConfigLogUtil.logWith(log, formId == null ? null : store.getOrDefault(formId, null));
+            FormConfigDTO existing = formId == null ? null : store.getOrDefault(formId, null);
+            log.trace("{}", existing == null ? null : existing.print());
         }
     }
     

@@ -46,9 +46,9 @@ public class FormService<T> {
     public FormRequest onBeginForm(FormConfigStore store, FormRequest formRequest){
         
         formRequest = modelObjectService.onBeginForm(store, formRequest);
-        
+
         log.trace("{}", formRequest);
-        
+
         final FormConfigDTO formConfig = formRequest.getFormConfig();
         store.set(formConfig);
         

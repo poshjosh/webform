@@ -46,6 +46,7 @@ public class StringToDateConverter implements Converter<String, Date> {
 
     @Override
     public Date convert(String from) {
+        LOG.trace("Converting {} of {} to class java.util.Date", from, (from==null?null:from.getClass()));
         Date output = null;
         if(from != null && ! from.isEmpty()) {
             ValidationException ex = null;

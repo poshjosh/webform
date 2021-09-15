@@ -16,15 +16,15 @@
 
 package com.looseboxes.webform.web;
 
+import com.bc.webform.form.Form;
 import com.bc.webform.form.FormBean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.FormStage;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
+import java.util.function.Function;
+
 import org.springframework.validation.BindingResult;
 
 /**
@@ -285,14 +285,22 @@ public class FormConfigDTO extends FormConfigBean{
         return this;
     }
 
+    public String print() {
+        return toString(form -> form.print());
+    }
+
     @Override
     public String toString() {
+        return toString(Objects::toString);
+    }
+
+    private String toString(Function<FormBean, String> formStringFunction) {
         return "->FormConfigDTO{\n->" + "action=" + getAction() +
-                ", parent form id=" + getParentfid() + ", form id=" + getFid() + 
-                ", model name=" + getModelname() + ", model id=" + getId() + 
+                ", parent form id=" + getParentfid() + ", form id=" + getFid() +
+                ", model name=" + getModelname() + ", model id=" + getId() +
                 ", model fields=" + getModelfields() + ", target on completion=" +
-                getTargetOnCompletion() + ", uploaded files=" + getUploadedFiles() + 
-                "\n->form: " + getForm() + "\n->stage: " + getStage() +
+                getTargetOnCompletion() + ", uploaded files=" + getUploadedFiles() +
+                "\n->form: " + (getForm() == null ? null : formStringFunction.apply(getForm())) + "\n->stage: " + getStage() +
                 ", errors: " + getErrors() + ", infos: " + getInfos() +
                 '}';
     }

@@ -36,6 +36,7 @@ public class DateToStringConverterImpl implements DateToStringConverter {
 
     @Override
     public String convert(Date from) {
+        LOG.trace("Converting {} of {} to class java.lang.String", from, (from==null?null:from.getClass()));
         for(String pattern : patterns) {
             dateFormat.applyPattern(pattern);
             final String output = dateFormat.format(from);

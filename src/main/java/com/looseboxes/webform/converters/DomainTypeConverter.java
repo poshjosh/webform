@@ -60,7 +60,7 @@ public class DomainTypeConverter implements GenericConverter{
         try{
             final Class srcType = sourceType.getType();
             final Class tgtType = targetType.getType();
-//            LOG.trace("Converting {} to {}", sourceType, targetType);
+            LOG.trace("Converting {} of {} to {}", source, srcType, tgtType);
             final Object target;
             if(this.supportedTypes.contains(srcType)) {
                 target = this.domainTypeToStringConverter.convert(source);

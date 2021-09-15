@@ -80,7 +80,8 @@ public class WebformMvcConfigurer implements WebMvcConfigurer {
     public void addFormatters(FormatterRegistry registry) {
         
         log.debug("Adding formatters");
-        
+
+// @TODO Investigate the possible use of org.springframework.data.convert.Jsr310Converters
         registry.addConverter(context.getBean(StringEmptyToNullConverter.class));
         
         replaceConverter(registry, MultipartFile.class, String.class, context.getBean(MultipartFileToStringConverter.class));

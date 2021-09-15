@@ -16,6 +16,9 @@
 
 package com.looseboxes.webform.converters;
 
+import com.looseboxes.webform.Errors;
+
+import java.time.*;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,6 +29,10 @@ import java.util.function.Supplier;
  */
 public interface DateAndTimePatternsSupplier extends Supplier<Set<String>> {
 
+    /**
+     * Get all patterns for all date and time related types
+     * @return
+     */
     @Override
     default Set<String> get() {
         final Set<String> e = new LinkedHashSet<>();
@@ -34,7 +41,25 @@ public interface DateAndTimePatternsSupplier extends Supplier<Set<String>> {
         e.addAll(getTimePatterns());
         return Collections.unmodifiableSet(e);
     }
-    
+
+    default Set<String> getPatterns(Class type) {
+        final Set<String> result;
+        if(LocalDateTime.class.isAssignableFrom(type)) {
+            result = getDatetimePatterns();
+        }else if(ZonedDateTime.class.isAssignableFrom(type)) {
+            result = getDatetimePatterns();
+        }else if(Instant.class.isAssignableFrom(type)) {
+            result = getDatetimePatterns();
+        }else if(LocalDate.class.isAssignableFrom(type)) {
+            result = getDatePatterns();
+        }else if(LocalTime.class.isAssignableFrom(type)) {
+            result = getTimePatterns();
+        }else{
+            throw Errors.unexpectedElement(type, new Class[]{LocalDateTime.class, ZonedDateTime.class, Instant.class, LocalDate.class, LocalTime.class});
+        }
+        return result;
+    }
+
     Set<String> getDatetimePatterns();
     Set<String> getDatePatterns();
     Set<String> getTimePatterns();

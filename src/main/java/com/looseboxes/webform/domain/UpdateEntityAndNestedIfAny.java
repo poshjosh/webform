@@ -53,11 +53,6 @@ public class UpdateEntityAndNestedIfAny {
         
         Object modelobject = formRequest.getFormConfig().getModelobject();
         
-        return this.save(modelobject, formRequest);
-    }
-    
-    private Object save(Object modelobject, FormRequest formRequest) {
-        
         final List entityList = this.buildEntityList(modelobject, formRequest);
         
         final Object entity = entityList.get(entityList.size() - 1);

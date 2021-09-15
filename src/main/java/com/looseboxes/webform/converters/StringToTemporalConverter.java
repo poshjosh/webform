@@ -5,7 +5,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
+
+import com.looseboxes.webform.Errors;
 import org.springframework.core.convert.converter.Converter;
 
 /**
@@ -16,13 +19,7 @@ public interface StringToTemporalConverter<T extends Temporal> extends Converter
     @Override
     T convert(String from);
 
-    StringToTemporalConverter<Instant> instantInstance();
+    <TT extends Temporal> TT convert(String from, Class<TT> targetType) throws DateTimeParseException;
 
-    StringToTemporalConverter<LocalDate> localDateInstance();
-
-    StringToTemporalConverter<LocalDateTime> localDateTimeInstance();
-
-    StringToTemporalConverter<LocalTime> localTimeInstance();
-
-    StringToTemporalConverter<ZonedDateTime> zonedDateTimeInstance();
+    StringToTemporalConverter<T> instance(Class<T> targetType);
 }

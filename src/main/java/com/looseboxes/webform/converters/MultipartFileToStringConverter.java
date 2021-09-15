@@ -32,6 +32,7 @@ public class MultipartFileToStringConverter implements Converter<MultipartFile, 
 
     @Override
     public String convert(MultipartFile from) {
+        LOG.trace("Converting {} of {} to class java.lang.String", from, (from==null?null:from.getClass()));
         final String original = from.getOriginalFilename();
         final String output = original == null || original.isEmpty() ? null : original;
         LOG.trace("Converted: {}, to: {}", from, output);

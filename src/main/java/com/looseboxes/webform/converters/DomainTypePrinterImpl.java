@@ -27,9 +27,9 @@ public class DomainTypePrinterImpl implements DomainTypePrinter{
     
     @Override
     public String print(Object object, Locale locale) {
-        
-        LOG.trace("Converting {} of type {} to java.lang.String for locale {}", 
-                object, (object==null?null:object.getClass().getSimpleName()), locale);
+
+        LOG.trace("Converting {} of {} to class java.lang.String for locale {}",
+                object, (object==null?null:object.getClass()), locale);
         
         final String output;
         if(object == null) {

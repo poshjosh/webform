@@ -32,8 +32,7 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
             FormConfigDTO formConfig, String memberName, Object memberValue) 
             throws FormMemberNotFoundException{
         
-        final Function<FormMemberBean, FormBean> updater = (formMember) -> 
-                setValue(formMember, memberValue).getForm();
+        final Function<FormMemberBean, FormBean> updater = formMember -> setValue(formMember, memberValue).getForm();
 
         return this.update(formConfig, memberName, updater);
     }
@@ -47,26 +46,13 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         final Field field = Objects.requireNonNull((Field)formMember.getDataSource());
 
         this.formInputContext.setValue(modelobject, field, memberValue);
-        
+
         LOG.debug("Set {}#{} to {}", form.getName(), field.getName(), memberValue);
 
         return formMember;
     }
 
-    @Override
-    public FormConfigDTO setChoices(
-            FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
-            throws FormMemberNotFoundException{
-
-        final Function<FormMemberBean, FormBean> updater = (formMember) -> 
-                formMember.choices(choices).multiChoice(true).getForm();
-        
-        
-        return this.update(formConfig, memberName, updater);
-    }
-
-    @Override
-    public FormConfigDTO update(
+    private FormConfigDTO update(
             FormConfigDTO formConfig, String memberName, 
             Function<FormMemberBean, FormBean> updater) throws FormMemberNotFoundException{
         
@@ -97,3 +83,23 @@ public class FormMemberUpdaterImpl implements FormMemberUpdater {
         return formMember;
     }    
 }
+/**
+ *
+
+ @Override
+ public FormConfigDTO setChoices(
+ FormConfigDTO formConfig, String memberName, List<SelectOption> choices)
+ throws FormMemberNotFoundException{
+
+ final Function<FormMemberBean, FormBean> updater = formMember -> setChoices(formMember, choices).getForm();
+
+ return this.update(formConfig, memberName, updater);
+ }
+
+ private FormMemberBean setChoices(FormMemberBean formMember, List<SelectOption> choices)
+ throws FormMemberNotFoundException{
+
+ return formMember.choices(choices).multiChoice(true);
+ }
+ *
+ */

@@ -22,6 +22,9 @@ import com.looseboxes.webform.converters.TemporalToStringConverter;
 import com.looseboxes.webform.converters.TemporalToStringConverterImpl;
 import com.looseboxes.webform.repository.EntityRepositoryProvider;
 import com.looseboxes.webform.util.PropertySearch;
+
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import org.springframework.context.ApplicationContext;
 import com.looseboxes.webform.converters.DomainTypePrinter;
@@ -87,11 +90,15 @@ public class WebformConverterConfigurationSource{
     }
     
     @Bean public StringToTemporalConverter stringToTemporalConverter() {
-        return new StringToTemporalConverterImpl(this.dateAndTimePatternsSupplier());
+        return new StringToTemporalConverterImpl(this.dateAndTimePatternsSupplier(), getZoneId());
     }
-    
+
     @Bean public TemporalToStringConverter temporalToStringConverter() {
-        return new TemporalToStringConverterImpl(this.dateAndTimePatternsSupplier());
+        return new TemporalToStringConverterImpl(this.dateAndTimePatternsSupplier(), getZoneId());
+    }
+
+    public ZoneId getZoneId() {
+        return ZoneOffset.UTC;
     }
 
     @Bean public IdStringToDomainTypeConverterFactory idStringToDomainTypeConverterFactory() {

@@ -1,11 +1,8 @@
 package com.looseboxes.webform.converters;
 
 import com.looseboxes.webform.Errors;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
@@ -22,39 +19,37 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
 
     private static final Logger LOG = LoggerFactory.getLogger(StringToTemporalConverterImpl.class);
 
-    private static enum Type{
-        LOCAL_DATETIME, ZONED_DATETIME, INSTANT, LOCAL_DATE, LOCAL_TIME
-    }
-    
     private final DateAndTimePatternsSupplier patternSupplier;
-    private final Type type;
+    private final ZoneId zoneId;
+    private final Class<T> targetType;
 
-    public StringToTemporalConverterImpl(DateAndTimePatternsSupplier patternSupplier) {
-        this(patternSupplier, null);
+    public StringToTemporalConverterImpl(DateAndTimePatternsSupplier patternSupplier, ZoneId zoneId) {
+        this(patternSupplier, zoneId, null);
     }
     
     private StringToTemporalConverterImpl(
-            DateAndTimePatternsSupplier patternSupplier, Type type) {
+            DateAndTimePatternsSupplier patternSupplier, ZoneId zoneId, Class<T> targetType) {
         this.patternSupplier = Objects.requireNonNull(patternSupplier);
-        this.type = type;
+        this.zoneId = Objects.requireNonNull(zoneId);
+        this.targetType = targetType;
     }
 
     @Override
     public T convert(String from) {
         final T converted;
-        if(type != null) {
-            converted = this.convert(from, type);
+        if(targetType != null) {
+            converted = this.convert(from, targetType);
         }else{
-            converted = this.convert(from, Type.values());
+            converted = (T)this.convert(from, new Class[]{LocalDateTime.class, ZonedDateTime.class, Instant.class, LocalDate.class, LocalTime.class});
         }
         LOG.trace("Converted {} to: {}", from, converted);
         return converted;
     }
 
-    private T convert(String text, Type[]types) throws DateTimeParseException{
-        T converted = null;
+    private Temporal convert(String text, Class[]types) throws DateTimeParseException{
+        Temporal converted = null;
         DateTimeParseException exception = null;
-        for(Type type : types) {
+        for(Class type : types) {
             try{
                 converted = this.convert(text, type);
                 break;
@@ -71,15 +66,16 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
         }
         return converted;
     }
-    
-    private T convert(String text, Type type) throws DateTimeParseException{
-        T converted = null;
+
+    @Override
+    public <TT extends Temporal> TT convert(String from, Class<TT> targetType) throws DateTimeParseException{
+        TT converted = null;
         DateTimeParseException exception = null;
-        Set<String> patterns = this.getPatterns(type);
+        Set<String> patterns = this.patternSupplier.getPatterns(targetType);
         for(String pattern : patterns) {
-            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
+            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern).withZone(zoneId);
             try{
-                converted = this.convert(type, text, fmt);
+                converted = (TT)this.convert(targetType, from, fmt);
                 break;
             }catch(DateTimeParseException e) {
                 if(exception == null) {
@@ -94,71 +90,53 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
         }
         return converted;
     }
-    
-    private T convert(Type type, String text, DateTimeFormatter fmt) {
-        Temporal result;
-        switch(type) {
-            case LOCAL_DATETIME: 
-                result = LocalDateTime.parse(text, fmt); break;
-            case ZONED_DATETIME: 
-                result = ZonedDateTime.parse(text, fmt); break;
-            case INSTANT: 
-                result = Instant.parse(text); break;
-            case LOCAL_DATE: 
-                result = LocalDate.parse(text, fmt); break;
-            case LOCAL_TIME: 
-                result = LocalTime.parse(text, fmt); break;
-            default: 
-                throw Errors.unexpectedElement(type, Type.values());
-        }        
-        return (T)result;
+
+    private <TT extends Temporal> TT convert(Class<TT> type, String text, DateTimeFormatter fmt) {
+        final Temporal result;
+        if(LocalDateTime.class.isAssignableFrom(type)) {
+            result = LocalDateTime.parse(text, fmt);
+        }else if(ZonedDateTime.class.isAssignableFrom(type)) {
+            result = ZonedDateTime.parse(text, fmt);
+        }else if(Instant.class.isAssignableFrom(type)) {
+            result = convertToInstant(text, fmt);
+        }else if(LocalDate.class.isAssignableFrom(type)) {
+            result = LocalDate.parse(text, fmt);
+        }else if(LocalTime.class.isAssignableFrom(type)) {
+            result = LocalTime.parse(text, fmt);
+        }else{
+            throw Errors.unexpectedElement(type, new Class[]{LocalDateTime.class, ZonedDateTime.class, Instant.class, LocalDate.class, LocalTime.class});
+        }
+        return (TT)result;
+    }
+
+    private Instant convertToInstant(String text, DateTimeFormatter fmt) {
+        try{
+            return Instant.parse(text);
+        }catch(DateTimeParseException e) {
+            try {
+                ZonedDateTime zonedDateTime = this.convert(ZonedDateTime.class, text, fmt);
+                return zonedDateTime.toInstant();
+            }catch(DateTimeParseException e1) {
+                try {
+                    LocalDateTime localDateTime = this.convert(LocalDateTime.class, text, fmt);
+                    return localDateTime.toInstant(ZoneOffset.UTC);
+                }catch(DateTimeParseException e2) {
+                    try {
+                        LocalTime localTime = this.convert(LocalTime.class, text, fmt);
+                        return LocalDate.now().atTime(localTime).toInstant(ZoneOffset.UTC);
+                    }catch(DateTimeParseException e3) {
+                        e1.addSuppressed(e);
+                        e2.addSuppressed(e1);
+                        e3.addSuppressed(e2);
+                        throw e3;
+                    }
+                }
+            }
+        }
     }
 
     @Override
-    public StringToTemporalConverterImpl<LocalDateTime> localDateTimeInstance() {
-        return new StringToTemporalConverterImpl(this.patternSupplier, Type.LOCAL_DATETIME);
-    }
-
-    @Override
-    public StringToTemporalConverterImpl<ZonedDateTime> zonedDateTimeInstance() {
-        return new StringToTemporalConverterImpl(this.patternSupplier, Type.ZONED_DATETIME);
-    }
-
-    @Override
-    public StringToTemporalConverterImpl<Instant> instantInstance() {
-        return new StringToTemporalConverterImpl(this.patternSupplier, Type.INSTANT);
-    }
-
-    @Override
-    public StringToTemporalConverterImpl<LocalDate> localDateInstance() {
-        return new StringToTemporalConverterImpl(this.patternSupplier, Type.LOCAL_DATE);
-    }
-
-    @Override
-    public StringToTemporalConverterImpl<LocalTime> localTimeInstance() {
-        return new StringToTemporalConverterImpl(this.patternSupplier, Type.LOCAL_TIME);
-    }
-
-    private Set<String> getPatterns(Type type) {
-        final Set<String> patterns;
-        switch(type) {
-            case LOCAL_DATETIME: 
-            case ZONED_DATETIME: 
-            case INSTANT: 
-                patterns = patternSupplier.getDatetimePatterns();
-                break;
-
-            case LOCAL_DATE: 
-                patterns = patternSupplier.getDatePatterns(); 
-                break;
-
-            case LOCAL_TIME: 
-                patterns = patternSupplier.getTimePatterns(); 
-                break;
-            default: 
-                throw Errors.unexpectedElement(type, Type.values());
-        }        
-        LOG.trace("Type: {}, Patterns: {}", type,patterns);
-        return patterns;
+    public StringToTemporalConverter<T> instance(Class<T> targetType) {
+        return new StringToTemporalConverterImpl(this.patternSupplier, zoneId, targetType);
     }
 }

@@ -22,15 +22,15 @@ public class TemporalConverter implements GenericConverter{
     
     private static final Logger LOG = LoggerFactory.getLogger(TemporalConverter.class);
     
-    private final Converter<Temporal, String> temporalToStringConverter;
+    private final TemporalToStringConverter temporalToStringConverter;
     
-    private final Converter<String, Temporal> stringToTemporalConverter;
+    private final StringToTemporalConverter stringToTemporalConverter;
     
     private final Set<ConvertiblePair> convertibleTypes;
 
     public TemporalConverter(
-            Converter<Temporal, String> temporalToStringConverter, 
-            Converter<String, Temporal> stringToTemporalConverter) {
+            TemporalToStringConverter temporalToStringConverter,
+            StringToTemporalConverter stringToTemporalConverter) {
         this.temporalToStringConverter = Objects.requireNonNull(temporalToStringConverter);
         this.stringToTemporalConverter = Objects.requireNonNull(stringToTemporalConverter);
         this.convertibleTypes = this.initConvertibleTypes();
@@ -62,10 +62,10 @@ public class TemporalConverter implements GenericConverter{
         try{
             final Class srcType = sourceType.getType();
             final Class tgtType = targetType.getType();
-//            LOG.trace("Converting {} to {}", sourceType, targetType);
+            LOG.trace("Converting {} of {} to {}", source, srcType, tgtType);
             final Object target;
             if(String.class.equals(srcType)) {
-                target = this.stringToTemporalConverter.convert(source.toString());
+                target = this.stringToTemporalConverter.convert(source.toString(), tgtType);
             }else if(Temporal.class.isAssignableFrom(srcType)){
                 target = this.temporalToStringConverter.convert((Temporal)source);
             }else{

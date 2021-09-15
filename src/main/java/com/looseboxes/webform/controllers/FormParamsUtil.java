@@ -35,9 +35,9 @@ public final class FormParamsUtil {
         if(LOG.isTraceEnabled()) {
             LOG.trace("HttpServletRequest.parameterNames: {}", Collections.list(request.getParameterNames()));
             LOG.trace("BEFORE adding request parameters");
-            FormConfigLogUtil.logWith(LOG, formConfig);
+            LOG.trace("{}", formConfig.print());
         }
-        
+
         final String [] names = Params.names();
         final List<String> attempted = new ArrayList<>(names.length);
         for(String name : names) {
@@ -59,7 +59,7 @@ public final class FormParamsUtil {
 
         if(LOG.isTraceEnabled()) {
             LOG.trace(" AFTER adding request parameters");
-            FormConfigLogUtil.logWith(LOG, formConfig);
+            LOG.trace("{}", formConfig.print());
         }
     }
 

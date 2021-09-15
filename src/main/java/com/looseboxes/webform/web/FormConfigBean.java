@@ -2,6 +2,7 @@ package com.looseboxes.webform.web;
 
 import com.bc.webform.form.Form;
 import com.bc.webform.form.FormBean;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.looseboxes.webform.CRUDAction;
 import com.looseboxes.webform.Errors;
 import com.looseboxes.webform.Params;
@@ -415,11 +416,13 @@ public class FormConfigBean  implements Serializable, FormConfig, Params {
     public void setForm(FormBean<Object> form) {
         this.form = form;
     }
-    
+
+    @JsonIgnore
     public Optional<Form<Object>> getParentFormOptional() {
         return Optional.ofNullable(form == null ? null : form.getParent());
     }
-    
+
+    @JsonIgnore
     public Optional<Form<Object>> getFormOptional() {
         return Optional.ofNullable(this.getForm());
     }

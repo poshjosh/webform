@@ -149,43 +149,28 @@ public class ModelObjectService{
         
         if (modelobject == null) {
             modelobject = (T)existingFormConfig.getModelobject();
-//            modelobject = (T)formConfig.getModelobject();
         }
         
         final BindingResult bindingResult = this.bind(webRequest, modelobject);
 
-        if(modelobject != null && this.shouldConfigureModelObject(formRequest)) {
-            modelobject = this.configureModelObject(modelobject, formRequest);
-        }
-        
         FormBean form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
-//        FormBean form = formConfig.getForm();
-//        if(form == null) {
-//            form = (FormBean)this.formFactory.newForm(parentForm, formid, modelname, modelobject);
-//            formConfig.setForm(form);
-//        }else{
-//            form.setParent(parentForm);
-//            form.setDataSource(modelobject);
-//        }
+        formConfig.setForm(form);
 
-        if(existingFormConfig == null) {
+        if(existingFormConfig != null) {
             
-            formRequest.setFormConfig(formConfig.form(form));
-
-        }else{
-  
             this.validateFormId(existingFormConfig, formConfig);
             
             formConfig.merge(existingFormConfig);
-            
-            formRequest.setFormConfig(formConfig.form(form));
         }
-        
+
+        if(modelobject != null && this.shouldConfigureModelObject(formRequest)) {
+            this.configureModelObject(modelobject, formRequest);
+        }
+
         if(bindingResult != null) {
-        
-            formRequest.getFormConfig().setBindingResult(bindingResult);
+            formConfig.setBindingResult(bindingResult);
         }
-        
+
         return formRequest;
     }   
     

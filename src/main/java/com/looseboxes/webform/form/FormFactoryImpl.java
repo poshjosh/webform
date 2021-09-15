@@ -1,12 +1,8 @@
 package com.looseboxes.webform.form;
 
-import com.bc.webform.choices.SelectOption;
 import com.bc.webform.form.Form;
-import com.bc.webform.form.member.FormMember;
-import java.util.List;
+import com.bc.webform.form.FormBean;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,24 +33,10 @@ public class FormFactoryImpl implements FormFactory{
                 .dataSource(domainObject)
                 .build();
 
-        this.logFormFields(form);
+        if(LOG.isTraceEnabled()) {
+            LOG.trace("{}", ((FormBean)form).print());
+        }
 
         return (Form<T>)form;
-    }
-
-    private void logFormFields(Form form) {
-        if(LOG.isDebugEnabled()) {
-            final Function<FormMember, String> mapper = (ff) -> {
-                final Object value = ff.getValue();
-                final List<SelectOption> choices = ff.getChoices();
-                return ff.getName() + '=' + 
-                        (choices==null||choices.isEmpty() ? value : 
-                        (String.valueOf(value) + ", " + choices.size() + " choice(s)"));
-            };
-            LOG.debug("Form fields:{}", 
-                    form.getMembers().stream()
-                            .map(mapper)
-                            .collect(Collectors.joining(", ")));
-        }
     }
 }

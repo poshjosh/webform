@@ -1,14 +1,11 @@
 package com.looseboxes.webform.converters;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.Objects;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,16 +18,18 @@ public class TemporalToStringConverterImpl implements TemporalToStringConverter{
             .getLogger(TemporalToStringConverterImpl.class);
 
     private final DateAndTimePatternsSupplier patternSupplier;
+    private final ZoneId zoneId;
 
-    public TemporalToStringConverterImpl(DateAndTimePatternsSupplier patternSupplier) {
+    public TemporalToStringConverterImpl(DateAndTimePatternsSupplier patternSupplier, ZoneId zoneId) {
         this.patternSupplier = Objects.requireNonNull(patternSupplier);
+        this.zoneId = Objects.requireNonNull(zoneId);
     }
     
     @Override
     public String convert(Temporal t) {
-        final Set<String> patterns = this.getPatterns(t);
+        final Set<String> patterns = patternSupplier.getPatterns(t.getClass());
         for(String pattern : patterns) {
-            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern);
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern(pattern).withZone(zoneId);
             try{
                 final String result = fmt.format(t);
                 LOG.trace("Converted {} to {}", t, result);
@@ -38,24 +37,5 @@ public class TemporalToStringConverterImpl implements TemporalToStringConverter{
             }catch(RuntimeException ignored) {}
         }
         return t.toString();
-    }
-    
-    public Set<String> getPatterns(Temporal t) {
-        final Set<String> patterns;
-        if(t instanceof LocalDateTime) {
-            patterns = this.patternSupplier.getDatetimePatterns();
-        }else if(t instanceof ZonedDateTime) {
-            patterns = this.patternSupplier.getDatetimePatterns();
-        }else if(t instanceof Instant) {
-            patterns = this.patternSupplier.getDatetimePatterns();
-        }else if(t instanceof LocalDate) {
-            patterns = this.patternSupplier.getDatePatterns();
-        }else if(t instanceof LocalTime) {
-            patterns = this.patternSupplier.getTimePatterns();
-        }else{
-            throw new UnsupportedOperationException("Temporal type not supported: " 
-                    + t.getClass() + ", instance: " + t);
-        }
-        return patterns;
     }
 }

@@ -19,14 +19,10 @@ import java.util.function.Function;
  */
 public interface FormMemberUpdater {
 
-    FormConfigDTO update(FormConfigDTO formConfig, String memberName, 
-            Function<FormMemberBean, FormBean> updater) 
-            throws FormMemberNotFoundException;
-    
     FormConfigDTO setValue(FormConfigDTO formConfig, String memberName, Object memberValue) 
             throws FormMemberNotFoundException;
     
-    FormConfigDTO setChoices(
-            FormConfigDTO formConfig, String memberName, List<SelectOption> choices) 
-            throws FormMemberNotFoundException;
+//    FormConfigDTO setChoices(
+//            FormConfigDTO formConfig, String memberName, List<SelectOption> choices)
+//            throws FormMemberNotFoundException;
 }
