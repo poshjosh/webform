@@ -46,7 +46,7 @@ public class FormControllerHtm<T> extends FormControllerBase<T>{
 
         try{
             
-            formConfig = super.onBeginForm(formConfig, request);
+            formConfig = this.onBeginForm(formConfig, request);
             
             return responseHandler.respond(formConfig);
             
@@ -66,7 +66,7 @@ public class FormControllerHtm<T> extends FormControllerBase<T>{
         
         try{
             
-            formConfig = super.onValidateThenSubmitForm(formConfig, request, webRequest);
+            formConfig = this.onValidateThenSubmitForm(formConfig, request, webRequest);
             
             return responseHandler.respond(formConfig);
             
@@ -86,7 +86,7 @@ public class FormControllerHtm<T> extends FormControllerBase<T>{
         
         try{
             
-            formConfig = super.onValidateForm(formConfig, request, webRequest);
+            formConfig = this.onValidateForm(formConfig, request, webRequest);
 
             return responseHandler.respond(formConfig);
             
@@ -105,7 +105,7 @@ public class FormControllerHtm<T> extends FormControllerBase<T>{
         
         try{
             
-            formConfig = super.onSubmitForm(formConfig, request);
+            formConfig = this.onSubmitForm(formConfig, request);
 
             return responseHandler.respond(formConfig);
             

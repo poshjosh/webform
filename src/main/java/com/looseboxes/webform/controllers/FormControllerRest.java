@@ -4,7 +4,6 @@ import com.bc.webform.choices.SelectOption;
 import com.looseboxes.webform.Params;
 import com.looseboxes.webform.web.FormConfigDTO;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,14 +19,6 @@ import com.looseboxes.webform.web.ResponseHandler;
 import java.util.List;
 
 /**
- * Override the {@link #getDependents(com.looseboxes.webform.web.FormConfigBean, java.lang.String)} 
- * method to provide dependents for a current form input.
- * 
- * For example if an Address Form has both country and region inputs, and
- * the region input is dependent on the country input. Then, when the 
- * country input is selected, use this method to return the list of regions
- * for the selected country. The regions returned will immediately be
- * rendered giving the user an option to select from.
  * @author hp
  */
 public class FormControllerRest<T> extends FormControllerBase<T>{
@@ -44,7 +35,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
         try{
             
-            formConfig = super.onBeginThenValidateThenSubmitForm(formConfig, request, webRequest);
+            formConfig = this.onBeginThenValidateThenSubmitForm(formConfig, request, webRequest);
             
             return this.responseService.respond(formConfig);
             
@@ -59,7 +50,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
         
         try{
             
-            formConfig = super.onBeginForm(formConfig, request);
+            formConfig = this.onBeginForm(formConfig, request);
 
             return this.responseService.respond(formConfig);
             
@@ -75,7 +66,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
         try{
             
-            formConfig = super.onValidateThenSubmitForm(formConfig, request, webRequest);
+            formConfig = this.onValidateThenSubmitForm(formConfig, request, webRequest);
             
             return this.responseService.respond(formConfig);
             
@@ -90,7 +81,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             FormConfigDTO formConfig, HttpServletRequest request, WebRequest webRequest) {
         try{
             
-            formConfig = super.onValidateForm(formConfig, request, webRequest);
+            formConfig = this.onValidateForm(formConfig, request, webRequest);
 
             return this.responseService.respond(formConfig);
             
@@ -105,7 +96,7 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
             FormConfigDTO formConfig, HttpServletRequest request) {
         try{
             
-            formConfig = super.onSubmitForm(formConfig, request);
+            formConfig = this.onSubmitForm(formConfig, request);
             
             return this.responseService.respond(formConfig);
             
@@ -117,13 +108,13 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
 
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.dependents)
     public ResponseEntity<Object> dependents(
-            @RequestParam(name = Params.FORMID, required = true) String formid, 
-            @RequestParam(name = "propertyName", required = true) String propertyName, 
-            @RequestParam(name = "propertyValue", required = true) String propertyValue,
-            HttpServletRequest request, HttpServletResponse response) {
+            @RequestParam(name = Params.FORMID) String formid,
+            @RequestParam(name = "propertyName") String propertyName,
+            @RequestParam(name = "propertyValue") String propertyValue,
+            HttpServletRequest request) {
         try{
             
-            final Map<String, List<SelectOption>> result = super.onGetDependents(
+            final Map<String, List<SelectOption>> result = this.onGetDependents(
                     formid, propertyName, propertyValue, request);
             
             return ResponseEntity.ok(result);
@@ -138,15 +129,15 @@ public class FormControllerRest<T> extends FormControllerBase<T>{
     
     @RequestMapping("/{"+Params.ACTION+"}/{"+Params.MODELNAME+"}/" + FormStages.validateSingle)
     public ResponseEntity<FormConfigDTO> validateSingle(
-            @RequestParam(name = Params.FORMID, required = true) String formid, 
-            @RequestParam(name = "propertyName", required = true) String propertyName, 
-            @RequestParam(name = "propertyValue", required = true) String propertyValue,
+            @RequestParam(name = Params.FORMID) String formid,
+            @RequestParam(name = "propertyName") String propertyName,
+            @RequestParam(name = "propertyValue") String propertyValue,
             HttpServletRequest request) {
        
         FormConfigDTO formConfig = null;
         try{
             
-            formConfig = super.onValidateSingle(
+            formConfig = this.onValidateSingle(
                     formid, propertyName, propertyValue, request);
 
             return this.responseService.respond(formConfig);
