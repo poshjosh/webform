@@ -113,22 +113,27 @@ public class StringToTemporalConverterImpl<T extends Temporal> implements Conver
         try{
             return Instant.parse(text);
         }catch(DateTimeParseException e) {
-            try {
-                ZonedDateTime zonedDateTime = this.convert(ZonedDateTime.class, text, fmt);
-                return zonedDateTime.toInstant();
-            }catch(DateTimeParseException e1) {
+            try{
+                return Instant.ofEpochMilli(Long.parseLong(text));
+            }catch(NumberFormatException e1) {
                 try {
-                    LocalDateTime localDateTime = this.convert(LocalDateTime.class, text, fmt);
-                    return localDateTime.toInstant(ZoneOffset.UTC);
+                    ZonedDateTime zonedDateTime = this.convert(ZonedDateTime.class, text, fmt);
+                    return zonedDateTime.toInstant();
                 }catch(DateTimeParseException e2) {
                     try {
-                        LocalTime localTime = this.convert(LocalTime.class, text, fmt);
-                        return LocalDate.now().atTime(localTime).toInstant(ZoneOffset.UTC);
+                        LocalDateTime localDateTime = this.convert(LocalDateTime.class, text, fmt);
+                        return localDateTime.toInstant(ZoneOffset.UTC);
                     }catch(DateTimeParseException e3) {
-                        e1.addSuppressed(e);
-                        e2.addSuppressed(e1);
-                        e3.addSuppressed(e2);
-                        throw e3;
+                        try {
+                            LocalTime localTime = this.convert(LocalTime.class, text, fmt);
+                            return LocalDate.now().atTime(localTime).toInstant(ZoneOffset.UTC);
+                        }catch(DateTimeParseException e4) {
+                            e1.addSuppressed(e);
+                            e2.addSuppressed(e1);
+                            e3.addSuppressed(e2);
+                            e4.addSuppressed(e3);
+                            throw e3;
+                        }
                     }
                 }
             }
